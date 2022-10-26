@@ -6,38 +6,36 @@ Basic instructions on how to build different php versions.
 
 All build operations rely on WASISDK. You would need to download and install it.
 
-# 7.3.33 - patch-v2.diff
+The php build uses autoconf and make.
 
-Assuming we are working from the current directory of this README.
+Define WASI_SDK_ROOT to point to a local installation of WasiSDK and WASMLABS_BUILD_OUTPUT to point to your working folder
+
+# 7.3.33 - patch.v2.diff
 
 This is work in progress and we're currently building only php-cgi.
 
 **Note**: A build with this patch has some issues interpreting WP. We are working on it. 
 
-1. Clone the 7.3.33 tag into a working folder
+1. To build just run `php/patches/7.3.33/build.sh`
 
-```bash
-git clone --depth=1 -b php-7.3.33 https://github.com/php/php-src.git php-7.3.33-build && cd php-7.3.33-build
-```
+2. You can find `php-cgi` in `$WASMLABS_BUILD_OUTPUT/bin/php-cgi`
 
-2. Apply the patch inside that folder
+# 7.4.32 - patch.v1.diff
 
-```bash
-git apply ../patches/patch-v2.diff
-```
+This is work in progress and we're currently building only php-cgi.
 
-3. Set the location to WASI SDK and run the build script 
-```bash
-export WASI_SDK_ROOT=/path/to/wasi-sdk-16.0
-./wasmlabs-build.sh
-```
+This build also downloads and builds sqlite3(3.39.2) and links it into the php binary
 
-4. You can find `php-cgi` in `sapi/cgi/php-cgi`
+**Note**: A build with this patch has some issues interpreting WP. We are working on it. 
 
-## Running a script with php-cgi
+1. To build just run `php/patches/7.4.32/build.sh`
+
+2. You can find `php-cgi` in `$WASMLABS_BUILD_OUTPUT/bin/php-cgi`
+
+# Running a script with php-cgi
 
 Don't forget to map the folder that contains the php script, which you want to run. For example:
 
 ```bash
-wasmtime --mapdir=./::./ -- sapi/cgi/php-cgi ./Zend/bench.php
+wasmtime --mapdir=./::./ -- php-cgi my-script.php
 ```
