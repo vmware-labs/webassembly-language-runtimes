@@ -26,10 +26,10 @@ function onExit {
 }
 trap onExit EXIT
 
-mkdir build 2>/dev-null
+mkdir build 2>/dev/null
 cd build
 
 #REPO-build-TAG
-git clone --depth=1 -b php-7.4.32 https://github.com/php/php-src.git php-src-build-php-7.4.32 && cd php-src-build-php-7.4.32
+git clone --depth=1 -b php-7.3.32 https://github.com/php/php-src.git php-src-build-php-7.3.33 && cd php-src-build-php-7.3.33
 git apply $PATCH_PATH
 ./wasmlabs-build.sh
