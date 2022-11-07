@@ -1,3 +1,19 @@
+From d9af3f70f25893dd978d9b7e233da952f6e307d6 Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Wed, 26 Oct 2022 19:11:13 +0300
+Subject: [PATCH 1/2] Patch to build sqlite-3.39.2 for wasm32-wasi
+
+
+   8.6% src/
+   8.0% wasmlabs-stubs/
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 000000000..e6c1dcffa
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1 @@
++/wasmlabs-output/
+\ No newline at end of file
 diff --git a/src/os_unix.c b/src/os_unix.c
 index b933de376..79005a87d 100644
 --- a/src/os_unix.c
@@ -42,10 +58,10 @@ index b933de376..79005a87d 100644
  #endif
 diff --git a/wasmlabs-build.sh b/wasmlabs-build.sh
 new file mode 100755
-index 000000000..4ff60ec8c
+index 000000000..4c87f2251
 --- /dev/null
 +++ b/wasmlabs-build.sh
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,68 @@
 +#!/bin/bash
 +
 +if [[ ! -v WASI_SDK_ROOT ]]
@@ -56,21 +72,22 @@ index 000000000..4ff60ec8c
 +
 +if [[ ! -v WASMLABS_BUILD_OUTPUT ]]
 +then
-+    echo "Assuming $PWD/wasmlabs-build-output as WASMLABS_BUILD_OUTPUT"
-+    export WASMLABS_BUILD_OUTPUT=$PWD/wasmlabs-build-output
++    echo "Assuming $PWD/wasmlabs-output as WASMLABS_BUILD_OUTPUT"
++    export WASMLABS_BUILD_OUTPUT=$PWD/wasmlabs-output
++    mkdir $WASMLABS_BUILD_OUTPUT 2>&1 >/dev/null
 +fi
 +
 +function onExit {
 +    echo "=============================================================="
 +    echo "Build progress logs:"
-+    cat wasmlabs-progress.log
++    cat $WASMLABS_BUILD_OUTPUT/wasmlabs-progress.log
 +}
 +trap onExit EXIT
 +
-+echo "$(date --iso-8601=ns) | Using WASI_SDK_ROOT=$WASI_SDK_ROOT " > wasmlabs-progress.log
++echo "$(date --iso-8601=ns) | Using WASI_SDK_ROOT=$WASI_SDK_ROOT " >  $WASMLABS_BUILD_OUTPUT/wasmlabs-progress.log
 +
 +function logStatus {
-+    echo "$(date --iso-8601=ns) | $@" >> wasmlabs-progress.log
++    echo "$(date --iso-8601=ns) | $@" >>  $WASMLABS_BUILD_OUTPUT/wasmlabs-progress.log
 +}
 +
 +export WASI_SYSROOT="${WASI_SDK_ROOT}/share/wasi-sysroot"
@@ -139,3 +156,6 @@ index 000000000..c0f8abb71
 +#endif
 +
 +#endif //WASM_WASI
+-- 
+2.38.1
+
