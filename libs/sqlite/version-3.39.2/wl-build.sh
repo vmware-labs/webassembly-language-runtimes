@@ -27,16 +27,13 @@ export LDFLAGS="${LDFLAGS_WASI}"
 cd "${WASMLABS_CHECKOUT_PATH}"
 
 logStatus "Configuring build with '${SQLITE_CONFIGURE}'... "
-./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE}
+./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE} || exit 1
 
 logStatus "Building... "
-make libsqlite3.la
+make libsqlite3.la || exit 1
 
 logStatus "Preparing artifacts... "
-mkdir -p ${WASMLABS_OUTPUT}/include 2>/dev/null
-mkdir -p ${WASMLABS_OUTPUT}/lib 2>/dev/null
-
-cp sqlite3.h sqlite3ext.h sqlite3session.h ${WASMLABS_OUTPUT}/include/
-cp .libs/libsqlite3.a ${WASMLABS_OUTPUT}/lib/
+cp sqlite3.h sqlite3ext.h sqlite3session.h ${WASMLABS_OUTPUT}/include/ || exit 1
+cp .libs/libsqlite3.a ${WASMLABS_OUTPUT}/lib/ || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
