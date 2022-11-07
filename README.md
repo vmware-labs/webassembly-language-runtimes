@@ -7,6 +7,8 @@ compiled for the wasm32-wasi target.
 
 ## Getting started
 
+To run this builds for WASM/WASI you will need to install [WebAssembly/wasi-sdk](https://github.com/WebAssembly/wasi-sdk) in advance. Then export the location as `WASI_SDK_ROOT`.
+
 First ensure you have the build tools required to build the respective language runtime or standalone library. These could be `autoconf`, `libtool`, `make`, etc.
 
 For the current version of our build orchestration scripts we use `bash`
