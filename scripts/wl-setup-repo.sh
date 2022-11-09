@@ -11,7 +11,7 @@ then
     cd ${WASMLABS_CHECKOUT_PATH} || exit 1
     for p in ${WASMLABS_ENV}/patches/*.patch
     do
-        git am $p || exit 1
+        git apply $p || exit 1
     done
 else
     echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
