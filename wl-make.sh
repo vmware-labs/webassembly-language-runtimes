@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ "${BASH_SOURCE-}" != "$0" ]; then
     echo "You must not source this script! Only call it in a new bash shell" >&2
