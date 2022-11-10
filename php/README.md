@@ -4,11 +4,19 @@ Basic instructions on how to build different php versions.
 
 # Prerequisites
 
-All build operations rely on WASISDK. You would need to download and install it.
+1. All build operations rely on WASISDK. You could get it from here - https://github.com/WebAssembly/wasi-sdk
 
-The php build uses autoconf and make.
+2. The php build uses autoconf make and libtool. On a ubuntu machine you may need to do
 
-Define WASI_SDK_ROOT to point to a local installation of WasiSDK and WASMLABS_BUILD_OUTPUT to point to your working folder
+```console
+sudo apt update && sudo apt install autoconf make libtool-bin -y
+```
+
+3. Before building define WASI_SDK_ROOT to point to a local installation of WasiSDK. For example
+
+```console
+export WASI_SDK_ROOT=/opt/wasi-sdk
+```
 
 # 7.3.33 - patch.v2.diff
 
