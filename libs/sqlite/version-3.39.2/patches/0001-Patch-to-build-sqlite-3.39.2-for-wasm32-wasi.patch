@@ -1,21 +1,21 @@
-From d9af3f70f25893dd978d9b7e233da952f6e307d6 Mon Sep 17 00:00:00 2001
+From d20ebc2e9c82b91075df9b11dbc11362d352fef3 Mon Sep 17 00:00:00 2001
 From: Asen Alexandrov <alexandrov@vmware.com>
 Date: Wed, 26 Oct 2022 19:11:13 +0300
 Subject: [PATCH 1/2] Patch to build sqlite-3.39.2 for wasm32-wasi
 
 
-   8.6% src/
-   8.0% wasmlabs-stubs/
+  50.2% src/
+  46.9% wasmlabs-stubs/
 diff --git a/.gitignore b/.gitignore
 new file mode 100644
-index 000000000..e6c1dcffa
+index 0000000..e6c1dcf
 --- /dev/null
 +++ b/.gitignore
 @@ -0,0 +1 @@
 +/wasmlabs-output/
 \ No newline at end of file
 diff --git a/src/os_unix.c b/src/os_unix.c
-index b933de376..79005a87d 100644
+index b933de3..79005a8 100644
 --- a/src/os_unix.c
 +++ b/src/os_unix.c
 @@ -457,7 +457,11 @@ static struct unix_syscall {
@@ -56,83 +56,9 @@ index b933de376..79005a87d 100644
  #else
      UNIXVFS("unix",          posixIoFinder ),
  #endif
-diff --git a/wasmlabs-build.sh b/wasmlabs-build.sh
-new file mode 100755
-index 000000000..4c87f2251
---- /dev/null
-+++ b/wasmlabs-build.sh
-@@ -0,0 +1,68 @@
-+#!/bin/bash
-+
-+if [[ ! -v WASI_SDK_ROOT ]]
-+then
-+    echo "Please set WASI_SDK_ROOT and run again"
-+    exit 1
-+fi
-+
-+if [[ ! -v WASMLABS_BUILD_OUTPUT ]]
-+then
-+    echo "Assuming $PWD/wasmlabs-output as WASMLABS_BUILD_OUTPUT"
-+    export WASMLABS_BUILD_OUTPUT=$PWD/wasmlabs-output
-+    mkdir $WASMLABS_BUILD_OUTPUT 2>&1 >/dev/null
-+fi
-+
-+function onExit {
-+    echo "=============================================================="
-+    echo "Build progress logs:"
-+    cat $WASMLABS_BUILD_OUTPUT/wasmlabs-progress.log
-+}
-+trap onExit EXIT
-+
-+echo "$(date --iso-8601=ns) | Using WASI_SDK_ROOT=$WASI_SDK_ROOT " >  $WASMLABS_BUILD_OUTPUT/wasmlabs-progress.log
-+
-+function logStatus {
-+    echo "$(date --iso-8601=ns) | $@" >>  $WASMLABS_BUILD_OUTPUT/wasmlabs-progress.log
-+}
-+
-+export WASI_SYSROOT="${WASI_SDK_ROOT}/share/wasi-sysroot"
-+
-+export CC=${WASI_SDK_ROOT}/bin/clang
-+export LD=${WASI_SDK_ROOT}/bin/wasm-ld
-+export CXX=${WASI_SDK_ROOT}/bin/clang++
-+export NM=${WASI_SDK_ROOT}/bin/llvm-nm
-+export AR=${WASI_SDK_ROOT}/bin/llvm-ar
-+export RANLIB=${WASI_SDK_ROOT}/bin/llvm-ranlib
-+
-+export CFLAGS_CONFIG="-O2"
-+
-+export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -I./wasmlabs-stubs -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
-+export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-mman -lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
-+
-+export CFLAGS_SQLITE='-DSQLITE_OMIT_WAL=1 -DSQLITE_DEFAULT_SYNCHRONOUS=0 -DSQLITE_OMIT_RANDOMNESS  -DLONGDOUBLE_TYPE=double -DSQLITE_BYTEORDER=1234 -DNDEBUG=1 -DSQLITE_OS_UNIX=1 -DSQLITE_DISABLE_LFS=1 -DSQLITE_ENABLE_JSON1=1 -DSQLITE_HAVE_ISNAN=1 -DSQLITE_HAVE_MALLOC_USABLE_SIZE=1 -DSQLITE_HAVE_STRCHRNUL=1 -DSQLITE_LIKE_DOESNT_MATCH_BLOBS=1 -DSQLITE_OMIT_DEPRECATED=1 -DSQLITE_OMIT_LOAD_EXTENSION=1 -DSQLITE_TEMP_STORE=2 -DSQLITE_THREADSAFE=0 -DSQLITE_USE_URI=1 -DSQLITE_ENABLE_RTREE=1 -DSQLITE_ENABLE_FTS5=1 -DSQLITE_HAVE_USLEEP=1 -DSQLITE_ENABLE_EXPLAIN_COMMENTS=1'
-+
-+logStatus "Using SQLITE DEFINES: $CFLAGS_SQLITE"
-+
-+export SQLITE_CONFIGURE=' --disable-threadsafe --enable-tempstore=yes'
-+
-+export CFLAGS_BUILD='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI'
-+
-+# We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
-+export CFLAGS="$CFLAGS_CONFIG $CFLAGS_WASI $CFLAGS_SQLITE $CFLAGS_BUILD $LDFLAGS_WASI"
-+export LDFLAGS="$LDFLAGS_WASI"
-+
-+logStatus "Configuring build with '$SQLITE_CONFIGURE'... "
-+./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi $SQLITE_CONFIGURE
-+
-+logStatus "Building... "
-+make libsqlite3.la
-+
-+logStatus "Preparing artifacts... "
-+mkdir -p $WASMLABS_BUILD_OUTPUT/include 2>/dev/null
-+mkdir -p $WASMLABS_BUILD_OUTPUT/lib 2>/dev/null
-+
-+cp sqlite3.h sqlite3ext.h sqlite3session.h $WASMLABS_BUILD_OUTPUT/include/
-+cp .libs/libsqlite3.a $WASMLABS_BUILD_OUTPUT/lib/
-+
-+logStatus "DONE. Artifacts in $WASMLABS_BUILD_OUTPUT"
 diff --git a/wasmlabs-stubs/fcntl.h b/wasmlabs-stubs/fcntl.h
 new file mode 100644
-index 000000000..c0f8abb71
+index 0000000..c0f8abb
 --- /dev/null
 +++ b/wasmlabs-stubs/fcntl.h
 @@ -0,0 +1,20 @@

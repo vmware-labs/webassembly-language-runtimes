@@ -21,6 +21,7 @@ function wl-env-unset() {
     unset WASMLABS_STAGING
     unset WASMLABS_OUTPUT_BASE
     unset WASMLABS_OUTPUT
+    unset WASMLABS_REPO_ROOT
 
     if [[ -v WASMLABS_OLD_PS1 ]]
     then
