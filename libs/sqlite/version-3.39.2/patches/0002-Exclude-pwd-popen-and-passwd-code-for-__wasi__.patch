@@ -1,0 +1,41 @@
+From 18469c26e6e126d7944a13e20509fe6ac24ce4d5 Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Thu, 10 Nov 2022 14:29:54 +0200
+Subject: [PATCH 2/2] Exclude pwd, popen and passwd code for __wasi__
+
+
+ 100.0% src/
+diff --git a/src/shell.c.in b/src/shell.c.in
+index 4e921cb..b3efc82 100644
+--- a/src/shell.c.in
++++ b/src/shell.c.in
+@@ -92,7 +92,7 @@ typedef unsigned char u8;
+ 
+ #if !defined(_WIN32) && !defined(WIN32)
+ # include <signal.h>
+-# if !defined(__RTP__) && !defined(_WRS_KERNEL)
++# if !defined(__RTP__) && !defined(_WRS_KERNEL) && !defined(__wasi__)
+ #  include <pwd.h>
+ # endif
+ #endif
+@@ -173,7 +173,7 @@ typedef unsigned char u8;
+  /* Make sure isatty() has a prototype. */
+  extern int isatty(int);
+ 
+-# if !defined(__RTP__) && !defined(_WRS_KERNEL)
++# if !defined(__RTP__) && !defined(_WRS_KERNEL) && !defined(__wasi__)
+   /* popen and pclose are not C89 functions and so are
+   ** sometimes omitted from the <stdio.h> header */
+    extern FILE *popen(const char*,const char*);
+@@ -11727,7 +11727,7 @@ static char *find_home_dir(int clearFlag){
+   if( home_dir ) return home_dir;
+ 
+ #if !defined(_WIN32) && !defined(WIN32) && !defined(_WIN32_WCE) \
+-     && !defined(__RTP__) && !defined(_WRS_KERNEL)
++     && !defined(__RTP__) && !defined(_WRS_KERNEL) && !defined(__wasi__)
+   {
+     struct passwd *pwent;
+     uid_t uid = getuid();
+-- 
+2.38.1
+
