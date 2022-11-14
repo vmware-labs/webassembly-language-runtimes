@@ -1,0 +1,80 @@
+name: Release PHP
+on:
+  push:
+    tags:
+      - php/*
+jobs:
+  release-php:
+    strategy:
+      matrix:
+        version: [7.3.33, 7.4.32]
+    runs-on: ubuntu-latest
+    env:
+      BINARYEN_VERSION: 110
+    steps:
+      - name: Checkout repository
+        # Only run for the PHP version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        uses: actions/checkout@v3
+      - name: Build PHP
+        # Only run for the PHP version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        run: make php/php-${{ matrix.version }}
+      - name: Rename release artifacts
+        # Only run for the PHP version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        shell: bash
+        run: |
+          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{,.wasm}
+      - name: Setup binaryen
+        # Only run for the PHP version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        shell: bash
+        run: |
+          wget https://github.com/WebAssembly/binaryen/releases/download/version_${{ env.BINARYEN_VERSION }}/binaryen-version_${{ env.BINARYEN_VERSION }}-x86_64-linux.tar.gz
+          tar -xf binaryen-version_${{ env.BINARYEN_VERSION }}-x86_64-linux.tar.gz --strip-components=1 -C /opt
+          rm binaryen-version_${{ env.BINARYEN_VERSION }}-x86_64-linux.tar.gz
+      - name: Optimize release artifacts
+        # Only run for the PHP version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        shell: bash
+        run: |
+          sudo /opt/bin/wasm-opt -Os -o php/build-output/php/php-${{ matrix.version }}/bin/php-cgi.size-optimized.wasm php/build-output/php/php-${{ matrix.version }}/bin/php-cgi.wasm
+          sudo /opt/bin/wasm-opt -O -o php/build-output/php/php-${{ matrix.version }}/bin/php-cgi.speed-optimized.wasm php/build-output/php/php-${{ matrix.version }}/bin/php-cgi.wasm
+      - name: Append version to release artifacts
+        # Only run for the PHP version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        run: |
+          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{,-${{ matrix.version }}}.wasm
+          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{,-${{ matrix.version }}}.size-optimized.wasm
+          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{,-${{ matrix.version }}}.speed-optimized.wasm
+      - name: Release
+        # Only run for the PHP version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}.wasm
+            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}.size-optimized.wasm
+            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}.speed-optimized.wasm

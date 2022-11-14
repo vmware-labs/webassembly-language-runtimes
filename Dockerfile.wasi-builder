@@ -1,0 +1,19 @@
+FROM ubuntu:latest@sha256:4b1d0c4a2d2aaf63b37111f34eb9fa89fa1bf53dd6e4ca954d47caebca4005c2
+ARG WASI_SDK_VERSION=16
+ENV WASI_SDK=wasi-sdk-${WASI_SDK_VERSION}
+ENV WASI_SDK_ROOT=/wasi-sdk
+RUN apt update && \
+      DEBIAN_FRONTEND=noninteractive apt install -y \
+        autoconf \
+        automake \
+        build-essential \
+        clang \
+        git \
+        pkg-config \
+        wget
+RUN wget https://github.com/WebAssembly/wasi-sdk/releases/download/${WASI_SDK}/${WASI_SDK}.0-linux.tar.gz && \
+      mkdir /wasi-sdk && \
+      tar xf ${WASI_SDK}.0-linux.tar.gz --strip-components=1 -C ${WASI_SDK_ROOT} && \
+      rm ${WASI_SDK}.0-linux.tar.gz
+ADD . /wlr
+WORKDIR /wlr
