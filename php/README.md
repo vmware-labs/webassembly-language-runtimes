@@ -1,4 +1,4 @@
-#About
+# About
 
 Basic instructions on how to build different php versions.
 
