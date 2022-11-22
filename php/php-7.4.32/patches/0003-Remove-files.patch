@@ -1,12 +1,12 @@
-From cc8f4d4482b0ea46f18451510be7cc764990daa4 Mon Sep 17 00:00:00 2001
+From ef3834e610250a9cd2bb09b2137894adba09bd1c Mon Sep 17 00:00:00 2001
 From: Asen Alexandrov <alexandrov@vmware.com>
 Date: Thu, 3 Nov 2022 18:47:49 +0200
-Subject: [PATCH 3/3] Remove files
+Subject: [PATCH 3/6] Remove files
 
 
 diff --git a/wasmlabs-README.md b/wasmlabs-README.md
 deleted file mode 100644
-index c57f0c8a3a..0000000000
+index c57f0c8a..00000000
 --- a/wasmlabs-README.md
 +++ /dev/null
 @@ -1,85 +0,0 @@
@@ -97,7 +97,7 @@ index c57f0c8a3a..0000000000
 -
 diff --git a/wasmlabs-build.sh b/wasmlabs-build.sh
 deleted file mode 100755
-index a4b4da9687..0000000000
+index a4b4da96..00000000
 --- a/wasmlabs-build.sh
 +++ /dev/null
 @@ -1,72 +0,0 @@

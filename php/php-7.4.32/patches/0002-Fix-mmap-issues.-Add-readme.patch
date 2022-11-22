@@ -1,13 +1,15 @@
-From 455bf66002f5b1ac7eeea5ada5fdcbed4b12251a Mon Sep 17 00:00:00 2001
+From 852ba669904414b138a9d9bfd29fedfc2d85dbe2 Mon Sep 17 00:00:00 2001
 From: Asen Alexandrov <alexandrov@vmware.com>
 Date: Tue, 1 Nov 2022 15:16:26 +0200
-Subject: [PATCH 2/3] Fix mmap issues. Add readme
+Subject: [PATCH 2/6] Fix mmap issues. Add readme
+
+   8.3% Zend/
 
    8.3% Zend/
 
    8.3% Zend/
 diff --git a/.gitignore b/.gitignore
-index cd6e779831..8d8493ec04 100644
+index cd6e7798..8d8493ec 100644
 --- a/.gitignore
 +++ b/.gitignore
 @@ -281,3 +281,5 @@ tmp-php.ini
@@ -17,7 +19,7 @@ index cd6e779831..8d8493ec04 100644
 +
 +/wasmlabs-output/
 diff --git a/Zend/zend_alloc.c b/Zend/zend_alloc.c
-index 46e97a30fa..014801a99c 100644
+index 46e97a30..014801a9 100644
 --- a/Zend/zend_alloc.c
 +++ b/Zend/zend_alloc.c
 @@ -79,7 +79,7 @@
@@ -106,7 +108,7 @@ index 46e97a30fa..014801a99c 100644
  	REAL_PAGE_SIZE = sysconf(_SC_PAGESIZE);
  #  elif defined(_SC_PAGE_SIZE)
 diff --git a/ext/fileinfo/libmagic/fsmagic.c b/ext/fileinfo/libmagic/fsmagic.c
-index 4335b5b0da..3fd4e57474 100644
+index 4335b5b0..3fd4e574 100644
 --- a/ext/fileinfo/libmagic/fsmagic.c
 +++ b/ext/fileinfo/libmagic/fsmagic.c
 @@ -167,6 +167,7 @@ file_fsmagic(struct magic_set *ms, const char *fn, zend_stat_t *sb)
@@ -142,7 +144,7 @@ index 4335b5b0da..3fd4e57474 100644
  		/*
  		 * regular file, check next possibility
 diff --git a/ext/standard/filestat.c b/ext/standard/filestat.c
-index 97c99ad008..1a1ca5e06e 100644
+index 97c99ad0..1a1ca5e0 100644
 --- a/ext/standard/filestat.c
 +++ b/ext/standard/filestat.c
 @@ -915,16 +915,16 @@ PHPAPI void php_stat(const char *filename, size_t filename_length, int type, zva
@@ -166,7 +168,7 @@ index 97c99ad008..1a1ca5e06e 100644
  		RETURN_STRING("unknown");
 diff --git a/wasmlabs-README.md b/wasmlabs-README.md
 new file mode 100644
-index 0000000000..c57f0c8a3a
+index 00000000..c57f0c8a
 --- /dev/null
 +++ b/wasmlabs-README.md
 @@ -0,0 +1,85 @@
@@ -256,7 +258,7 @@ index 0000000000..c57f0c8a3a
 +
 +
 diff --git a/wasmlabs-build.sh b/wasmlabs-build.sh
-index e08c362a33..a4b4da9687 100755
+index e08c362a..a4b4da96 100755
 --- a/wasmlabs-build.sh
 +++ b/wasmlabs-build.sh
 @@ -8,21 +8,22 @@ fi

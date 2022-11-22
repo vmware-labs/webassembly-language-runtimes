@@ -1,0 +1,1447 @@
+From a8ca1848b03a6cbefefcd40e2bcbab49da71e1d7 Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Tue, 22 Nov 2022 19:32:16 +0200
+Subject: [PATCH 5/6] feat: Add support for listening via WASMEDGE sockets
+
+
+  27.3% sapi/cli/
+  70.9% wasmedge_stubs/
+diff --git a/configure.ac b/configure.ac
+index f2ba8a83..2119baaa 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -745,6 +745,25 @@ if test "$ac_cv__asm_goto" = yes; then
+   AC_DEFINE(HAVE_ASM_GOTO,1,[Define if asm goto support])
+ fi
+ 
++dnl Check wasmedge wasi.
++PHP_ARG_WITH([wasmedge],
++  [whether to build for wasmedge runtime],
++  [AS_HELP_STRING([--with-wasmedge],
++    [Build with support for wasmedge socket extensions])],
++  [yes],
++  [no])
++
++if test "$PHP_WASMEDGE" != "no"; then
++  case $host_alias in
++    *wasm*)
++      PHP_ADD_SOURCES(wasmedge_stubs, wasi_socket_ext.c, -DWASM_WASMEDGE)
++      ;;
++    *)
++      AC_MSG_ERROR([--with-wasmedge is only valid for wasm builds!])
++    ;;
++  esac
++fi
++
+ dnl Check valgrind support.
+ PHP_ARG_WITH([valgrind],
+   [whether to enable valgrind support],
+diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
+index f5323ffc..6f31dda0 100644
+--- a/ext/standard/basic_functions.c
++++ b/ext/standard/basic_functions.c
+@@ -68,7 +68,7 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
+ #include "win32/inet.h"
+ #endif
+ #elif defined(WASM_WASMEDGE)
+-# include <netdb.h>
++# include "wasmedge_stubs/netdb.h"
+ #endif // WASM_WASI
+ 
+ #if HAVE_ARPA_INET_H
+diff --git a/main/php_network.h b/main/php_network.h
+index 241ca94e..5819f7c8 100644
+--- a/main/php_network.h
++++ b/main/php_network.h
+@@ -206,7 +206,7 @@ static inline int php_pollfd_for_ms(php_socket_t fd, int events, int timeout)
+ /* emit warning and suggestion for unsafe select(2) usage */
+ PHPAPI void _php_emit_fd_setsize_warning(int max_fd);
+ 
+-#ifdef PHP_WIN32
++#if defined(PHP_WIN32) || defined(__wasi__)
+ /* it is safe to FD_SET too many fd's under win32; the macro will simply ignore
+  * descriptors that go beyond the default FD_SETSIZE */
+ # define PHP_SAFE_FD_SET(fd, set)	FD_SET(fd, set)
+diff --git a/sapi/cli/php_cli_server.c b/sapi/cli/php_cli_server.c
+index f2f69928..f7d08b06 100644
+--- a/sapi/cli/php_cli_server.c
++++ b/sapi/cli/php_cli_server.c
+@@ -97,6 +97,20 @@
+ 
+ #include "php_cli_process_title.h"
+ 
++#ifdef WASM_WASMEDGE
++#include "wasmedge_stubs/netdb.h"
++#include "wasmedge_stubs/wasi_socket_ext.h"
++#endif
++
++// #define WASMEDGE_SOCKET_DEBUG
++
++#ifdef WASMEDGE_SOCKET_DEBUG
++#define WSEDEBUG(fmt, ...) fprintf(stderr, fmt __VA_OPT__(,) __VA_ARGS__)
++#else
++#define WSEDEBUG(fmt, ...)
++#endif
++
++
+ #define OUTPUT_NOT_CHECKED -1
+ #define OUTPUT_IS_TTY 1
+ #define OUTPUT_NOT_TTY 0
+@@ -834,12 +848,15 @@ static int php_cli_server_poller_ctor(php_cli_server_poller *poller) /* {{{ */
+ 
+ static void php_cli_server_poller_add(php_cli_server_poller *poller, int mode, php_socket_t fd) /* {{{ */
+ {
++	WSEDEBUG("php_cli_server_poller_add[%d]: \n", __LINE__);
+ 	if (mode & POLLIN) {
+ 		PHP_SAFE_FD_SET(fd, &poller->rfds);
+ 	}
++	WSEDEBUG("php_cli_server_poller_add[%d]: \n", __LINE__);
+ 	if (mode & POLLOUT) {
+ 		PHP_SAFE_FD_SET(fd, &poller->wfds);
+ 	}
++	WSEDEBUG("php_cli_server_poller_add[%d]: \n", __LINE__);
+ 	if (fd > poller->max_fd) {
+ 		poller->max_fd = fd;
+ 	}
+@@ -855,6 +872,27 @@ static void php_cli_server_poller_remove(php_cli_server_poller *poller, int mode
+ 	}
+ #ifndef PHP_WIN32
+ 	if (fd == poller->max_fd) {
++#ifdef WASM_WASMEDGE
++		php_socket_t new_max_fd = 0;
++
++		for (int i=0; i< poller->rfds.__nfds; ++i)
++		{
++			int candidate = poller->rfds.__fds[i];
++			WSEDEBUG("php_cli_server_poller_remove:[%d] r candidate candidate=%d, new_max_fd=%d fd%d\n", __LINE__, candidate, new_max_fd, fd);
++			if(candidate > new_max_fd)
++				new_max_fd = candidate;
++			}
++
++		for (int i=0; i< poller->wfds.__nfds; ++i)
++		{
++			int candidate = poller->wfds.__fds[i];
++			WSEDEBUG("php_cli_server_poller_remove:[%d] w candidate candidate=%d, new_max_fd=%d fd%d\n", __LINE__, candidate, new_max_fd, fd);
++			if(candidate > new_max_fd)
++				new_max_fd = candidate;
++		}
++		WSEDEBUG("php_cli_server_poller_remove:[%d] CHANGE max_fd=%d, new_max_fd=%d fd%d\n", __LINE__, poller->max_fd, new_max_fd, fd);
++		poller->max_fd = new_max_fd;
++#else
+ 		while (fd > 0) {
+ 			fd--;
+ 			if (PHP_SAFE_FD_ISSET(fd, &poller->rfds) || PHP_SAFE_FD_ISSET(fd, &poller->wfds)) {
+@@ -862,6 +900,9 @@ static void php_cli_server_poller_remove(php_cli_server_poller *poller, int mode
+ 			}
+ 		}
+ 		poller->max_fd = fd;
++#endif
++	} else {
++		WSEDEBUG("php_cli_server_poller_remove:[%d] KEEP max_fd=%d fd%d\n", __LINE__, poller->max_fd, fd);
+ 	}
+ #endif
+ } /* }}} */
+@@ -919,7 +960,31 @@ static int php_cli_server_poller_iter_on_active(php_cli_server_poller *poller, v
+ #else
+ 	php_socket_t fd;
+ 	const php_socket_t max_fd = poller->max_fd;
++	WSEDEBUG("php_cli_server_poller_iter_on_active[%d]: max_fd=%d\n", __LINE__, max_fd);
++
++#ifdef WASM_WASMEDGE
++	// Note this does not keep the order in terms of fd number, when there are both r and w
++
++	for (int i = 0; i < poller->active.rfds.__nfds; ++i)
++	{
++		fd = poller->active.rfds.__fds[i];
++		WSEDEBUG("php_cli_server_poller_iter_on_active[%d]: PHP_SAFE_FD_ISSET=%d\n", __LINE__, fd);
++		if (SUCCESS != callback(opaque, fd, POLLIN))
++		{
++					retval = FAILURE;
++				}
++		}
+ 
++	for (int i = 0; i < poller->active.wfds.__nfds; ++i)
++	{
++		fd = poller->active.wfds.__fds[i];
++		WSEDEBUG("php_cli_server_poller_iter_on_active[%d]: PHP_SAFE_FD_ISSET=%d\n", __LINE__, fd);
++		if (SUCCESS != callback(opaque, fd, POLLOUT))
++		{
++					retval = FAILURE;
++				}
++		}
++#else
+ 	for (fd=0 ; fd<=max_fd ; fd++)  {
+ 		if (PHP_SAFE_FD_ISSET(fd, &poller->active.rfds)) {
+ 				if (SUCCESS != callback(opaque, fd, POLLIN)) {
+@@ -932,6 +997,7 @@ static int php_cli_server_poller_iter_on_active(php_cli_server_poller *poller, v
+ 				}
+ 		}
+ 	}
++#endif // WASM_WASMEDGE
+ #endif
+ 	return retval;
+ } /* }}} */
+@@ -1271,13 +1337,28 @@ static void php_cli_server_logf(int type, const char *format, ...) /* {{{ */
+ 
+ static php_socket_t php_network_listen_socket(const char *host, int *port, int socktype, int *af, socklen_t *socklen, zend_string **errstr) /* {{{ */
+ {
++	WSEDEBUG("php_network_listen_socket[%d]: '%s', '%d'\n", __LINE__, host, *port);
+ 	php_socket_t retval = SOCK_ERR;
+ 	int err = 0;
+ 	struct sockaddr *sa = NULL, **p, **sal;
+ 
+ 	int num_addrs = php_network_getaddresses(host, socktype, &sal, errstr);
+ 	if (num_addrs == 0) {
++#ifdef WASM_WASMEDGE
++		// This is attempt to copy-paste and initialize the addresses based on the code in php_network_getaddresses,
++		// but I failed to get it right, so it is abandoned (see the commented out free calls at the end of the method)
++		*sal = safe_emalloc(2, sizeof(*sal), 0);
++		struct sockaddr **sap;
++		sap = *sal;
++		*sap = emalloc(sizeof(struct sockaddr_in));
++		(*sap)->sa_family = AF_INET;
++		((struct sockaddr_in *)*sap)->sin_addr.s_addr = INADDR_ANY;
++		((struct sockaddr_in *)*sap)->sin_port = *port;
++		++sap;
++		*sap = NULL;
++#else
+ 		return -1;
++#endif
+ 	}
+ 	for (p = sal; *p; p++) {
+ 		if (sa) {
+@@ -1285,11 +1366,18 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ 			sa = NULL;
+ 		}
+ 
++#ifdef WASM_WASMEDGE
++		(*p)->sa_family = AF_INET;
++#endif
++
++		WSEDEBUG("php_network_listen_socket[%d]:\n", __LINE__);
+ 		retval = socket((*p)->sa_family, socktype, 0);
+-		if (retval == SOCK_ERR) {
++		if (retval == SOCK_ERR)
++		{
+ 			continue;
+ 		}
+ 
++		WSEDEBUG("php_network_listen_socket[%d]: socket=%d sa_family=%d \n", __LINE__, retval, (*p)->sa_family);
+ 		switch ((*p)->sa_family) {
+ #if HAVE_GETADDRINFO && HAVE_IPV6
+ 		case AF_INET6:
+@@ -1301,8 +1389,15 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ #endif
+ 		case AF_INET:
+ 			sa = pemalloc(sizeof(struct sockaddr_in), 1);
++#ifdef WASM_WASMEDGE
++			memset(sa, 0, sizeof(struct sockaddr_in));
++			((struct sockaddr_in *)sa)->sin_family = AF_INET;
++			((struct sockaddr_in *)sa)->sin_addr.s_addr = INADDR_ANY;
++			((struct sockaddr_in *)sa)->sin_port = *port;
++#else 
+ 			*(struct sockaddr_in *)sa = *(struct sockaddr_in *)*p;
+ 			((struct sockaddr_in *)sa)->sin_port = htons(*port);
++#endif
+ 			*socklen = sizeof(struct sockaddr_in);
+ 			break;
+ 		default:
+@@ -1327,7 +1422,9 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ #endif
+ 
+ 		if (bind(retval, sa, *socklen) == SOCK_CONN_ERR) {
++			WSEDEBUG("php_network_listen_socket[%d]: bind failed \n", __LINE__);
+ 			err = php_socket_errno();
++			WSEDEBUG("php_network_listen_socket[%d]: bind failed %d \n", __LINE__, err);
+ 			if (err == SOCK_EINVAL || err == SOCK_EADDRINUSE) {
+ 				goto out;
+ 			}
+@@ -1337,12 +1434,17 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ 		}
+ 		err = 0;
+ 
++		WSEDEBUG("php_network_listen_socket[%d]: \n", __LINE__);
+ 		*af = sa->sa_family;
+-		if (*port == 0) {
++		WSEDEBUG("php_network_listen_socket[%d]: \n", __LINE__);
++		if (*port == 0)
++		{
++#ifndef WASM_WASMEDGE
+ 			if (getsockname(retval, sa, socklen)) {
+ 				err = php_socket_errno();
+ 				goto out;
+ 			}
++#endif
+ 			switch (sa->sa_family) {
+ #if HAVE_GETADDRINFO && HAVE_IPV6
+ 			case AF_INET6:
+@@ -1350,7 +1452,9 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ 				break;
+ #endif
+ 			case AF_INET:
++				WSEDEBUG("php_network_listen_socket[%d]: \n", __LINE__);
+ 				*port = ntohs(((struct sockaddr_in *)sa)->sin_port);
++				WSEDEBUG("php_network_listen_socket[%d]: \n", __LINE__);
+ 				break;
+ 			}
+ 		}
+@@ -1358,22 +1462,28 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ 		break;
+ 	}
+ 
++	WSEDEBUG("php_network_listen_socket[%d]: \n", __LINE__);
+ 	if (retval == SOCK_ERR) {
+ 		goto out;
+ 	}
+ 
++	WSEDEBUG("php_network_listen_socket[%d]: \n", __LINE__);
+ 	if (listen(retval, SOMAXCONN)) {
++		WSEDEBUG("php_network_listen_socket[%d]: \n", __LINE__);
+ 		err = php_socket_errno();
+ 		goto out;
+ 	}
++	WSEDEBUG("php_network_listen_socket[%d]: \n", __LINE__);
+ 
+ out:
++#ifndef WASM_WASMEDGE
+ 	if (sa) {
+ 		pefree(sa, 1);
+ 	}
+ 	if (sal) {
+ 		php_network_freeaddresses(sal);
+ 	}
++#endif
+ 	if (err) {
+ 		if (ZEND_VALID_SOCKET(retval)) {
+ 			closesocket(retval);
+@@ -2092,12 +2202,15 @@ fail:
+ 
+ static int php_cli_server_dispatch_script(php_cli_server *server, php_cli_server_client *client) /* {{{ */
+ {
++	WSEDEBUG("php_cli_server_dispatch_script[%d]: \n", __LINE__);
+ 	if (strlen(client->request.path_translated) != client->request.path_translated_len) {
++		WSEDEBUG("php_cli_server_dispatch_script[%d]: \n", __LINE__);
+ 		/* can't handle paths that contain nul bytes */
+ 		return php_cli_server_send_error_page(server, client, 400);
+ 	}
+ 	{
+ 		zend_file_handle zfd;
++		WSEDEBUG("php_cli_server_dispatch_script[%d]: '%s'\n", __LINE__, SG(request_info).path_translated);
+ 		zend_stream_init_filename(&zfd, SG(request_info).path_translated);
+ 		zend_try {
+ 			php_execute_script(&zfd);
+@@ -2247,6 +2360,7 @@ static int php_cli_server_dispatch_router(php_cli_server *server, php_cli_server
+ 
+ static int php_cli_server_dispatch(php_cli_server *server, php_cli_server_client *client) /* {{{ */
+ {
++	WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 	int is_static_file  = 0;
+ 	const char *ext = client->request.ext;
+ 
+@@ -2255,10 +2369,14 @@ static int php_cli_server_dispatch(php_cli_server *server, php_cli_server_client
+ 	 || (ext[0] != 'p' && ext[0] != 'P') || (ext[1] != 'h' && ext[1] != 'H') || (ext[2] != 'p' && ext[2] != 'P')
+ 	 || !client->request.path_translated) {
+ 		is_static_file = 1;
++		WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 	}
+ 
++	WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 	if (server->router || !is_static_file) {
++		WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 		if (FAILURE == php_cli_server_request_startup(server, client)) {
++			WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 			SG(server_context) = NULL;
+ 			php_cli_server_close_connection(server, client);
+ 			destroy_request_info(&SG(request_info));
+@@ -2266,43 +2384,54 @@ static int php_cli_server_dispatch(php_cli_server *server, php_cli_server_client
+ 		}
+ 	}
+ 
++	WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 	if (server->router) {
+ 		if (!php_cli_server_dispatch_router(server, client)) {
++			WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 			php_cli_server_request_shutdown(server, client);
+ 			return SUCCESS;
+ 		}
+ 	}
+ 
++	WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 	if (!is_static_file) {
+-		if (SUCCESS == php_cli_server_dispatch_script(server, client)
+-				|| SUCCESS != php_cli_server_send_error_page(server, client, 500)) {
++		if (SUCCESS == php_cli_server_dispatch_script(server, client) || SUCCESS != php_cli_server_send_error_page(server, client, 500)) {
++			WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 			if (SG(sapi_headers).http_response_code == 304) {
++				WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 				SG(sapi_headers).send_default_content_type = 0;
+ 			}
++			WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 			php_cli_server_request_shutdown(server, client);
+ 			return SUCCESS;
+ 		}
+ 	} else {
++		WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 		if (server->router) {
++			WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 			static int (*send_header_func)(sapi_headers_struct *);
+ 			send_header_func = sapi_module.send_headers;
+ 			/* do not generate default content type header */
+ 			SG(sapi_headers).send_default_content_type = 0;
+ 			/* we don't want headers to be sent */
+ 			sapi_module.send_headers = sapi_cli_server_discard_headers;
++			WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 			php_request_shutdown(0);
+ 			sapi_module.send_headers = send_header_func;
+ 			SG(sapi_headers).send_default_content_type = 1;
+ 			SG(rfc1867_uploaded_files) = NULL;
+ 		}
+ 		if (SUCCESS != php_cli_server_begin_send_static(server, client)) {
++			WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 			php_cli_server_close_connection(server, client);
+ 		}
++		WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 		SG(server_context) = NULL;
+ 		return SUCCESS;
+ 	}
+ 
+ 	SG(server_context) = NULL;
++	WSEDEBUG("php_cli_server_dispatch[%d]: \n", __LINE__);
+ 	destroy_request_info(&SG(request_info));
+ 	return SUCCESS;
+ }
+@@ -2421,7 +2550,7 @@ static int php_cli_server_ctor(php_cli_server *server, const char *addr, const c
+ 		}
+ 	}
+ 	if (!p) {
+-		fprintf(stderr, "Invalid address: %s\n", addr);
++		WSEDEBUG("Invalid address: %s\n", addr);
+ 		retval = FAILURE;
+ 		goto out;
+ 	}
+@@ -2435,19 +2564,36 @@ static int php_cli_server_ctor(php_cli_server *server, const char *addr, const c
+ 		retval = FAILURE;
+ 		goto out;
+ 	}
++	WSEDEBUG("php_server_ctor[%d]: server_sock=%d\n", __LINE__, server_sock);
+ 	server->server_sock = server_sock;
++	WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
+ 
+ 	err = php_cli_server_poller_ctor(&server->poller);
+-	if (SUCCESS != err) {
++	WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
++	if (SUCCESS != err)	{
++		WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
+ 		goto out;
+ 	}
+ 
++	WSEDEBUG("php_server_ctor[%d]: BEFORE php_cli_server_poller_add\n", __LINE__);
+ 	php_cli_server_poller_add(&server->poller, POLLIN, server_sock);
++	WSEDEBUG("php_server_ctor[%d]: AFTER \n", __LINE__);
++
++	WSEDEBUG("php_server_ctor[%d]: rfds=[", __LINE__);
++	for (int i = 0; i < server->poller.rfds.__nfds; ++i)
++		WSEDEBUG("%d, ", server->poller.rfds.__fds[i]);
++
++	WSEDEBUG("], wfds=[");
++	for (int i = 0; i < server->poller.wfds.__nfds; ++i)
++		WSEDEBUG("%d, ", server->poller.wfds.__fds[i]);
++	WSEDEBUG("]\n");
+ 
+ 	server->host = host;
+ 	server->port = port;
+ 
++	WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
+ 	zend_hash_init(&server->clients, 0, NULL, php_cli_server_client_dtor_wrapper, 1);
++	WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
+ 
+ 	{
+ 		size_t document_root_len = strlen(document_root);
+@@ -2460,7 +2606,9 @@ static int php_cli_server_ctor(php_cli_server *server, const char *addr, const c
+ 		server->document_root_len = document_root_len;
+ 	}
+ 
++	WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
+ 	if (router) {
++		WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
+ 		size_t router_len = strlen(router);
+ 		_router = pestrndup(router, router_len, 1);
+ 		if (!_router) {
+@@ -2470,15 +2618,18 @@ static int php_cli_server_ctor(php_cli_server *server, const char *addr, const c
+ 		server->router = _router;
+ 		server->router_len = router_len;
+ 	} else {
++		WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
+ 		server->router = NULL;
+ 		server->router_len = 0;
+ 	}
+ 
++	WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
+ 	if (php_cli_server_mime_type_ctor(server, mime_type_map) == FAILURE) {
+ 		retval = FAILURE;
+ 		goto out;
+ 	}
+ 
++	WSEDEBUG("php_server_ctor[%d]: \n", __LINE__);
+ 	server->is_running = 1;
+ out:
+ 	if (retval != SUCCESS) {
+@@ -2500,6 +2651,7 @@ out:
+ 
+ static int php_cli_server_recv_event_read_request(php_cli_server *server, php_cli_server_client *client) /* {{{ */
+ {
++	WSEDEBUG("php_cli_server_recv_event_read_request[%d]: \n", __LINE__);
+ 	char *errstr = NULL;
+ 	int status = php_cli_server_client_read_request(client, &errstr);
+ 	if (status < 0) {
+@@ -2564,6 +2716,7 @@ typedef struct php_cli_server_do_event_for_each_fd_callback_params {
+ 
+ static int php_cli_server_do_event_for_each_fd_callback(void *_params, php_socket_t fd, int event) /* {{{ */
+ {
++	WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: fd=%d\n", __LINE__, fd);
+ 	php_cli_server_do_event_for_each_fd_callback_params *params = _params;
+ 	php_cli_server *server = params->server;
+ 	if (server->server_sock == fd) {
+@@ -2572,6 +2725,7 @@ static int php_cli_server_do_event_for_each_fd_callback(void *_params, php_socke
+ 		socklen_t socklen = server->socklen;
+ 		struct sockaddr *sa = pemalloc(server->socklen, 1);
+ 		client_sock = accept(server->server_sock, sa, &socklen);
++		WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: accept returned client_sock=%d\n", __LINE__, client_sock);
+ 		if (!ZEND_VALID_SOCKET(client_sock)) {
+ 			if (php_cli_server_log_level >= PHP_CLI_SERVER_LOG_ERROR) {
+ 				char *errstr = php_socket_strerror(php_socket_errno(), NULL, 0);
+@@ -2582,12 +2736,14 @@ static int php_cli_server_do_event_for_each_fd_callback(void *_params, php_socke
+ 			pefree(sa, 1);
+ 			return SUCCESS;
+ 		}
++		WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: php_set_sock_blocking fd=%d, client_sock=%d\n", __LINE__, fd, client_sock);
+ 		if (SUCCESS != php_set_sock_blocking(client_sock, 0)) {
+ 			pefree(sa, 1);
+ 			closesocket(client_sock);
+ 			return SUCCESS;
+ 		}
+ 		client = pemalloc(sizeof(php_cli_server_client), 1);
++		WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: \n", __LINE__);
+ 		if (FAILURE == php_cli_server_client_ctor(client, server, client_sock, sa, socklen)) {
+ 			php_cli_server_logf(PHP_CLI_SERVER_LOG_ERROR, "Failed to create a new request object");
+ 			pefree(sa, 1);
+@@ -2595,21 +2751,31 @@ static int php_cli_server_do_event_for_each_fd_callback(void *_params, php_socke
+ 			return SUCCESS;
+ 		}
+ 
++		WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: Accepted %s\n", __LINE__, client->addr_str);
+ 		php_cli_server_logf(PHP_CLI_SERVER_LOG_MESSAGE, "%s Accepted", client->addr_str);
+ 
++		WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: h=%ul, pData=%p\n", __LINE__, client_sock, client);
+ 		zend_hash_index_update_ptr(&server->clients, client_sock, client);
+ 
++		WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: Accepted %s\n", __LINE__, client->addr_str);
+ 		php_cli_server_poller_add(&server->poller, POLLIN, client->sock);
+ 	} else {
+ 		php_cli_server_client *client;
++		WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: looking for client for fd=%d\n", __LINE__, fd);
+ 		if (NULL != (client = zend_hash_index_find_ptr(&server->clients, fd))) {
+ 			if (event & POLLIN) {
++				WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: calling rhandler fd=%d\n", __LINE__, fd);
+ 				params->rhandler(server, client);
+ 			}
+ 			if (event & POLLOUT) {
++				WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: calling whandler fd=%d\n", __LINE__, fd);
+ 				params->whandler(server, client);
+ 			}
+ 		}
++		else
++		{
++			WSEDEBUG("php_cli_server_do_event_for_each_fd_callback[%d]: NO CLIENT FOUND\n", __LINE__);
++		}
+ 	}
+ 	return SUCCESS;
+ } /* }}} */
+@@ -2627,18 +2793,43 @@ static void php_cli_server_do_event_for_each_fd(php_cli_server *server, int(*rha
+ 
+ static int php_cli_server_do_event_loop(php_cli_server *server) /* {{{ */
+ {
++	WSEDEBUG("php_cli_server_do_event_loop[%d]: rfds=[", __LINE__);
++	for (int i = 0; i < server->poller.rfds.__nfds; ++i)
++		WSEDEBUG("%d, ", server->poller.rfds.__fds[i]);
++
++	WSEDEBUG("], wfds=[");
++	for (int i = 0; i < server->poller.wfds.__nfds; ++i)
++		WSEDEBUG("%d, ", server->poller.wfds.__fds[i]);
++	WSEDEBUG("]\n");
++
+ 	int retval = SUCCESS;
+-	while (server->is_running) {
+-		struct timeval tv = { 1, 0 };
++	int iteration = 0;
++	while (server->is_running)
++	{
++		WSEDEBUG("php_cli_server_do_event_loop[%d]: iteration=%d\n", __LINE__, iteration++);
++		struct timeval tv = {1, 0};
+ 		int n = php_cli_server_poller_poll(&server->poller, &tv);
+-		if (n > 0) {
++		if (n > 0)
++		{
++			WSEDEBUG("php_cli_server_do_event_loop[%d]: n=%d\n", __LINE__, n);
++			WSEDEBUG("php_cli_server_do_event_loop[%d]: ACTIVE rfds=[", __LINE__);
++			for (int i = 0; i < server->poller.active.rfds.__nfds; ++i)
++				WSEDEBUG("%d, ", server->poller.active.rfds.__fds[i]);
++
++			WSEDEBUG("], wfds=[");
++			for (int i = 0; i < server->poller.active.wfds.__nfds; ++i)
++				WSEDEBUG("%d, ", server->poller.active.wfds.__fds[i]);
++			WSEDEBUG("]\n");
+ 			php_cli_server_do_event_for_each_fd(server,
+ 					php_cli_server_recv_event_read_request,
+ 					php_cli_server_send_event);
++			WSEDEBUG("php_cli_server_do_event_loop[%d]: \n", __LINE__);
+ 		} else if (n == 0) {
++			WSEDEBUG("php_cli_server_do_event_loop[%d]: n=0\n", __LINE__);
+ 			/* do nothing */
+ 		} else {
+ 			int err = php_socket_errno();
++			WSEDEBUG("php_cli_server_do_event_loop[%d]: n=%d, error %d\n", __LINE__, n, err);
+ 			if (err != SOCK_EINTR) {
+ 				if (php_cli_server_log_level >= PHP_CLI_SERVER_LOG_ERROR) {
+ 					char *errstr = php_socket_strerror(err, NULL, 0);
+@@ -2664,6 +2855,7 @@ static void php_cli_server_sigint_handler(int sig) /* {{{ */
+ 
+ int do_cli_server(int argc, char **argv) /* {{{ */
+ {
++	WSEDEBUG("Calling do_cli_server");
+ 	char *php_optarg = NULL;
+ 	int php_optind = 1;
+ 	int c;
+diff --git a/wasmedge_stubs/netdb.h b/wasmedge_stubs/netdb.h
+new file mode 100644
+index 00000000..59ad1a03
+--- /dev/null
++++ b/wasmedge_stubs/netdb.h
+@@ -0,0 +1,73 @@
++#pragma once
++
++
++struct addrinfo {
++	int ai_flags;
++	int ai_family;
++	int ai_socktype;
++	int ai_protocol;
++	socklen_t ai_addrlen;
++	struct sockaddr *ai_addr;
++	char *ai_canonname;
++    int ai_canonnamelen;
++	struct addrinfo *ai_next;
++};
++
++#define AI_PASSIVE      0x00
++#define AI_CANONNAME    0x01
++#define AI_NUMERICHOST  0x02
++#define AI_NUMERICSERV  0x03
++#define AI_V4MAPPED     0x04
++#define AI_ALL          0x05
++#define AI_ADDRCONFIG   0x06
++
++
++#define NI_NUMERICHOST  0x01
++#define NI_NUMERICSERV  0x02
++#define NI_NOFQDN       0x04
++#define NI_NAMEREQD     0x08
++#define NI_DGRAM        0x10
++#define NI_NUMERICSCOPE 0x100
++
++#define EAI_BADFLAGS   -1
++#define EAI_NONAME     -2
++#define EAI_AGAIN      -3
++#define EAI_FAIL       -4
++#define EAI_FAMILY     -6
++#define EAI_SOCKTYPE   -7
++#define EAI_SERVICE    -8
++#define EAI_MEMORY     -10
++#define EAI_SYSTEM     -11
++#define EAI_OVERFLOW   -12
++
++#define EAI_NODATA     -5
++#define EAI_ADDRFAMILY -9
++#define EAI_INPROGRESS -100
++#define EAI_CANCELED   -101
++#define EAI_NOTCANCELED -102
++#define EAI_ALLDONE    -103
++#define EAI_INTR       -104
++#define EAI_IDN_ENCODE -105
++#define NI_MAXHOST 255
++#define NI_MAXSERV 32
++
++struct servent {
++	char *s_name;
++	char **s_aliases;
++	int s_port;
++	char *s_proto;
++};
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++struct servent *getservbyname (const char *, const char *);
++
++int getaddrinfo (const char *__restrict, const char *__restrict, const struct addrinfo *__restrict, struct addrinfo **__restrict);
++void freeaddrinfo (struct addrinfo *);
++// int getnameinfo (const struct sockaddr *__restrict, socklen_t, char *__restrict, socklen_t, char *__restrict, socklen_t, int);
++
++#ifdef __cplusplus
++}
++#endif
+\ No newline at end of file
+diff --git a/wasmedge_stubs/wasi_socket_ext.c b/wasmedge_stubs/wasi_socket_ext.c
+new file mode 100644
+index 00000000..0c74c75a
+--- /dev/null
++++ b/wasmedge_stubs/wasi_socket_ext.c
+@@ -0,0 +1,406 @@
++// Based on https://github.com/hangedfish/wasmedge_wasi_socket_c
++
++#include "wasi_socket_ext.h"
++#include "netdb.h"
++#include <errno.h>
++#include <memory.h>
++#include <netinet/in.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++// #define WASMEDGE_SOCKET_DEBUG
++
++#ifdef WASMEDGE_SOCKET_DEBUG
++#define WSEDEBUG(fmt, ...) fprintf(stderr, fmt __VA_OPT__(,) __VA_ARGS__)
++#else
++#define WSEDEBUG(fmt, ...)
++#endif
++
++// WasmEdge Socket API
++
++#define kUnspec 0
++#define kInet4 1
++#define kInet6 2
++
++typedef uint8_t address_family_t;
++
++#define kAny 0
++#define kDatagram 1
++#define kStream 2
++
++typedef uint8_t socket_type_t;
++
++#define kIPProtoIP 0
++#define kIPProtoTCP 1
++#define kIPProtoUDP 2
++
++typedef uint32_t ai_protocol_t;
++
++#define kAiPassive 0
++#define kAiCanonname 1
++#define kAiNumericHost 2
++#define kAiNumericServ = 4
++#define kAiV4Mapped = 8
++#define kAiAll = 16
++#define kAiAddrConfig = 32
++
++typedef uint16_t ai_flags_t;
++
++typedef struct wasi_address {
++  uint8_t *buf;
++  uint32_t size;
++} wasi_address_t;
++
++typedef struct iovec_read {
++  uint8_t *buf;
++  uint32_t size;
++} iovec_read_t;
++
++typedef struct iovec_write {
++  uint8_t *buf;
++  uint32_t size;
++} iovec_write_t;
++
++typedef struct wasi_sockaddr {
++  address_family_t family;
++  uint32_t sa_data_len;
++  uint8_t *sa_data;
++} wasi_sockaddr_t;
++
++typedef struct wasi_canonname_buff {
++  char name[30];
++} wasi_canonname_buff_t;
++
++#pragma pack(push, 1)
++typedef struct wasi_addrinfo {
++  ai_flags_t ai_flags;
++  address_family_t ai_family;
++  socket_type_t ai_socktype;
++  ai_protocol_t ai_protocol;
++  uint32_t ai_addrlen;
++  wasi_sockaddr_t *ai_addr;
++  char *ai_canonname;
++  uint32_t ai_canonnamelen;
++  struct wasi_addrinfo *ai_next;
++} wasi_addrinfo_t;
++#pragma pack(pop)
++
++typedef struct sockaddr_generic {
++  union sa {
++    struct sockaddr_in sin;
++    struct sockaddr_in6 sin6;
++  } sa;
++
++} sa_t;
++
++#define MAX_ADDRINFO_RES_LEN 10
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_open(
++    uint8_t addr_family, uint8_t sock_type, int32_t *fd)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_open")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_bind(
++    uint32_t fd, wasi_address_t *addr, uint32_t port)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_bind")));
++
++uint32_t
++__imported_wasmedge_wasi_snapshot_preview1_sock_listen(uint32_t fd,
++                                                       uint32_t backlog)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_listen")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_accept(uint32_t fd,
++                                                               uint32_t *fd2)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_accept")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_connect(
++    uint32_t fd, wasi_address_t *addr, uint32_t port)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_connect")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_recv(
++    uint32_t fd, iovec_read_t *buf, uint32_t buf_len, uint16_t flags,
++    uint32_t *recv_len, uint32_t *oflags)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_recv")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_recv_from(
++    uint32_t fd, iovec_read_t *buf, uint32_t buf_len, uint8_t *addr,
++    uint32_t *addr_len, uint16_t flags)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_recv_from")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_send(uint32_t fd,
++                                                             iovec_write_t buf,
++                                                             uint32_t buf_len,
++                                                             uint16_t flags,
++                                                             uint32_t *send_len)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_send")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_send_to(
++    uint32_t fd, uint8_t *buf, uint32_t buf_len, uint8_t *addr,
++    uint32_t addr_len, uint16_t flags)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_send_to")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_shutdown(uint32_t fd,
++                                                                 uint8_t flags)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_shutdown")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_getaddrinfo(
++    uint8_t *node, uint32_t node_len, uint8_t *server, uint32_t server_len,
++    wasi_addrinfo_t *hint, uint32_t *res, uint32_t max_len, uint32_t *res_len)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getaddrinfo")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_getpeeraddr(
++    uint32_t fd, wasi_address_t *addr, uint32_t *addr_type, uint32_t *port)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getpeeraddr")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_getlocaladdr(
++    uint32_t fd, wasi_address_t *addr, uint32_t *addr_type, uint32_t *port)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getlocaladdr")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_getsockopt(
++    uint32_t fd, int32_t level, int32_t name, int32_t *flag,
++    uint32_t *flag_size)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getsockopt")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_setsockopt(
++    uint32_t fd, int32_t level, int32_t name, int32_t *flag,
++    uint32_t *flag_size)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getsockopt")));
++
++int socket(int domain, int type, int protocol)
++{
++  int fd;
++  address_family_t af = (domain == AF_INET ? kInet4 : kInet6);
++  socket_type_t st = (type == SOCK_STREAM ? kStream : kDatagram);
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_open((int8_t)af, (int8_t)st, &fd);
++  if (0 != res) {
++    errno = res;
++    printf("socket err: %s \n", strerror(errno));
++    return -1;
++  }
++  WSEDEBUG("WWSock| socket returning: %d \n", fd);
++  return fd;
++}
++
++int bind(int fd, const struct sockaddr *addr, socklen_t len)
++{
++  WSEDEBUG("WWSock| bind[%d]: calling bind on sa_data=[", __LINE__);
++  for (int i = 0; i < len; ++i)
++    WSEDEBUG("'%d', ", (short)addr->sa_data[i]);
++  WSEDEBUG("]\n");
++
++  wasi_address_t wasi_addr;
++  memset(&wasi_addr, 0, sizeof(wasi_address_t));
++  uint32_t port;
++  if (AF_INET == addr->sa_family) {
++    struct sockaddr_in *sin = (struct sockaddr_in *)addr;
++    wasi_addr.buf = (uint8_t *)&sin->sin_addr;
++    wasi_addr.size = 4;
++    port = sin->sin_port;
++  } else if (AF_INET6 == addr->sa_family) {
++    struct sockaddr_in6 *sin = (struct sockaddr_in6 *)addr;
++    wasi_addr.buf = (uint8_t *)&sin->sin6_addr;
++    wasi_addr.size = 16;
++    port = sin->sin6_port;
++  }
++
++  WSEDEBUG("WWSock| bind[%d]: __imported_wasmedge_wasi_snapshot_preview1_sock_bind\n", __LINE__);
++  int res =
++      __imported_wasmedge_wasi_snapshot_preview1_sock_bind(fd, &wasi_addr, port);
++  WSEDEBUG("WWSock| bind[%d]: res=%d\n", __LINE__, res);
++  if (res != 0)
++  {
++    errno = res;
++    return -1;
++  }
++  return res;
++}
++
++int connect(int fd, const struct sockaddr *addr, socklen_t len) {
++  WSEDEBUG("WWSock| connect[%d]: fd=%d, addr=%d, port=%d \n", __LINE__,
++          fd, ((struct sockaddr_in *)addr)->sin_addr.s_addr, ((struct sockaddr_in *)addr)->sin_port);
++  wasi_address_t wasi_addr;
++  memset(&wasi_addr, 0, sizeof(wasi_address_t));
++  uint32_t port;
++  if (AF_INET == addr->sa_family) {
++    struct sockaddr_in *sin = (struct sockaddr_in *)addr;
++    wasi_addr.buf = (uint8_t *)&sin->sin_addr;
++    wasi_addr.size = 4;
++    port = ntohs(sin->sin_port);
++  } else if (AF_INET6 == addr->sa_family) {
++    struct sockaddr_in6 *sin = (struct sockaddr_in6 *)addr;
++    wasi_addr.buf = (uint8_t *)&sin->sin6_addr;
++    wasi_addr.size = 16;
++    port = ntohs(sin->sin6_port);
++  }
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_connect(
++      fd, &wasi_addr, port);
++  if (res != 0) {
++    errno = res;
++    return -1;
++  }
++  return res;
++}
++
++int listen(int fd, int backlog) {
++  WSEDEBUG("WWSock| __imported_wasmedge_wasi_snapshot_preview1_sock_listen[%d]: \n", __LINE__);
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_listen(fd, backlog);
++  WSEDEBUG("WWSock| listen[%d]: res=%d\n", __LINE__, res);
++  return res;
++}
++
++int accept(int fd, struct sockaddr *restrict addr, socklen_t *restrict len) {
++  WSEDEBUG("WWSock| accept[%d]: fd=%d\n", __LINE__, fd);
++  int new_sockfd;
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_accept(
++      fd, (uint32_t *)&new_sockfd);
++  if (res != 0) {
++    errno = res;
++    return -1;
++  }
++  return new_sockfd;
++}
++
++int setsockopt(int fd, int level, int optname, const void *optval,
++               socklen_t optlen) {
++  WSEDEBUG("WWSock| setsockopt[%d]: fd=%d\n", __LINE__, fd);
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_setsockopt(
++      fd, level, optname, (int32_t *)optval, (uint32_t *)&optlen);
++  if (res != 0) {
++    errno = res;
++    return -1;
++  }
++  return 0;
++}
++
++struct servent *getservbyname(const char *name, const char *prots)
++{
++  WSEDEBUG("WWSock| getservbyname[%d]: name=%s\n", __LINE__, name);
++  return NULL;
++}
++
++static struct addrinfo *
++convert_wasi_addrinfo_to_addrinfo(wasi_addrinfo_t *wasi_addrinfo,
++                                  uint32_t size) {
++  WSEDEBUG("WWSock| convert_wasi_addrinfo_to_addrinfo[%d]: \n", __LINE__);
++
++  struct addrinfo *addrinfo_arr = (struct addrinfo *)calloc(
++      (sizeof(struct addrinfo) + sizeof(struct sockaddr_generic)) * size + 30,
++      1);
++  struct sockaddr_generic *sockaddr_generic_arr =
++      (struct sockaddr_generic *)&addrinfo_arr[size];
++  char *ai_canonname = (char *)&sockaddr_generic_arr[size];
++  int ai_canonnamelen = addrinfo_arr[0].ai_canonnamelen;
++  memcpy(ai_canonname, addrinfo_arr[0].ai_canonname, ai_canonnamelen);
++
++  for (size_t i = 0; i < size; i++) {
++    addrinfo_arr[i] = (struct addrinfo){
++        .ai_flags = (int)wasi_addrinfo[i].ai_flags,
++        .ai_family = wasi_addrinfo[i].ai_family == kInet4 ? AF_INET : AF_INET6,
++        .ai_socktype =
++            wasi_addrinfo[i].ai_socktype == kStream ? SOCK_STREAM : SOCK_DGRAM,
++        .ai_protocol = wasi_addrinfo[i].ai_protocol == kIPProtoTCP
++                           ? IPPROTO_TCP
++                           : IPPROTO_UDP,
++        .ai_addrlen = 0,
++        .ai_addr = (struct sockaddr *)&sockaddr_generic_arr[i],
++        .ai_canonname = ai_canonname,
++        .ai_canonnamelen = ai_canonnamelen,
++        .ai_next = NULL,
++    };
++    if (wasi_addrinfo[i].ai_addr != NULL) {
++      if (wasi_addrinfo[i].ai_addr->family == kInet4) {
++        // IPv4
++        wasi_addrinfo[i].ai_addrlen = sizeof(struct sockaddr_in);
++        sockaddr_generic_arr[i].sa.sin.sin_family = AF_INET;
++        sockaddr_generic_arr[i].sa.sin.sin_port =
++            *(uint16_t *)&wasi_addrinfo[i].ai_addr->sa_data[0];
++        sockaddr_generic_arr[i].sa.sin.sin_addr.s_addr =
++            *(in_addr_t *)&wasi_addrinfo[i].ai_addr->sa_data[2];
++      } else {
++        // IPv6
++        wasi_addrinfo[i].ai_addrlen = sizeof(struct sockaddr_in6);
++        sockaddr_generic_arr[i].sa.sin6.sin6_family = AF_INET6;
++        sockaddr_generic_arr[i].sa.sin6.sin6_port =
++            *(uint16_t *)&wasi_addrinfo[i].ai_addr->sa_data[0];
++        // WasmEdge rust socket api not support IPv6 addrinfo.
++        WSEDEBUG("Not support IPv6 addrinfo.");
++        abort();
++      }
++    }
++    if (i > 0) {
++      addrinfo_arr[i - 1].ai_next = &addrinfo_arr[i];
++    }
++  }
++  return addrinfo_arr;
++}
++
++int getaddrinfo(const char *restrict host, const char *restrict serv,
++                const struct addrinfo *restrict hint,
++                struct addrinfo **restrict res) {
++  WSEDEBUG("WWSock| getaddrinfo[%d]: \n", __LINE__);
++  uint32_t res_len = 0;
++  uint8_t *sockbuff = (uint8_t *)calloc(26 * MAX_ADDRINFO_RES_LEN, 1);
++  wasi_sockaddr_t *sockaddr_arr =
++      (wasi_sockaddr_t *)calloc(sizeof(wasi_sockaddr_t) * MAX_ADDRINFO_RES_LEN +
++                                    sizeof(wasi_canonname_buff_t),
++                                1);
++  wasi_addrinfo_t *addrinfo_arr = (wasi_addrinfo_t *)calloc(
++      sizeof(wasi_addrinfo_t) * MAX_ADDRINFO_RES_LEN, 1);
++  for (size_t i = 0; i < MAX_ADDRINFO_RES_LEN; i++) {
++    sockaddr_arr[i].sa_data = &sockbuff[i];
++    addrinfo_arr[i].ai_addr = &sockaddr_arr[i];
++    addrinfo_arr[i].ai_canonname = (char *)&addrinfo_arr[MAX_ADDRINFO_RES_LEN];
++    if (i > 0) {
++      addrinfo_arr[i - 1].ai_next = &addrinfo_arr[i];
++    }
++  }
++  wasi_addrinfo_t wasi_hint = (wasi_addrinfo_t){
++      .ai_flags = (ai_flags_t)hint->ai_flags,
++      .ai_family = hint->ai_family == AF_INET6 ? kInet6 : kInet4,
++      .ai_socktype = hint->ai_socktype == SOCK_DGRAM ? kDatagram : kStream,
++      .ai_protocol =
++          hint->ai_protocol == IPPROTO_UDP ? kIPProtoUDP : kIPProtoTCP,
++      .ai_addrlen = 0,
++      .ai_addr = NULL,
++      .ai_canonname = NULL,
++      .ai_canonnamelen = 0,
++      .ai_next = NULL,
++  };
++
++  int rc = __imported_wasmedge_wasi_snapshot_preview1_sock_getaddrinfo(
++      (uint8_t *)host, strlen(host), (uint8_t *)serv, strlen(serv), &wasi_hint,
++      (uint32_t *)&addrinfo_arr, MAX_ADDRINFO_RES_LEN, &res_len);
++  if (0 != rc) {
++    errno = rc;
++    free((void *)addrinfo_arr);
++    free((void *)sockaddr_arr);
++    free((void *)sockbuff);
++    return -1;
++  }
++  *res = convert_wasi_addrinfo_to_addrinfo(addrinfo_arr, res_len);
++  free(addrinfo_arr);
++  free(sockaddr_arr);
++  free(sockbuff);
++  return 0;
++}
++
++void freeaddrinfo(struct addrinfo *p) {
++  WSEDEBUG("WWSock| freeaddrinfo[%d]: \n", __LINE__);
++  free(p);
++}
+\ No newline at end of file
+diff --git a/wasmedge_stubs/wasi_socket_ext.h b/wasmedge_stubs/wasi_socket_ext.h
+new file mode 100644
+index 00000000..0bffeac0
+--- /dev/null
++++ b/wasmedge_stubs/wasi_socket_ext.h
+@@ -0,0 +1,330 @@
++#pragma once
++
++#include <sys/socket.h>
++
++// struct sockaddr_in {
++// 	sa_family_t sin_family;
++// 	in_port_t sin_port;
++// 	struct in_addr sin_addr;
++// 	uint8_t sin_zero[8];
++// };
++
++// struct sockaddr_in6 {
++// 	sa_family_t     sin6_family;
++// 	in_port_t       sin6_port;
++// 	uint32_t        sin6_flowinfo;
++// 	struct in6_addr sin6_addr;
++// 	uint32_t        sin6_scope_id;
++// };
++
++#ifndef SHUT_RD
++#define SHUT_RD 0
++#define SHUT_WR 1
++#define SHUT_RDWR 2
++#endif
++
++// #ifndef SOCK_STREAM
++// #define SOCK_STREAM    1
++// #define SOCK_DGRAM     2
++// #endif
++
++#define SOCK_RAW 3
++#define SOCK_RDM 4
++#define SOCK_SEQPACKET 5
++#define SOCK_DCCP 6
++#define SOCK_PACKET 10
++
++#ifndef SOCK_CLOEXEC
++#define SOCK_CLOEXEC 02000000
++#define SOCK_NONBLOCK 04000
++#endif
++
++#define PF_UNSPEC 0
++#define PF_LOCAL 1
++#define PF_UNIX PF_LOCAL
++#define PF_FILE PF_LOCAL
++#define PF_INET 2
++#define PF_AX25 3
++#define PF_IPX 4
++#define PF_APPLETALK 5
++#define PF_NETROM 6
++#define PF_BRIDGE 7
++#define PF_ATMPVC 8
++#define PF_X25 9
++#define PF_INET6 10
++#define PF_ROSE 11
++#define PF_DECnet 12
++#define PF_NETBEUI 13
++#define PF_SECURITY 14
++#define PF_KEY 15
++#define PF_NETLINK 16
++#define PF_ROUTE PF_NETLINK
++#define PF_PACKET 17
++#define PF_ASH 18
++#define PF_ECONET 19
++#define PF_ATMSVC 20
++#define PF_RDS 21
++#define PF_SNA 22
++#define PF_IRDA 23
++#define PF_PPPOX 24
++#define PF_WANPIPE 25
++#define PF_LLC 26
++#define PF_IB 27
++#define PF_MPLS 28
++#define PF_CAN 29
++#define PF_TIPC 30
++#define PF_BLUETOOTH 31
++#define PF_IUCV 32
++#define PF_RXRPC 33
++#define PF_ISDN 34
++#define PF_PHONET 35
++#define PF_IEEE802154 36
++#define PF_CAIF 37
++#define PF_ALG 38
++#define PF_NFC 39
++#define PF_VSOCK 40
++#define PF_KCM 41
++#define PF_QIPCRTR 42
++#define PF_SMC 43
++#define PF_XDP 44
++#define PF_MAX 45
++
++// #define AF_UNSPEC       PF_UNSPEC
++// #define AF_LOCAL        PF_LOCAL
++// #define AF_UNIX         AF_LOCAL
++// #define AF_FILE         AF_LOCAL
++// #define AF_INET         PF_INET
++// #define AF_AX25         PF_AX25
++// #define AF_IPX          PF_IPX
++// #define AF_APPLETALK    PF_APPLETALK
++// #define AF_NETROM       PF_NETROM
++// #define AF_BRIDGE       PF_BRIDGE
++// #define AF_ATMPVC       PF_ATMPVC
++// #define AF_X25          PF_X25
++// #define AF_INET6        PF_INET6
++// #define AF_ROSE         PF_ROSE
++// #define AF_DECnet       PF_DECnet
++// #define AF_NETBEUI      PF_NETBEUI
++// #define AF_SECURITY     PF_SECURITY
++// #define AF_KEY          PF_KEY
++// #define AF_NETLINK      PF_NETLINK
++// #define AF_ROUTE        PF_ROUTE
++// #define AF_PACKET       PF_PACKET
++// #define AF_ASH          PF_ASH
++// #define AF_ECONET       PF_ECONET
++// #define AF_ATMSVC       PF_ATMSVC
++// #define AF_RDS          PF_RDS
++// #define AF_SNA          PF_SNA
++// #define AF_IRDA         PF_IRDA
++// #define AF_PPPOX        PF_PPPOX
++// #define AF_WANPIPE      PF_WANPIPE
++// #define AF_LLC          PF_LLC
++// #define AF_IB           PF_IB
++// #define AF_MPLS         PF_MPLS
++// #define AF_CAN          PF_CAN
++// #define AF_TIPC         PF_TIPC
++// #define AF_BLUETOOTH    PF_BLUETOOTH
++// #define AF_IUCV         PF_IUCV
++// #define AF_RXRPC        PF_RXRPC
++// #define AF_ISDN         PF_ISDN
++// #define AF_PHONET       PF_PHONET
++// #define AF_IEEE802154   PF_IEEE802154
++// #define AF_CAIF         PF_CAIF
++// #define AF_ALG          PF_ALG
++// #define AF_NFC          PF_NFC
++// #define AF_VSOCK        PF_VSOCK
++// #define AF_KCM          PF_KCM
++// #define AF_QIPCRTR      PF_QIPCRTR
++// #define AF_SMC          PF_SMC
++// #define AF_XDP          PF_XDP
++// #define AF_MAX          PF_MAX
++
++// WasmEdge wasi_sock_opt_so
++#define SO_REUSEADDR 0
++#ifdef SO_TYPE
++#undef SO_TYPE
++#define SO_TYPE 1
++#endif
++#define SO_ERROR 2
++#define SO_DONTROUTE 3
++#define SO_BROADCAST 4
++#ifdef SO_SNDBUF
++#undef SO_SNBBUF
++#define SO_SNDBUF 5
++#endif
++#define SO_RCVBUF 6
++#define SO_KEEPALIVE 7
++#define SO_OOBINLINE 8
++#define SO_LINGER 9
++#define SO_RCVLOWAT 10
++#define SO_RCVTIMEO 11
++#define SO_SNDTIME0 12
++#define SO_ACCEPTCONN 13
++
++// #ifndef SO_DEBUG
++// #define SO_DEBUG        1
++// #define SO_REUSEADDR    2
++// #define SO_TYPE         3
++// #define SO_ERROR        4
++// #define SO_DONTROUTE    5
++// #define SO_BROADCAST    6
++// #define SO_SNDBUF       7
++// #define SO_RCVBUF       8
++// #define SO_KEEPALIVE    9
++// #define SO_OOBINLINE    10
++// #define SO_NO_CHECK     11
++// #define SO_PRIORITY     12
++// #define SO_LINGER       13
++// #define SO_BSDCOMPAT    14
++// #define SO_REUSEPORT    15
++// #define SO_PASSCRED     16
++// #define SO_PEERCRED     17
++// #define SO_RCVLOWAT     18
++// #define SO_SNDLOWAT     19
++// #define SO_ACCEPTCONN   30
++// #define SO_PEERSEC      31
++// #define SO_SNDBUFFORCE  32
++// #define SO_RCVBUFFORCE  33
++// #define SO_PROTOCOL     38
++// #define SO_DOMAIN       39
++// #endif
++
++#ifndef SO_RCVTIMEO
++#if __LONG_MAX == 0x7fffffff
++#define SO_RCVTIMEO 66
++#define SO_SNDTIMEO 67
++#else
++#define SO_RCVTIMEO 20
++#define SO_SNDTIMEO 21
++#endif
++#endif
++
++#ifndef SO_TIMESTAMP
++#if __LONG_MAX == 0x7fffffff
++#define SO_TIMESTAMP 63
++#define SO_TIMESTAMPNS 64
++#define SO_TIMESTAMPING 65
++#else
++#define SO_TIMESTAMP 29
++#define SO_TIMESTAMPNS 35
++#define SO_TIMESTAMPING 37
++#endif
++#endif
++
++#define SO_SECURITY_AUTHENTICATION 22
++#define SO_SECURITY_ENCRYPTION_TRANSPORT 23
++#define SO_SECURITY_ENCRYPTION_NETWORK 24
++
++#define SO_BINDTODEVICE 25
++
++#define SO_ATTACH_FILTER 26
++#define SO_DETACH_FILTER 27
++#define SO_GET_FILTER SO_ATTACH_FILTER
++
++#define SO_PEERNAME 28
++#define SCM_TIMESTAMP SO_TIMESTAMP
++#define SO_PASSSEC 34
++#define SCM_TIMESTAMPNS SO_TIMESTAMPNS
++#define SO_MARK 36
++#define SCM_TIMESTAMPING SO_TIMESTAMPING
++#define SO_RXQ_OVFL 40
++#define SO_WIFI_STATUS 41
++#define SCM_WIFI_STATUS SO_WIFI_STATUS
++#define SO_PEEK_OFF 42
++#define SO_NOFCS 43
++#define SO_LOCK_FILTER 44
++#define SO_SELECT_ERR_QUEUE 45
++#define SO_BUSY_POLL 46
++#define SO_MAX_PACING_RATE 47
++#define SO_BPF_EXTENSIONS 48
++#define SO_INCOMING_CPU 49
++#define SO_ATTACH_BPF 50
++#define SO_DETACH_BPF SO_DETACH_FILTER
++#define SO_ATTACH_REUSEPORT_CBPF 51
++#define SO_ATTACH_REUSEPORT_EBPF 52
++#define SO_CNX_ADVICE 53
++#define SCM_TIMESTAMPING_OPT_STATS 54
++#define SO_MEMINFO 55
++#define SO_INCOMING_NAPI_ID 56
++#define SO_COOKIE 57
++#define SCM_TIMESTAMPING_PKTINFO 58
++#define SO_PEERGROUPS 59
++#define SO_ZEROCOPY 60
++#define SO_TXTIME 61
++#define SCM_TXTIME SO_TXTIME
++#define SO_BINDTOIFINDEX 62
++#define SO_DETACH_REUSEPORT_BPF 68
++
++#ifndef SOL_SOCKET
++#define SOL_SOCKET 1
++#endif
++
++#define SOL_IP 0
++#define SOL_IPV6 41
++#define SOL_ICMPV6 58
++
++#define SOL_RAW 255
++#define SOL_DECNET 261
++#define SOL_X25 262
++#define SOL_PACKET 263
++#define SOL_ATM 264
++#define SOL_AAL 265
++#define SOL_IRDA 266
++#define SOL_NETBEUI 267
++#define SOL_LLC 268
++#define SOL_DCCP 269
++#define SOL_NETLINK 270
++#define SOL_TIPC 271
++#define SOL_RXRPC 272
++#define SOL_PPPOL2TP 273
++#define SOL_BLUETOOTH 274
++#define SOL_PNPIPE 275
++#define SOL_RDS 276
++#define SOL_IUCV 277
++#define SOL_CAIF 278
++#define SOL_ALG 279
++#define SOL_NFC 280
++#define SOL_KCM 281
++#define SOL_TLS 282
++#define SOL_XDP 283
++
++#define SOMAXCONN 128
++
++// #define MSG_OOB       0x0001
++// #define MSG_PEEK      0x0002
++// #define MSG_DONTROUTE 0x0004
++// #define MSG_CTRUNC    0x0008
++// #define MSG_PROXY     0x0010
++// #define MSG_TRUNC     0x0020
++// #define MSG_DONTWAIT  0x0040
++// #define MSG_EOR       0x0080
++// #define MSG_WAITALL   0x0100
++// #define MSG_FIN       0x0200
++// #define MSG_SYN       0x0400
++// #define MSG_CONFIRM   0x0800
++// #define MSG_RST       0x1000
++// #define MSG_ERRQUEUE  0x2000
++// #define MSG_NOSIGNAL  0x4000
++// #define MSG_MORE      0x8000
++// #define MSG_WAITFORONE 0x10000
++// #define MSG_BATCH     0x40000
++// #define MSG_ZEROCOPY  0x4000000
++// #define MSG_FASTOPEN  0x20000000
++// #define MSG_CMSG_CLOEXEC 0x40000000
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++int socket(int, int, int);
++
++int bind(int, const struct sockaddr *, socklen_t);
++int connect(int, const struct sockaddr *, socklen_t);
++int listen(int, int);
++int accept(int, struct sockaddr *__restrict, socklen_t *__restrict);
++
++int setsockopt(int, int, int, const void *, socklen_t);
++
++#ifdef __cplusplus
++}
++#endif
+\ No newline at end of file
+-- 
+2.38.1
+
