@@ -1,6 +1,6 @@
-# Ignore everything in this directory
-build-output/**
-build-staging/**
+# Ignore everything in these directories
+build-output
+build-staging
 .vscode/**
 *.log
 # Except this file

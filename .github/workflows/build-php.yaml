@@ -1,0 +1,26 @@
+name: Build PHP
+on:
+  push:
+    # By specifying branches explicitly, we avoid this workflow from
+    # running on tag push. We have a dedicated workflow to be ran when
+    # a tag is pushed.
+    branches:
+      - "*"
+  pull_request:
+jobs:
+  build-php:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [7.3.33, 7.4.32]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build PHP
+        run: make php/php-${{ matrix.version }}
+      - name: Upload php-cgi-${{ matrix.version }}.wasm artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: php-cgi-${{ matrix.version }}.wasm
+          path: php/build-output/php/php-${{ matrix.version }}/bin/php-cgi

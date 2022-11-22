@@ -2,38 +2,31 @@
 
 ## Overview
 
-This repository contains patches provided for language runtimes to be
-compiled for the wasm32-wasi target.
+This repository contains patches provided for language runtimes to be compiled for the wasm32-wasi target.
 
 ## Getting started
 
-To run this builds for WASM/WASI you will need to install [WebAssembly/wasi-sdk](https://github.com/WebAssembly/wasi-sdk) in advance. Then export the location as `WASI_SDK_ROOT`.
+All you need in order to run these builds is to have `docker` or `podman` available in your system. You can execute the following `Makefile` targets:
 
-First ensure you have the build tools required to build the respective language runtime or standalone library. These could be `autoconf`, `libtool`, `make`, etc.
+- `php/php-7.3.33`
+    - Resulting binaries are placed in `php/build-output/php/php-7.3.33/bin`.
 
-For the current version of our build orchestration scripts we use `bash`
+- `php/php-7.4.32`
+    - Resulting binaries are placed in `php/build-output/php/php-7.4.32/bin`.
 
-Just call the `wl-make.sh` script for the folder with the tagged version of whatever you want to build
+### Build strategy
 
-```console
-./wl-make.sh php/php-7.4.32
-```
+If you are interested in knowing more about the build system and how it produces the final binaries, keep reading.
 
-or 
-
-```console
-./wl-make.sh libs/sqlite/version-3.39.2
-```
-
-## Code Organization
+### Code Organization
 
 All build orchestration scripts are written in bash in this initial version. The start with a `wl-` prefix (short for WasmLabs). Review the [build orchestration scripts](#build-orchestration-scripts) section for more info.
 
-All intermediary source code checkouts and build objects get created within the `build-staging` folder. The final output gets written to the `build-output` folder. 
+All intermediary source code checkouts and build objects get created within the `build-staging` folder. The final output gets written to the `build-output` folder.
 
 The patches and scripts to build different language runtimes are organized in a folder hierarchy that follows the tagged versions from the respective source code repositories. Several `wl-` scripts are added around that to facilitate setup of a local clone of the repository, application of respective patches and building with respective build configuration options.
 
-For language runtimes we have something like this. 
+For language runtimes we have something like this.
 
 ```
 $LANGUAGE_RUNTIME_NAME (e.g. php)
@@ -62,7 +55,7 @@ libs (common libraries, needed by different modules)
     └── wl-env-repo.sh (script that sets up the source code repository for given langauge and tag)
 ```
 
-## Build orchestration scripts
+### Build orchestration scripts
 
 1. The main script used to build something is `wl-make.sh` in the root folder. It gets called with a path to the folder for a respective tag of what we want to build
 
@@ -74,7 +67,7 @@ libs (common libraries, needed by different modules)
 
 5. Before building this will call a `$LANG/$TAG/wl-build-deps.sh` if there is any to build required dependencies and setup CFLAGS or LDFLAGS for their artifacts. Then it will call the `$LANG/$TAG/wl-build.sh` script to build the actual target itself.
 
-## Adding a new build target
+### Adding a new build target
 
 To add a build setup for a new version of something that is already configured:
 
@@ -92,7 +85,7 @@ touch php/php-7.3.33/wl-build.sh
 
 3. Setup your build environment via `scripts/wl-env.sh` with the target path then query the respective environment variables, like this:
 
-```console 
+```console
 source scripts/wl-env.sh php/php-7.3.33
 export | grep WASMLABS_
 ```
@@ -140,3 +133,16 @@ scripts/wl-update-patches.sh
 git add php/php-7.3.33
 git commit -m "Add support to build php version 7.3.33"
 ```
+
+## Performing a release
+
+In order to perform a release, push a tag of the following form
+depending on the project artifacts you want to be built and published:
+
+- `php/version`, where version can be any of:
+    - `7.3.33`
+    - `7.4.32`
+
+When the tag is pushed to the repository, a GitHub release will be
+created automatically, and relevant artifacts will be automatically
+published to the release.
