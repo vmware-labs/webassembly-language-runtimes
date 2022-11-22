@@ -139,9 +139,11 @@ git commit -m "Add support to build php version 7.3.33"
 In order to perform a release, push a tag of the following form
 depending on the project artifacts you want to be built and published:
 
-- `php/version`, where version can be any of:
+- `php/<version>+YYYYMMDD-<short-sha>`, where version can be any of:
     - `7.3.33`
     - `7.4.32`
+
+An example of a tag following the convention that triggers automation would be `php/7.3.33+20221123-8dfe8b9`.
 
 When the tag is pushed to the repository, a GitHub release will be
 created automatically, and relevant artifacts will be automatically
