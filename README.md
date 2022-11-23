@@ -136,15 +136,12 @@ git commit -m "Add support to build php version 7.3.33"
 
 ## Performing a release
 
-In order to perform a release, push a tag of the following form
-depending on the project artifacts you want to be built and published:
+In order to perform a release, you first have to tag the project you want to release. You can create a tag by using the `scripts/wl-tag.sh` script.
 
-- `php/<version>+YYYYMMDD-<short-sha>`, where version can be any of:
-    - `7.3.33`
-    - `7.4.32`
+This script accepts the path to be released, and will create a local tag of the form `<project>/<version>+YYYYMMDD-<short-sha>`. All parameters will be automatically filled by the script, so in order to create a valid tag for PHP 7.3.33, for example, you only have to execute:
 
-An example of a tag following the convention that triggers automation would be `php/7.3.33+20221123-8dfe8b9`.
+- `scripts/wl-tag.sh php/php-7.3.33`
 
-When the tag is pushed to the repository, a GitHub release will be
-created automatically, and relevant artifacts will be automatically
-published to the release.
+This will create a tag like the following in your local repository: `php/7.3.33+20221123-d3d8901`.
+
+When you push the tag to the remote repository, a GitHub release will be created automatically, and relevant artifacts will be automatically published to the release.
