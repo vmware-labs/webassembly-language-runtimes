@@ -1,3 +1,9 @@
+# Note that for this workflow to be triggered, the tag needs to be
+# created of the form `php/<version>+<buildinfo>`, where <buildinfo>
+# by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
+# with `git rev-parse --short HEAD`). An example of a tag following
+# the convention that triggers automation would be
+# `php/7.3.33+20221123-8dfe8b9`.
 name: Release PHP
 on:
   push:
@@ -17,21 +23,21 @@ jobs:
         #
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        if: startsWith(github.event.ref,  format('refs/tags/php/{0}+', matrix.version))
         uses: actions/checkout@v3
       - name: Build PHP
         # Only run for the PHP version specified in the git tag.
         #
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         run: make php/php-${{ matrix.version }}
       - name: Rename release artifacts
         # Only run for the PHP version specified in the git tag.
         #
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         shell: bash
         run: |
           sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{,.wasm}
@@ -40,7 +46,7 @@ jobs:
         #
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         shell: bash
         run: |
           wget https://github.com/WebAssembly/binaryen/releases/download/version_${{ env.BINARYEN_VERSION }}/binaryen-version_${{ env.BINARYEN_VERSION }}-x86_64-linux.tar.gz
@@ -51,7 +57,7 @@ jobs:
         #
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         shell: bash
         run: |
           sudo /opt/bin/wasm-opt -Os -o php/build-output/php/php-${{ matrix.version }}/bin/php-cgi.size-optimized.wasm php/build-output/php/php-${{ matrix.version }}/bin/php-cgi.wasm
@@ -61,7 +67,7 @@ jobs:
         #
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         run: |
           sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{,-${{ matrix.version }}}.wasm
           sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{,-${{ matrix.version }}}.size-optimized.wasm
@@ -71,7 +77,7 @@ jobs:
         #
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: github.event.ref == format('refs/tags/php/{0}', matrix.version)
+        if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         uses: softprops/action-gh-release@v1
         with:
           files: |
