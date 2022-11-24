@@ -78,9 +78,10 @@ jobs:
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}.wasm
-            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}.size-optimized.wasm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.ref_name }} --generate-notes \
+            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}.wasm \
+            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}.size-optimized.wasm \
             php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}.speed-optimized.wasm
