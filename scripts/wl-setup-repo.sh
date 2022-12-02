@@ -9,9 +9,11 @@ fi
 if git clone --depth=1 -b ${WASMLABS_TAG} ${WASMLABS_REPO} ${WASMLABS_CHECKOUT_PATH}
 then
     cd ${WASMLABS_CHECKOUT_PATH} || exit 1
+    git config user.email "Wasm Labs Team"
+    git config user.name "no-reply@wasmlabs.dev"
     for p in ${WASMLABS_ENV}/patches/*.patch
     do
-        git apply $p || exit 1
+        git am --no-gpg-sign $p || exit 1
     done
 else
     echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
