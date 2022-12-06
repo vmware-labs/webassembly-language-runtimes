@@ -1,0 +1,7 @@
+
+FROM scratch
+ARG PHP_TAG=php-7.4.32
+ARG PHP_BINARY=php
+COPY build-output/php/${PHP_TAG}/bin/${PHP_BINARY} /php.wasm
+
+ENTRYPOINT [ "php.wasm" ]
