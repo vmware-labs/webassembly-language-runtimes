@@ -15,7 +15,7 @@ export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-getpid -lwasi-emu
 export CFLAGS_SQLITE='-DSQLITE_OMIT_LOAD_EXTENSION=1'
 export LDFLAGS_SQLITE='-lsqlite3'
 
-export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI -DWASM_WASMEDGE'
+export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI'
 
 # We need to add LDFLAGS to CFLAGS because autoconf compiles(+links) to binary when checking stuff
 export LDFLAGS="${LDFS} ${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_SQLITE} ${LDFLAGS}"
@@ -26,18 +26,35 @@ cd "${WASMLABS_CHECKOUT_PATH}"
 logStatus "Generating configure script... "
 ./buildconf --force || exit 1
 
-export PHP_CONFIGURE='--with-wasmedge --without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite'
+export PHP_CONFIGURE='--without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite'
+
+if [[ -v WASM_RUNTIME ]]
+then
+    export PHP_CONFIGURE=" --with-wasm-runtime=${WASM_RUNTIME} ${PHP_CONFIGURE}"
+fi
 
 logStatus "Configuring build with '${PHP_CONFIGURE}'... "
 ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
 
-logStatus "Building php-cgi... "
-make cgi cli || exit 1
+export MAKE_TARGETS='cgi'
+if [[ "${WASM_RUNTIME}" == "wasmedge" ]]
+then
+    export MAKE_TARGETS="${MAKE_TARGETS} cli"
+fi
+
+logStatus "Building '${MAKE_TARGETS}'... "
+make ${MAKE_TARGETS} || exit 1
 
 logStatus "Preparing artifacts... "
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 
-cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/ || exit 1
-cp sapi/cli/php ${WASMLABS_OUTPUT}/bin/ || exit 1
+if [[ ! -v WASM_RUNTIME ]]
+then
+    cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/ || exit 1
+elif [[ "${WASM_RUNTIME}" == "wasmedge" ]]
+then
+    cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/php-cgi.${WASM_RUNTIME} || exit 1
+    cp sapi/cli/php ${WASMLABS_OUTPUT}/bin/php.${WASM_RUNTIME} || exit 1
+fi
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
