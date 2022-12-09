@@ -28,16 +28,16 @@ logStatus "Generating configure script... "
 
 export PHP_CONFIGURE='--without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite'
 
-if [[ -v WASM_RUNTIME ]]
+if [[ -v WASMLABS_RUNTIME ]]
 then
-    export PHP_CONFIGURE=" --with-wasm-runtime=${WASM_RUNTIME} ${PHP_CONFIGURE}"
+    export PHP_CONFIGURE=" --with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
 fi
 
 logStatus "Configuring build with '${PHP_CONFIGURE}'... "
 ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
 
 export MAKE_TARGETS='cgi'
-if [[ "${WASM_RUNTIME}" == "wasmedge" ]]
+if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
 then
     export MAKE_TARGETS="${MAKE_TARGETS} cli"
 fi
@@ -48,13 +48,11 @@ make ${MAKE_TARGETS} || exit 1
 logStatus "Preparing artifacts... "
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 
-if [[ ! -v WASM_RUNTIME ]]
+cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME} || exit 1
+
+if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
 then
-    cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/ || exit 1
-elif [[ "${WASM_RUNTIME}" == "wasmedge" ]]
-then
-    cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/php-cgi.${WASM_RUNTIME} || exit 1
-    cp sapi/cli/php ${WASMLABS_OUTPUT}/bin/php.${WASM_RUNTIME} || exit 1
+    cp sapi/cli/php ${WASMLABS_OUTPUT}/bin/php${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME} || exit 1
 fi
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
