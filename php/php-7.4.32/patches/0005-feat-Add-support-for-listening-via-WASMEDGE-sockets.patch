@@ -1,11 +1,13 @@
-From a8ca1848b03a6cbefefcd40e2bcbab49da71e1d7 Mon Sep 17 00:00:00 2001
+From fec4d80fccbdd80697a55a92b9cb7993e22cf987 Mon Sep 17 00:00:00 2001
 From: Asen Alexandrov <alexandrov@vmware.com>
 Date: Tue, 22 Nov 2022 19:32:16 +0200
-Subject: [PATCH 5/6] feat: Add support for listening via WASMEDGE sockets
-
+Subject: [PATCH 5/7] feat: Add support for listening via WASMEDGE sockets
 
   27.3% sapi/cli/
   70.9% wasmedge_stubs/
+
+  27.2% sapi/cli/
+  71.0% wasmedge_stubs/
 diff --git a/configure.ac b/configure.ac
 index f2ba8a83..2119baaa 100644
 --- a/configure.ac
@@ -614,12 +616,12 @@ index f2f69928..f7d08b06 100644
  	int c;
 diff --git a/wasmedge_stubs/netdb.h b/wasmedge_stubs/netdb.h
 new file mode 100644
-index 00000000..59ad1a03
+index 00000000..c1136150
 --- /dev/null
 +++ b/wasmedge_stubs/netdb.h
 @@ -0,0 +1,73 @@
 +#pragma once
-+
++// Based on https://github.com/hangedfish/wasmedge_wasi_socket_c
 +
 +struct addrinfo {
 +	int ai_flags;
@@ -1107,11 +1109,12 @@ index 00000000..0c74c75a
 \ No newline at end of file
 diff --git a/wasmedge_stubs/wasi_socket_ext.h b/wasmedge_stubs/wasi_socket_ext.h
 new file mode 100644
-index 00000000..0bffeac0
+index 00000000..ee4dc75b
 --- /dev/null
 +++ b/wasmedge_stubs/wasi_socket_ext.h
-@@ -0,0 +1,330 @@
+@@ -0,0 +1,331 @@
 +#pragma once
++// Based on https://github.com/hangedfish/wasmedge_wasi_socket_c
 +
 +#include <sys/socket.h>
 +
