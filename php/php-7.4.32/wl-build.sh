@@ -43,7 +43,7 @@ then
 fi
 
 logStatus "Building '${MAKE_TARGETS}'... "
-make ${MAKE_TARGETS} || exit 1
+make -j ${MAKE_TARGETS} || exit 1
 
 logStatus "Preparing artifacts... "
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1

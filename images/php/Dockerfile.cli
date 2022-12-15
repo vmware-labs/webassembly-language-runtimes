@@ -1,4 +1,3 @@
-
 FROM scratch
 ARG PHP_TAG=php-7.4.32
 ARG PHP_BINARY=php

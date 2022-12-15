@@ -30,7 +30,7 @@ logStatus "Configuring build with '${SQLITE_CONFIGURE}'... "
 ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE} || exit 1
 
 logStatus "Building... "
-make libsqlite3.la || exit 1
+make -j libsqlite3.la || exit 1
 
 logStatus "Preparing artifacts... "
 cp sqlite3.h sqlite3ext.h sqlite3session.h ${WASMLABS_OUTPUT}/include/ || exit 1
