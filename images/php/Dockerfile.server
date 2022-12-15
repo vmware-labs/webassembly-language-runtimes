@@ -1,0 +1,8 @@
+FROM scratch
+ARG PHP_TAG=php-7.4.32
+ARG PHP_BINARY=php
+ARG PHP_DOCROOT=images/php/docroot
+COPY build-output/php/${PHP_TAG}/bin/${PHP_BINARY} /php.wasm
+COPY ${PHP_DOCROOT} /docroot/
+
+ENTRYPOINT [ "php.wasm" , "-S", "0.0.0.0:8080", "-t", "/docroot"]

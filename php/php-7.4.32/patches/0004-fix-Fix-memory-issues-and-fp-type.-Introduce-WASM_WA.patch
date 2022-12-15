@@ -1,0 +1,107 @@
+From 278731c2d4345ad11b0efba3d269486d1f443e82 Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Mon, 21 Nov 2022 15:46:20 +0200
+Subject: [PATCH 4/6] fix: Fix memory issues and fp type. Introduce
+ WASM_WASMEDGE.
+
+
+  80.7% Zend/
+   7.0% ext/posix/
+   7.4% ext/standard/
+   4.7% sapi/cli/
+diff --git a/Zend/zend_alloc.c b/Zend/zend_alloc.c
+index 014801a9..063a6388 100644
+--- a/Zend/zend_alloc.c
++++ b/Zend/zend_alloc.c
+@@ -461,8 +461,8 @@ static void *zend_mm_mmap(size_t size)
+ 	}
+ 	return ptr;
+ #elif ! HAVE_MMAP
+-	void* ptr = malloc(size);
+-	memset(ptr, 0, size);
++	void* ptr = malloc(size + ZEND_MMAP_AHEAD);
++	memset(ptr, 0, size + ZEND_MMAP_AHEAD);
+ 	return ptr;
+ #else
+ 	void *ptr;
+@@ -672,8 +672,8 @@ static zend_always_inline int zend_mm_bitset_is_free_range(zend_mm_bitset *bitse
+ static void *zend_mm_chunk_alloc_int(size_t size, size_t alignment)
+ {
+ #if ! HAVE_MMAP
+-	void* ptr = aligned_alloc(alignment, size);
+-	memset(ptr, 0, size);
++	void* ptr = aligned_alloc(alignment, size + ZEND_MMAP_AHEAD);
++	memset(ptr, 0, size + ZEND_MMAP_AHEAD);
+ 	return ptr;
+ #else
+ 	void *ptr = zend_mm_mmap(size);
+diff --git a/Zend/zend_variables.c b/Zend/zend_variables.c
+index 810866a1..77cb4f9c 100644
+--- a/Zend/zend_variables.c
++++ b/Zend/zend_variables.c
+@@ -36,6 +36,10 @@ static void ZEND_FASTCALL zend_empty_destroy(zend_reference *ref);
+ 
+ typedef void (ZEND_FASTCALL *zend_rc_dtor_func_t)(zend_refcounted *p);
+ 
++static void zend_list_free_void_wrapper(zend_resource *res) {
++	zend_list_free(res);
++}
++
+ static const zend_rc_dtor_func_t zend_rc_dtor_func[] = {
+ 	/* IS_UNDEF        */ (zend_rc_dtor_func_t)zend_empty_destroy,
+ 	/* IS_NULL         */ (zend_rc_dtor_func_t)zend_empty_destroy,
+@@ -46,7 +50,7 @@ static const zend_rc_dtor_func_t zend_rc_dtor_func[] = {
+ 	/* IS_STRING       */ (zend_rc_dtor_func_t)zend_string_destroy,
+ 	/* IS_ARRAY        */ (zend_rc_dtor_func_t)zend_array_destroy,
+ 	/* IS_OBJECT       */ (zend_rc_dtor_func_t)zend_objects_store_del,
+-	/* IS_RESOURCE     */ (zend_rc_dtor_func_t)zend_list_free,
++	/* IS_RESOURCE     */ (zend_rc_dtor_func_t)zend_list_free_void_wrapper,
+ 	/* IS_REFERENCE    */ (zend_rc_dtor_func_t)zend_reference_destroy,
+ 	/* IS_CONSTANT_AST */ (zend_rc_dtor_func_t)zend_ast_ref_destroy
+ };
+diff --git a/ext/posix/posix.c b/ext/posix/posix.c
+index ad90e205..0919768f 100644
+--- a/ext/posix/posix.c
++++ b/ext/posix/posix.c
+@@ -890,8 +890,12 @@ PHP_FUNCTION(posix_ttyname)
+ 		RETURN_FALSE;
+ 	}
+ #endif
++#else
++	p = emalloc(1);
++	*p = '\0';
+ #endif // WASM_WASI
+ 	RETURN_STRING(p);
++	efree(p);
+ }
+ /* }}} */
+ 
+diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
+index d088a659..f5323ffc 100644
+--- a/ext/standard/basic_functions.c
++++ b/ext/standard/basic_functions.c
+@@ -67,6 +67,8 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
+ #else
+ #include "win32/inet.h"
+ #endif
++#elif defined(WASM_WASMEDGE)
++# include <netdb.h>
+ #endif // WASM_WASI
+ 
+ #if HAVE_ARPA_INET_H
+diff --git a/sapi/cli/php_cli_server.c b/sapi/cli/php_cli_server.c
+index c3097861..f2f69928 100644
+--- a/sapi/cli/php_cli_server.c
++++ b/sapi/cli/php_cli_server.c
+@@ -774,7 +774,7 @@ static void sapi_cli_server_log_write(int type, char *msg) /* {{{ */
+ 			memmove(buf, "unknown", sizeof("unknown"));
+ 		}
+ 	}
+-#ifdef HAVE_FORK
++#if HAVE_FORK
+ 	if (php_cli_server_workers_max > 1) {
+ 		fprintf(stderr, "[%ld] [%s] %s\n", (long) getpid(), buf, msg);
+ 	} else {
+-- 
+2.38.1
+
