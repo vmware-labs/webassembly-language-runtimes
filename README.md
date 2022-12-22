@@ -11,7 +11,7 @@ All you need in order to run these builds is to have `docker` or `podman` availa
 - `php/php-7.3.33`
     - Resulting binaries are placed in `php/build-output/php/php-7.3.33/bin`.
 
-- `php/php-7.4.32`
+- `php/php-7.4.32`, `php/wasmedge-php-7.4.32`
     - Resulting binaries are placed in `php/build-output/php/php-7.4.32/bin`.
 
 ### Build strategy
