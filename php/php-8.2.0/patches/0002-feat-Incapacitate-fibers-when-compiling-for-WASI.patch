@@ -1,0 +1,85 @@
+From 60d1ba4112181cc071ac3317424da057290d74eb Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Tue, 3 Jan 2023 17:02:38 +0200
+Subject: [PATCH 2/5] feat: Incapacitate fibers when compiling for WASI
+
+  26.2% Zend/
+
+  26.2% Zend/
+diff --git a/Zend/zend_fibers.c b/Zend/zend_fibers.c
+index 0bc4e0c676..772d379dd8 100644
+--- a/Zend/zend_fibers.c
++++ b/Zend/zend_fibers.c
+@@ -347,12 +347,14 @@ ZEND_API bool zend_fiber_init_context(zend_fiber_context *context, void *kind, z
+ 	makecontext(handle, (void (*)(void)) zend_fiber_trampoline, 0);
+ 
+ 	context->handle = handle;
+-#else
++#elif !defined(__wasi__)
+ 	// Stack grows down, calculate the top of the stack. make_fcontext then shifts pointer to lower 16-byte boundary.
+ 	void *stack = (void *) ((uintptr_t) context->stack->pointer + context->stack->size);
+ 
+ 	context->handle = make_fcontext(stack, context->stack->size, zend_fiber_trampoline);
+ 	ZEND_ASSERT(context->handle != NULL && "make_fcontext() never returns NULL");
++#else
++	return false;
+ #endif
+ 
+ 	context->kind = kind;
+@@ -427,16 +429,18 @@ ZEND_API void zend_fiber_switch_context(zend_fiber_transfer *transfer)
+ 
+ 	/* Copy transfer struct because it might live on the other fiber's stack that will eventually be destroyed. */
+ 	*transfer = *transfer_data;
+-#else
++#elif !defined(__wasi__)
+ 	boost_context_data data = jump_fcontext(to->handle, transfer);
+ 
+ 	/* Copy transfer struct because it might live on the other fiber's stack that will eventually be destroyed. */
+ 	*transfer = *data.transfer;
++#else
++	return;
+ #endif
+ 
+ 	to = transfer->context;
+ 
+-#ifndef ZEND_FIBER_UCONTEXT
++#if !defined(ZEND_FIBER_UCONTEXT) && !defined(__wasi__)
+ 	/* Get the context that resumed us and update its handle to allow for symmetric coroutines. */
+ 	to->handle = data.handle;
+ #endif
+diff --git a/configure.ac b/configure.ac
+index 009e8f88e9..f8088c3a94 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -197,6 +197,9 @@ label2:
+ fi
+ PHP_SUBST(RE2C_FLAGS)
+ 
++dnl Check if __wasi__ is defined by the compiler
++AC_CHECK_DECLS([__wasi__])
++
+ dnl Platform-specific compile settings.
+ dnl ----------------------------------------------------------------------------
+ 
+@@ -1300,11 +1303,13 @@ else
+   if test "$fiber_os" = 'mac'; then
+     AC_DEFINE([_XOPEN_SOURCE], 1, [ ])
+   fi
+-  AC_CHECK_HEADER(ucontext.h, [
+-    AC_DEFINE([ZEND_FIBER_UCONTEXT], 1, [ ])
+-  ], [
+-       AC_MSG_ERROR([fibers not available on this platform])
+-  ])
++  if test "$ac_cv_have_decl___wasi__" != "yes"; then
++    AC_CHECK_HEADER(ucontext.h, [
++      AC_DEFINE([ZEND_FIBER_UCONTEXT], 1, [ ])
++    ], [
++        AC_MSG_ERROR([fibers not available on this platform])
++    ])
++  fi
+ fi
+ 
+ LIBZEND_BASIC_CHECKS
+-- 
+2.38.1
+
