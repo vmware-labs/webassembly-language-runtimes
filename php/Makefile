@@ -11,7 +11,7 @@ php-builder: wasi-builder-16
 .PHONY: php-*
 php-*: php-builder
 	mkdir -p build-output build-staging
-	docker run --rm -v ${ROOT_DIR}/build-output:/wlr/build-output -v ${ROOT_DIR}/build-staging:/wlr/build-staging ghcr.io/vmware-labs/php-builder:wasi-${WASI_SDK_VERSION} ./wl-make.sh php/$@
+	docker run --rm -e WASMLABS_RUNTIME -v ${ROOT_DIR}/build-output:/wlr/build-output -v ${ROOT_DIR}/build-staging:/wlr/build-staging ghcr.io/vmware-labs/php-builder:wasi-${WASI_SDK_VERSION} ./wl-make.sh php/$@
 
 .PHONY: clean
 clean:
