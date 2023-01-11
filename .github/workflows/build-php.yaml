@@ -30,6 +30,14 @@ jobs:
             suffix: ""
             build-php-cli: false
             version: 7.4.32
+          - name: php
+            suffix: ""
+            build-php-cli: false
+            version: 8.1.11
+          - name: php
+            suffix: ""
+            build-php-cli: false
+            version: 8.2.0
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
