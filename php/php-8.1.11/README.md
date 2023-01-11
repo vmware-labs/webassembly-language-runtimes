@@ -4,13 +4,13 @@ This contains a non-exhaustive list of changes that we had to make to be able to
 
 To remove or add code for wasm32-wasi builds we are using the 'WASM_WASI' macro.
 
-# emulated functionality
+# Emulated functionality
 
 We are using emulation of getpid, signals and clocks.
 
 We are not using mman emulation due to the reasons outlined [below](#mmap-support).
 
-# excluded code
+# Excluded code
 
 This describes the most common places where we needed to exclude code because
 a method or constant is not available or is somehow different with WASI.
@@ -23,7 +23,7 @@ Thus there is no support for a FIFO filetype. So the two constants were
 defined to the same value. Because of this a switch/case on file type will fail
 due to duplicate case labels.
 
-We've commented out the S_IFFIFO cases.
+We've commented out the S_IFIFO cases.
 
 ## setjmp and longjmp
 
@@ -43,7 +43,7 @@ Additionally sqlite3 had to be modified in some ways for WASM_WASI builds:
  - use "dotlockIoFinder" for file locking
  - skip sqlite3_finalize
 
-## unsupported posix methods
+## Unsupported posix methods
 
 We have stubbed the posix methods in `ext/posix/posix.c` which are not supported for WASI.
 
