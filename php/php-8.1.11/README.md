@@ -15,7 +15,7 @@ We are not using mman emulation due to the reasons outlined [below](#mmap-suppor
 This describes the most common places where we needed to exclude code because
 a method or constant is not available or is somehow different with WASI.
 
-## S_IFSOCK is the same as  S_IFFIFO
+## S_IFSOCK is the same as S_IFIFO
 
 WASI snapshot2 is not out yet - https://github.com/nodejs/uvwasi/issues/59.
 
