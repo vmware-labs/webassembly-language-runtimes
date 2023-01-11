@@ -1,11 +1,11 @@
-WASI_SDK_VERSION ?= 16
+WASI_SDK_VERSION ?= 18
 
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
 include ../Makefile.builders
 
 .PHONY: php-builder
-php-builder: wasi-builder-16
+php-builder: wasi-builder-18
 	docker build -f ${ROOT_DIR}/Dockerfile --build-arg WASI_SDK_VERSION=$(WASI_SDK_VERSION) -t ghcr.io/vmware-labs/php-builder:wasi-$(WASI_SDK_VERSION) ${ROOT_DIR}
 
 .PHONY: php-*
