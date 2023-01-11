@@ -30,7 +30,8 @@ We've commented out the S_IFFIFO cases.
 There is no such support in WASI yet.
 
 We have taken a shortcut and just botched the exception handling in the zend
-zend engine. The program will just ignore exceptions as they happen.
+engine. The program will just ignore certain exceptions at the PHP engine level
+(exceptions raised from within PHP scripts work).
 
 ## sqlite3 support
 
