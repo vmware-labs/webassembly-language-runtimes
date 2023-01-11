@@ -64,7 +64,7 @@ We are building without MMAP support. To make it work, changes had to be made to
 
 Take a look [here](https://linux.die.net/man/2/mmap) for the docs for mmap and munmap
 
-The mmap support in wasi-libc is just a rudimentary emulation (as of the wasi-sdk-16 tag).
+The mmap support in wasi-libc is just a rudimentary emulation (as of the wasi-sdk-19 tag).
 
  - mmap uses malloc to reserve the necessary amount of memory (always ignoring the addr hint)
  - mmap zeroes out bytes if MAP_ANONYMOUS is used

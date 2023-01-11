@@ -1,5 +1,5 @@
 FROM ubuntu:latest@sha256:4b1d0c4a2d2aaf63b37111f34eb9fa89fa1bf53dd6e4ca954d47caebca4005c2
-ARG WASI_SDK_VERSION=16
+ARG WASI_SDK_VERSION=19
 ENV WASI_SDK=wasi-sdk-${WASI_SDK_VERSION}
 ENV WASI_SDK_ROOT=/wasi-sdk
 RUN apt update && \
