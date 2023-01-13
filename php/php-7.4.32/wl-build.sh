@@ -45,10 +45,13 @@ fi
 logStatus "Building '${MAKE_TARGETS}'... "
 make -j ${MAKE_TARGETS} || exit 1
 
+logStatus "Running asyncify... "
+${BINARYEN_ROOT}/bin/wasm-opt -O --asyncify -g --pass-arg=asyncify-ignore-imports -o sapi/cgi/php-cgi-asyncify sapi/cgi/php-cgi
+
 logStatus "Preparing artifacts... "
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 
-cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME} || exit 1
+cp sapi/cgi/php-cgi-asyncify ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME} || exit 1
 
 if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
 then
