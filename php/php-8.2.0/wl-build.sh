@@ -7,7 +7,7 @@ then
 fi
 
 # export CFLAGS_CONFIG="-O3 -g"
-export CFLAGS_CONFIG="-O2"
+export CFLAGS_CONFIG="-g -ggdb3 -gembed-source -gdwarf -gcodeview"
 
 ########## Setup the wasi related flags #############
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
@@ -37,7 +37,7 @@ then
 fi
 
 logStatus "Configuring build with '${PHP_CONFIGURE}'... "
-./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
+# ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
 
 export MAKE_TARGETS='cgi'
 if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
@@ -51,7 +51,11 @@ make -j ${MAKE_TARGETS} || exit 1
 logStatus "Preparing artifacts... "
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 
-cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME} || exit 1
+logStatus "Optimizing... "
+logStatus "> wasm-opt build-output/php/php-8.2.0/bin/php-cgi -O --asyncify -g --pass-arg=asyncify-ignore-imports -o ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}"
+/home/alexandrov/work/localbld/binaryen/bin/wasm-opt sapi/cgi/php-cgi -O --asyncify -g --pass-arg=asyncify-ignore-imports -o ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME} || exit 1
+
+# cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME} || exit 1
 
 if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
 then
