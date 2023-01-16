@@ -28,6 +28,6 @@ ruby tool/downloader.rb -d tool -e gnu config.guess config.sub
 
 make ruby
 
-cp ruby ${WASMLABS_OUTPUT}/bin/ || exit 1
+mv ruby ${WASMLABS_OUTPUT}/bin/ruby.wasm || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
