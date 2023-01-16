@@ -40,8 +40,6 @@ jobs:
             build-php-cli: false
             version: 8.2.0
     runs-on: ubuntu-latest
-    env:
-      BINARYEN_VERSION: 111
     steps:
       - name: Checkout repository
         # Only run for the PHP version specified in the git tag.
@@ -65,7 +63,7 @@ jobs:
         if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         shell: bash
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}.wasm}
+          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
       - name: Rename release artifacts
         # Only run for the PHP version specified in the git tag.
         #
@@ -74,38 +72,7 @@ jobs:
         if: ${{ startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version)) && matrix.build-php-cli }}
         shell: bash
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}.wasm}
-      - name: Setup binaryen
-        # Only run for the PHP version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
-        shell: bash
-        run: |
-          wget https://github.com/WebAssembly/binaryen/releases/download/version_${{ env.BINARYEN_VERSION }}/binaryen-version_${{ env.BINARYEN_VERSION }}-x86_64-linux.tar.gz
-          tar -xf binaryen-version_${{ env.BINARYEN_VERSION }}-x86_64-linux.tar.gz --strip-components=1 -C /opt
-          rm binaryen-version_${{ env.BINARYEN_VERSION }}-x86_64-linux.tar.gz
-      - name: Optimize php-cgi release artifacts
-        # Only run for the PHP version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
-        shell: bash
-        run: |
-          sudo /opt/bin/wasm-opt -Os -o php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.size-optimized.wasm php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm
-          sudo /opt/bin/wasm-opt -O -o php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.speed-optimized.wasm php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm
-      - name: Optimize php release artifacts
-        # Only run for the PHP version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: ${{ startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version)) && matrix.build-php-cli }}
-        shell: bash
-        run: |
-          sudo /opt/bin/wasm-opt -Os -o php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.size-optimized.wasm php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.wasm
-          sudo /opt/bin/wasm-opt -O -o php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.speed-optimized.wasm php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.wasm
+          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
       - name: Create release
         # Only run for the PHP version specified in the git tag.
         #
@@ -116,7 +83,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create --generate-notes ${{ github.ref_name }} || true
-      - name: Append php-cgi release assets
+      - name: Append PHP release assets
         # Only run for the PHP version specified in the git tag.
         #
         # This if could be moved to the parent `job` section when it's
@@ -126,22 +93,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm \
-            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.size-optimized.wasm \
-            php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.speed-optimized.wasm
-      - name: Append php release assets
-        # Only run for the PHP version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: ${{ startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version)) && matrix.build-php-cli }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload ${{ github.ref_name }} \
-            php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.wasm \
-            php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.size-optimized.wasm \
-            php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.speed-optimized.wasm
+            php/build-output/php/php-${{ matrix.version }}/bin/*.wasm
       - name: Generate release assets digests
         # Only run for the PHP version specified in the git tag.
         #
