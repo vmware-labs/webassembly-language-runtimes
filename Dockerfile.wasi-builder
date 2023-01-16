@@ -1,7 +1,9 @@
-FROM ubuntu:latest@sha256:4b1d0c4a2d2aaf63b37111f34eb9fa89fa1bf53dd6e4ca954d47caebca4005c2
+ARG WASM_BASE=20220116
+FROM ghcr.io/vmware-labs/wasm-base:${WASM_BASE}
 ARG WASI_SDK_VERSION=19
 ENV WASI_SDK=wasi-sdk-${WASI_SDK_VERSION}
 ENV WASI_SDK_ROOT=/wasi-sdk
+ENV WASI_SDK_PATH=${WASI_SDK_ROOT}
 RUN apt update && \
       DEBIAN_FRONTEND=noninteractive apt install -y \
         autoconf \
@@ -9,8 +11,7 @@ RUN apt update && \
         build-essential \
         clang \
         git \
-        pkg-config \
-        wget
+        pkg-config
 RUN wget https://github.com/WebAssembly/wasi-sdk/releases/download/${WASI_SDK}/${WASI_SDK}.0-linux.tar.gz && \
       mkdir /wasi-sdk && \
       tar xf ${WASI_SDK}.0-linux.tar.gz --strip-components=1 -C ${WASI_SDK_ROOT} && \
