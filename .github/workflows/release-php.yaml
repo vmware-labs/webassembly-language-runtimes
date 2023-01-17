@@ -31,6 +31,14 @@ jobs:
             suffix: ""
             build-php-cli: false
             version: 7.4.32
+          - name: php
+            suffix: ""
+            build-php-cli: false
+            version: 8.1.11
+          - name: php
+            suffix: ""
+            build-php-cli: false
+            version: 8.2.0
     runs-on: ubuntu-latest
     env:
       BINARYEN_VERSION: 111
@@ -121,7 +129,6 @@ jobs:
             php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm \
             php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.size-optimized.wasm \
             php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.speed-optimized.wasm
-
       - name: Append php release assets
         # Only run for the PHP version specified in the git tag.
         #
@@ -135,3 +142,26 @@ jobs:
             php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.wasm \
             php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.size-optimized.wasm \
             php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.speed-optimized.wasm
+      - name: Generate release assets digests
+        # Only run for the PHP version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: ${{ startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))}}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for asset in php/build-output/php/php-${{ matrix.version }}/bin/*.wasm; do
+            sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
+          done
+      - name: Append release assets digests
+        # Only run for the PHP version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: ${{ startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))}}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            php/build-output/php/php-${{ matrix.version }}/bin/*.sha256sum

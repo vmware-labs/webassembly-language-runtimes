@@ -1,0 +1,1091 @@
+From 79e10bdf096b6a73d4ab730e41c958a70265867b Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <Wasm Labs Team>
+Date: Fri, 6 Jan 2023 12:38:11 +0200
+Subject: [PATCH 5/5] feat: Server sockets via --with-wasm-runtime=wasmedge
+
+
+   8.3% sapi/cli/
+  88.4% wasmedge_stubs/
+diff --git a/configure.ac b/configure.ac
+index f8088c3a94..56e95d01c3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -787,6 +787,28 @@ fi
+ dnl Check for openpty. It may require linking against libutil or libbsd.
+ PHP_CHECK_FUNC(openpty, util, bsd)
+ 
++dnl Check wasm runtime.
++PHP_ARG_WITH([wasm-runtime],
++  [whether to build for a specific wasm runtime],
++  [AS_HELP_STRING([--with-wasm-runtime=RUNTIME],
++    [Build with support for specific runtime. Can be either 'default' or 'wasmedge' [default]])],
++  [default],
++  [no])
++
++if test "$PHP_WASM_RUNTIME" != "default"; then
++  case $host_alias in
++    *wasm*)
++      if test "$PHP_WASM_RUNTIME" = "wasmedge"; then
++        PHP_ADD_SOURCES(wasmedge_stubs, wasi_socket_ext.c, -DWASM_RUNTIME_WASMEDGE)
++        CFLAGS="$CFLAGS -DWASM_RUNTIME_WASMEDGE"
++      fi
++      ;;
++    *)
++      AC_MSG_ERROR([--with-wasm-runtime has meaning only for wasm builds!])
++    ;;
++  esac
++fi
++
+ dnl General settings.
+ dnl ----------------------------------------------------------------------------
+ PHP_CONFIGURE_PART(General settings)
+diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
+index d367dd8e42..3c241d0115 100755
+--- a/ext/standard/basic_functions.c
++++ b/ext/standard/basic_functions.c
+@@ -70,8 +70,8 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
+ #else
+ #include "win32/inet.h"
+ #endif
+-#elif defined(WASM_WASMEDGE)
+-# include <netdb.h>
++#elif defined(WASM_RUNTIME_WASMEDGE)
++# include "wasmedge_stubs/netdb.h"
+ #endif // WASM_WASI
+ 
+ #ifdef HAVE_ARPA_INET_H
+diff --git a/main/php_network.h b/main/php_network.h
+index a3b7ba7ab3..8ca945f978 100644
+--- a/main/php_network.h
++++ b/main/php_network.h
+@@ -230,7 +230,7 @@ static inline bool _php_check_fd_setsize(php_socket_t *max_fd, int setsize)
+ 	return true;
+ }
+ 
+-#ifdef PHP_WIN32
++#if defined(PHP_WIN32) || defined(__wasi__)
+ /* it is safe to FD_SET too many fd's under win32; the macro will simply ignore
+  * descriptors that go beyond the default FD_SETSIZE */
+ # define PHP_SAFE_FD_SET(fd, set)	FD_SET(fd, set)
+diff --git a/sapi/cli/php_cli_server.c b/sapi/cli/php_cli_server.c
+index ce3ff5de6c..ffbe2f7185 100644
+--- a/sapi/cli/php_cli_server.c
++++ b/sapi/cli/php_cli_server.c
+@@ -97,6 +97,19 @@
+ #include "php_cli_process_title.h"
+ #include "php_cli_process_title_arginfo.h"
+ 
++#ifdef WASM_RUNTIME_WASMEDGE
++#include "wasmedge_stubs/netdb.h"
++#include "wasmedge_stubs/wasi_socket_ext.h"
++#endif
++
++// #define WASMEDGE_SOCKET_DEBUG
++
++#ifdef WASMEDGE_SOCKET_DEBUG
++#define WSEDEBUG(fmt, ...) fprintf(stderr, fmt __VA_OPT__(,) __VA_ARGS__)
++#else
++#define WSEDEBUG(fmt, ...)
++#endif
++
+ #define OUTPUT_NOT_CHECKED -1
+ #define OUTPUT_IS_TTY 1
+ #define OUTPUT_NOT_TTY 0
+@@ -759,7 +772,7 @@ static void sapi_cli_server_log_write(int type, const char *msg) /* {{{ */
+ 			memmove(buf, "unknown", sizeof("unknown"));
+ 		}
+ 	}
+-#ifdef HAVE_FORK
++#if HAVE_FORK
+ 	if (php_cli_server_workers_max > 1) {
+ 		fprintf(stderr, "[%ld] [%s] %s\n", (long) getpid(), buf, msg);
+ 	} else {
+@@ -838,6 +851,24 @@ static void php_cli_server_poller_remove(php_cli_server_poller *poller, int mode
+ 	}
+ #ifndef PHP_WIN32
+ 	if (fd == poller->max_fd) {
++#ifdef WASM_RUNTIME_WASMEDGE
++		php_socket_t new_max_fd = 0;
++
++		for (int i=0; i< poller->rfds.__nfds; ++i)
++		{
++			int candidate = poller->rfds.__fds[i];
++			if(candidate > new_max_fd)
++				new_max_fd = candidate;
++			}
++
++		for (int i=0; i< poller->wfds.__nfds; ++i)
++		{
++			int candidate = poller->wfds.__fds[i];
++			if(candidate > new_max_fd)
++				new_max_fd = candidate;
++		}
++		poller->max_fd = new_max_fd;
++#else
+ 		while (fd > 0) {
+ 			fd--;
+ 			if (PHP_SAFE_FD_ISSET(fd, &poller->rfds) || PHP_SAFE_FD_ISSET(fd, &poller->wfds)) {
+@@ -845,6 +876,7 @@ static void php_cli_server_poller_remove(php_cli_server_poller *poller, int mode
+ 			}
+ 		}
+ 		poller->max_fd = fd;
++#endif
+ 	}
+ #endif
+ } /* }}} */
+@@ -904,6 +936,27 @@ static zend_result php_cli_server_poller_iter_on_active(php_cli_server_poller *p
+ 	php_socket_t fd;
+ 	const php_socket_t max_fd = poller->max_fd;
+ 
++#ifdef WASM_RUNTIME_WASMEDGE
++	// Note this does not keep the order in terms of fd number, when there are both r and w
++
++	for (int i = 0; i < poller->active.rfds.__nfds; ++i)
++	{
++		fd = poller->active.rfds.__fds[i];
++		if (SUCCESS != callback(opaque, fd, POLLIN))
++		{
++			retval = FAILURE;
++		}
++	}
++
++	for (int i = 0; i < poller->active.wfds.__nfds; ++i)
++	{
++		fd = poller->active.wfds.__fds[i];
++		if (SUCCESS != callback(opaque, fd, POLLOUT))
++		{
++			retval = FAILURE;
++		}
++	}
++#else
+ 	for (fd=0 ; fd<=max_fd ; fd++)  {
+ 		if (PHP_SAFE_FD_ISSET(fd, &poller->active.rfds)) {
+ 				if (SUCCESS != callback(opaque, fd, POLLIN)) {
+@@ -916,6 +969,7 @@ static zend_result php_cli_server_poller_iter_on_active(php_cli_server_poller *p
+ 				}
+ 		}
+ 	}
++#endif // WASM_RUNTIME_WASMEDGE
+ #endif
+ 	return retval;
+ } /* }}} */
+@@ -1265,7 +1319,21 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ 
+ 	int num_addrs = php_network_getaddresses(host, socktype, &sal, errstr);
+ 	if (num_addrs == 0) {
++#ifdef WASM_RUNTIME_WASMEDGE
++		// This is attempt to copy-paste and initialize the addresses based on the code in php_network_getaddresses,
++		// but I failed to get it right, so it is abandoned (see the commented out free calls at the end of the method)
++		*sal = safe_emalloc(2, sizeof(*sal), 0);
++		struct sockaddr **sap;
++		sap = *sal;
++		*sap = emalloc(sizeof(struct sockaddr_in));
++		(*sap)->sa_family = AF_INET;
++		((struct sockaddr_in *)*sap)->sin_addr.s_addr = INADDR_ANY;
++		((struct sockaddr_in *)*sap)->sin_port = *port;
++		++sap;
++		*sap = NULL;
++#else
+ 		return -1;
++#endif
+ 	}
+ 	for (p = sal; *p; p++) {
+ 		if (sa) {
+@@ -1273,11 +1341,19 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ 			sa = NULL;
+ 		}
+ 
++#ifdef WASM_RUNTIME_WASMEDGE
++		(*p)->sa_family = AF_INET;
++#endif
++
+ 		retval = socket((*p)->sa_family, socktype, 0);
+ 		if (retval == SOCK_ERR) {
+ 			continue;
+ 		}
+ 
++#ifdef WASM_RUNTIME_WASMEDGE
++		(*p)->sa_family = AF_INET;
++#endif
++
+ 		switch ((*p)->sa_family) {
+ #if HAVE_GETADDRINFO && HAVE_IPV6
+ 		case AF_INET6:
+@@ -1289,8 +1365,15 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ #endif
+ 		case AF_INET:
+ 			sa = pemalloc(sizeof(struct sockaddr_in), 1);
++#ifdef WASM_RUNTIME_WASMEDGE
++			memset(sa, 0, sizeof(struct sockaddr_in));
++			((struct sockaddr_in *)sa)->sin_family = AF_INET;
++			((struct sockaddr_in *)sa)->sin_addr.s_addr = INADDR_ANY;
++			((struct sockaddr_in *)sa)->sin_port = *port;
++#else 
+ 			*(struct sockaddr_in *)sa = *(struct sockaddr_in *)*p;
+ 			((struct sockaddr_in *)sa)->sin_port = htons(*port);
++#endif
+ 			*socklen = sizeof(struct sockaddr_in);
+ 			break;
+ 		default:
+@@ -1320,10 +1403,12 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ 
+ 		*af = sa->sa_family;
+ 		if (*port == 0) {
++#ifndef WASM_RUNTIME_WASMEDGE
+ 			if (getsockname(retval, sa, socklen)) {
+ 				err = php_socket_errno();
+ 				goto out;
+ 			}
++#endif
+ 			switch (sa->sa_family) {
+ #if HAVE_GETADDRINFO && HAVE_IPV6
+ 			case AF_INET6:
+@@ -1349,12 +1434,14 @@ static php_socket_t php_network_listen_socket(const char *host, int *port, int s
+ 	}
+ 
+ out:
++#ifndef WASM_RUNTIME_WASMEDGE
+ 	if (sa) {
+ 		pefree(sa, 1);
+ 	}
+ 	if (sal) {
+ 		php_network_freeaddresses(sal);
+ 	}
++#endif
+ 	if (err) {
+ 		if (ZEND_VALID_SOCKET(retval)) {
+ 			closesocket(retval);
+diff --git a/wasmedge_stubs/netdb.h b/wasmedge_stubs/netdb.h
+new file mode 100644
+index 0000000000..c1136150b7
+--- /dev/null
++++ b/wasmedge_stubs/netdb.h
+@@ -0,0 +1,73 @@
++#pragma once
++// Based on https://github.com/hangedfish/wasmedge_wasi_socket_c
++
++struct addrinfo {
++	int ai_flags;
++	int ai_family;
++	int ai_socktype;
++	int ai_protocol;
++	socklen_t ai_addrlen;
++	struct sockaddr *ai_addr;
++	char *ai_canonname;
++    int ai_canonnamelen;
++	struct addrinfo *ai_next;
++};
++
++#define AI_PASSIVE      0x00
++#define AI_CANONNAME    0x01
++#define AI_NUMERICHOST  0x02
++#define AI_NUMERICSERV  0x03
++#define AI_V4MAPPED     0x04
++#define AI_ALL          0x05
++#define AI_ADDRCONFIG   0x06
++
++
++#define NI_NUMERICHOST  0x01
++#define NI_NUMERICSERV  0x02
++#define NI_NOFQDN       0x04
++#define NI_NAMEREQD     0x08
++#define NI_DGRAM        0x10
++#define NI_NUMERICSCOPE 0x100
++
++#define EAI_BADFLAGS   -1
++#define EAI_NONAME     -2
++#define EAI_AGAIN      -3
++#define EAI_FAIL       -4
++#define EAI_FAMILY     -6
++#define EAI_SOCKTYPE   -7
++#define EAI_SERVICE    -8
++#define EAI_MEMORY     -10
++#define EAI_SYSTEM     -11
++#define EAI_OVERFLOW   -12
++
++#define EAI_NODATA     -5
++#define EAI_ADDRFAMILY -9
++#define EAI_INPROGRESS -100
++#define EAI_CANCELED   -101
++#define EAI_NOTCANCELED -102
++#define EAI_ALLDONE    -103
++#define EAI_INTR       -104
++#define EAI_IDN_ENCODE -105
++#define NI_MAXHOST 255
++#define NI_MAXSERV 32
++
++struct servent {
++	char *s_name;
++	char **s_aliases;
++	int s_port;
++	char *s_proto;
++};
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++struct servent *getservbyname (const char *, const char *);
++
++int getaddrinfo (const char *__restrict, const char *__restrict, const struct addrinfo *__restrict, struct addrinfo **__restrict);
++void freeaddrinfo (struct addrinfo *);
++// int getnameinfo (const struct sockaddr *__restrict, socklen_t, char *__restrict, socklen_t, char *__restrict, socklen_t, int);
++
++#ifdef __cplusplus
++}
++#endif
+\ No newline at end of file
+diff --git a/wasmedge_stubs/wasi_socket_ext.c b/wasmedge_stubs/wasi_socket_ext.c
+new file mode 100644
+index 0000000000..0c74c75a5e
+--- /dev/null
++++ b/wasmedge_stubs/wasi_socket_ext.c
+@@ -0,0 +1,406 @@
++// Based on https://github.com/hangedfish/wasmedge_wasi_socket_c
++
++#include "wasi_socket_ext.h"
++#include "netdb.h"
++#include <errno.h>
++#include <memory.h>
++#include <netinet/in.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++// #define WASMEDGE_SOCKET_DEBUG
++
++#ifdef WASMEDGE_SOCKET_DEBUG
++#define WSEDEBUG(fmt, ...) fprintf(stderr, fmt __VA_OPT__(,) __VA_ARGS__)
++#else
++#define WSEDEBUG(fmt, ...)
++#endif
++
++// WasmEdge Socket API
++
++#define kUnspec 0
++#define kInet4 1
++#define kInet6 2
++
++typedef uint8_t address_family_t;
++
++#define kAny 0
++#define kDatagram 1
++#define kStream 2
++
++typedef uint8_t socket_type_t;
++
++#define kIPProtoIP 0
++#define kIPProtoTCP 1
++#define kIPProtoUDP 2
++
++typedef uint32_t ai_protocol_t;
++
++#define kAiPassive 0
++#define kAiCanonname 1
++#define kAiNumericHost 2
++#define kAiNumericServ = 4
++#define kAiV4Mapped = 8
++#define kAiAll = 16
++#define kAiAddrConfig = 32
++
++typedef uint16_t ai_flags_t;
++
++typedef struct wasi_address {
++  uint8_t *buf;
++  uint32_t size;
++} wasi_address_t;
++
++typedef struct iovec_read {
++  uint8_t *buf;
++  uint32_t size;
++} iovec_read_t;
++
++typedef struct iovec_write {
++  uint8_t *buf;
++  uint32_t size;
++} iovec_write_t;
++
++typedef struct wasi_sockaddr {
++  address_family_t family;
++  uint32_t sa_data_len;
++  uint8_t *sa_data;
++} wasi_sockaddr_t;
++
++typedef struct wasi_canonname_buff {
++  char name[30];
++} wasi_canonname_buff_t;
++
++#pragma pack(push, 1)
++typedef struct wasi_addrinfo {
++  ai_flags_t ai_flags;
++  address_family_t ai_family;
++  socket_type_t ai_socktype;
++  ai_protocol_t ai_protocol;
++  uint32_t ai_addrlen;
++  wasi_sockaddr_t *ai_addr;
++  char *ai_canonname;
++  uint32_t ai_canonnamelen;
++  struct wasi_addrinfo *ai_next;
++} wasi_addrinfo_t;
++#pragma pack(pop)
++
++typedef struct sockaddr_generic {
++  union sa {
++    struct sockaddr_in sin;
++    struct sockaddr_in6 sin6;
++  } sa;
++
++} sa_t;
++
++#define MAX_ADDRINFO_RES_LEN 10
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_open(
++    uint8_t addr_family, uint8_t sock_type, int32_t *fd)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_open")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_bind(
++    uint32_t fd, wasi_address_t *addr, uint32_t port)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_bind")));
++
++uint32_t
++__imported_wasmedge_wasi_snapshot_preview1_sock_listen(uint32_t fd,
++                                                       uint32_t backlog)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_listen")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_accept(uint32_t fd,
++                                                               uint32_t *fd2)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_accept")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_connect(
++    uint32_t fd, wasi_address_t *addr, uint32_t port)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_connect")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_recv(
++    uint32_t fd, iovec_read_t *buf, uint32_t buf_len, uint16_t flags,
++    uint32_t *recv_len, uint32_t *oflags)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_recv")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_recv_from(
++    uint32_t fd, iovec_read_t *buf, uint32_t buf_len, uint8_t *addr,
++    uint32_t *addr_len, uint16_t flags)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_recv_from")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_send(uint32_t fd,
++                                                             iovec_write_t buf,
++                                                             uint32_t buf_len,
++                                                             uint16_t flags,
++                                                             uint32_t *send_len)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_send")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_send_to(
++    uint32_t fd, uint8_t *buf, uint32_t buf_len, uint8_t *addr,
++    uint32_t addr_len, uint16_t flags)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_send_to")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_shutdown(uint32_t fd,
++                                                                 uint8_t flags)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_shutdown")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_getaddrinfo(
++    uint8_t *node, uint32_t node_len, uint8_t *server, uint32_t server_len,
++    wasi_addrinfo_t *hint, uint32_t *res, uint32_t max_len, uint32_t *res_len)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getaddrinfo")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_getpeeraddr(
++    uint32_t fd, wasi_address_t *addr, uint32_t *addr_type, uint32_t *port)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getpeeraddr")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_getlocaladdr(
++    uint32_t fd, wasi_address_t *addr, uint32_t *addr_type, uint32_t *port)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getlocaladdr")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_getsockopt(
++    uint32_t fd, int32_t level, int32_t name, int32_t *flag,
++    uint32_t *flag_size)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getsockopt")));
++
++int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_setsockopt(
++    uint32_t fd, int32_t level, int32_t name, int32_t *flag,
++    uint32_t *flag_size)
++    __attribute__((__import_module__("wasi_snapshot_preview1"),
++                   __import_name__("sock_getsockopt")));
++
++int socket(int domain, int type, int protocol)
++{
++  int fd;
++  address_family_t af = (domain == AF_INET ? kInet4 : kInet6);
++  socket_type_t st = (type == SOCK_STREAM ? kStream : kDatagram);
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_open((int8_t)af, (int8_t)st, &fd);
++  if (0 != res) {
++    errno = res;
++    printf("socket err: %s \n", strerror(errno));
++    return -1;
++  }
++  WSEDEBUG("WWSock| socket returning: %d \n", fd);
++  return fd;
++}
++
++int bind(int fd, const struct sockaddr *addr, socklen_t len)
++{
++  WSEDEBUG("WWSock| bind[%d]: calling bind on sa_data=[", __LINE__);
++  for (int i = 0; i < len; ++i)
++    WSEDEBUG("'%d', ", (short)addr->sa_data[i]);
++  WSEDEBUG("]\n");
++
++  wasi_address_t wasi_addr;
++  memset(&wasi_addr, 0, sizeof(wasi_address_t));
++  uint32_t port;
++  if (AF_INET == addr->sa_family) {
++    struct sockaddr_in *sin = (struct sockaddr_in *)addr;
++    wasi_addr.buf = (uint8_t *)&sin->sin_addr;
++    wasi_addr.size = 4;
++    port = sin->sin_port;
++  } else if (AF_INET6 == addr->sa_family) {
++    struct sockaddr_in6 *sin = (struct sockaddr_in6 *)addr;
++    wasi_addr.buf = (uint8_t *)&sin->sin6_addr;
++    wasi_addr.size = 16;
++    port = sin->sin6_port;
++  }
++
++  WSEDEBUG("WWSock| bind[%d]: __imported_wasmedge_wasi_snapshot_preview1_sock_bind\n", __LINE__);
++  int res =
++      __imported_wasmedge_wasi_snapshot_preview1_sock_bind(fd, &wasi_addr, port);
++  WSEDEBUG("WWSock| bind[%d]: res=%d\n", __LINE__, res);
++  if (res != 0)
++  {
++    errno = res;
++    return -1;
++  }
++  return res;
++}
++
++int connect(int fd, const struct sockaddr *addr, socklen_t len) {
++  WSEDEBUG("WWSock| connect[%d]: fd=%d, addr=%d, port=%d \n", __LINE__,
++          fd, ((struct sockaddr_in *)addr)->sin_addr.s_addr, ((struct sockaddr_in *)addr)->sin_port);
++  wasi_address_t wasi_addr;
++  memset(&wasi_addr, 0, sizeof(wasi_address_t));
++  uint32_t port;
++  if (AF_INET == addr->sa_family) {
++    struct sockaddr_in *sin = (struct sockaddr_in *)addr;
++    wasi_addr.buf = (uint8_t *)&sin->sin_addr;
++    wasi_addr.size = 4;
++    port = ntohs(sin->sin_port);
++  } else if (AF_INET6 == addr->sa_family) {
++    struct sockaddr_in6 *sin = (struct sockaddr_in6 *)addr;
++    wasi_addr.buf = (uint8_t *)&sin->sin6_addr;
++    wasi_addr.size = 16;
++    port = ntohs(sin->sin6_port);
++  }
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_connect(
++      fd, &wasi_addr, port);
++  if (res != 0) {
++    errno = res;
++    return -1;
++  }
++  return res;
++}
++
++int listen(int fd, int backlog) {
++  WSEDEBUG("WWSock| __imported_wasmedge_wasi_snapshot_preview1_sock_listen[%d]: \n", __LINE__);
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_listen(fd, backlog);
++  WSEDEBUG("WWSock| listen[%d]: res=%d\n", __LINE__, res);
++  return res;
++}
++
++int accept(int fd, struct sockaddr *restrict addr, socklen_t *restrict len) {
++  WSEDEBUG("WWSock| accept[%d]: fd=%d\n", __LINE__, fd);
++  int new_sockfd;
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_accept(
++      fd, (uint32_t *)&new_sockfd);
++  if (res != 0) {
++    errno = res;
++    return -1;
++  }
++  return new_sockfd;
++}
++
++int setsockopt(int fd, int level, int optname, const void *optval,
++               socklen_t optlen) {
++  WSEDEBUG("WWSock| setsockopt[%d]: fd=%d\n", __LINE__, fd);
++  int res = __imported_wasmedge_wasi_snapshot_preview1_sock_setsockopt(
++      fd, level, optname, (int32_t *)optval, (uint32_t *)&optlen);
++  if (res != 0) {
++    errno = res;
++    return -1;
++  }
++  return 0;
++}
++
++struct servent *getservbyname(const char *name, const char *prots)
++{
++  WSEDEBUG("WWSock| getservbyname[%d]: name=%s\n", __LINE__, name);
++  return NULL;
++}
++
++static struct addrinfo *
++convert_wasi_addrinfo_to_addrinfo(wasi_addrinfo_t *wasi_addrinfo,
++                                  uint32_t size) {
++  WSEDEBUG("WWSock| convert_wasi_addrinfo_to_addrinfo[%d]: \n", __LINE__);
++
++  struct addrinfo *addrinfo_arr = (struct addrinfo *)calloc(
++      (sizeof(struct addrinfo) + sizeof(struct sockaddr_generic)) * size + 30,
++      1);
++  struct sockaddr_generic *sockaddr_generic_arr =
++      (struct sockaddr_generic *)&addrinfo_arr[size];
++  char *ai_canonname = (char *)&sockaddr_generic_arr[size];
++  int ai_canonnamelen = addrinfo_arr[0].ai_canonnamelen;
++  memcpy(ai_canonname, addrinfo_arr[0].ai_canonname, ai_canonnamelen);
++
++  for (size_t i = 0; i < size; i++) {
++    addrinfo_arr[i] = (struct addrinfo){
++        .ai_flags = (int)wasi_addrinfo[i].ai_flags,
++        .ai_family = wasi_addrinfo[i].ai_family == kInet4 ? AF_INET : AF_INET6,
++        .ai_socktype =
++            wasi_addrinfo[i].ai_socktype == kStream ? SOCK_STREAM : SOCK_DGRAM,
++        .ai_protocol = wasi_addrinfo[i].ai_protocol == kIPProtoTCP
++                           ? IPPROTO_TCP
++                           : IPPROTO_UDP,
++        .ai_addrlen = 0,
++        .ai_addr = (struct sockaddr *)&sockaddr_generic_arr[i],
++        .ai_canonname = ai_canonname,
++        .ai_canonnamelen = ai_canonnamelen,
++        .ai_next = NULL,
++    };
++    if (wasi_addrinfo[i].ai_addr != NULL) {
++      if (wasi_addrinfo[i].ai_addr->family == kInet4) {
++        // IPv4
++        wasi_addrinfo[i].ai_addrlen = sizeof(struct sockaddr_in);
++        sockaddr_generic_arr[i].sa.sin.sin_family = AF_INET;
++        sockaddr_generic_arr[i].sa.sin.sin_port =
++            *(uint16_t *)&wasi_addrinfo[i].ai_addr->sa_data[0];
++        sockaddr_generic_arr[i].sa.sin.sin_addr.s_addr =
++            *(in_addr_t *)&wasi_addrinfo[i].ai_addr->sa_data[2];
++      } else {
++        // IPv6
++        wasi_addrinfo[i].ai_addrlen = sizeof(struct sockaddr_in6);
++        sockaddr_generic_arr[i].sa.sin6.sin6_family = AF_INET6;
++        sockaddr_generic_arr[i].sa.sin6.sin6_port =
++            *(uint16_t *)&wasi_addrinfo[i].ai_addr->sa_data[0];
++        // WasmEdge rust socket api not support IPv6 addrinfo.
++        WSEDEBUG("Not support IPv6 addrinfo.");
++        abort();
++      }
++    }
++    if (i > 0) {
++      addrinfo_arr[i - 1].ai_next = &addrinfo_arr[i];
++    }
++  }
++  return addrinfo_arr;
++}
++
++int getaddrinfo(const char *restrict host, const char *restrict serv,
++                const struct addrinfo *restrict hint,
++                struct addrinfo **restrict res) {
++  WSEDEBUG("WWSock| getaddrinfo[%d]: \n", __LINE__);
++  uint32_t res_len = 0;
++  uint8_t *sockbuff = (uint8_t *)calloc(26 * MAX_ADDRINFO_RES_LEN, 1);
++  wasi_sockaddr_t *sockaddr_arr =
++      (wasi_sockaddr_t *)calloc(sizeof(wasi_sockaddr_t) * MAX_ADDRINFO_RES_LEN +
++                                    sizeof(wasi_canonname_buff_t),
++                                1);
++  wasi_addrinfo_t *addrinfo_arr = (wasi_addrinfo_t *)calloc(
++      sizeof(wasi_addrinfo_t) * MAX_ADDRINFO_RES_LEN, 1);
++  for (size_t i = 0; i < MAX_ADDRINFO_RES_LEN; i++) {
++    sockaddr_arr[i].sa_data = &sockbuff[i];
++    addrinfo_arr[i].ai_addr = &sockaddr_arr[i];
++    addrinfo_arr[i].ai_canonname = (char *)&addrinfo_arr[MAX_ADDRINFO_RES_LEN];
++    if (i > 0) {
++      addrinfo_arr[i - 1].ai_next = &addrinfo_arr[i];
++    }
++  }
++  wasi_addrinfo_t wasi_hint = (wasi_addrinfo_t){
++      .ai_flags = (ai_flags_t)hint->ai_flags,
++      .ai_family = hint->ai_family == AF_INET6 ? kInet6 : kInet4,
++      .ai_socktype = hint->ai_socktype == SOCK_DGRAM ? kDatagram : kStream,
++      .ai_protocol =
++          hint->ai_protocol == IPPROTO_UDP ? kIPProtoUDP : kIPProtoTCP,
++      .ai_addrlen = 0,
++      .ai_addr = NULL,
++      .ai_canonname = NULL,
++      .ai_canonnamelen = 0,
++      .ai_next = NULL,
++  };
++
++  int rc = __imported_wasmedge_wasi_snapshot_preview1_sock_getaddrinfo(
++      (uint8_t *)host, strlen(host), (uint8_t *)serv, strlen(serv), &wasi_hint,
++      (uint32_t *)&addrinfo_arr, MAX_ADDRINFO_RES_LEN, &res_len);
++  if (0 != rc) {
++    errno = rc;
++    free((void *)addrinfo_arr);
++    free((void *)sockaddr_arr);
++    free((void *)sockbuff);
++    return -1;
++  }
++  *res = convert_wasi_addrinfo_to_addrinfo(addrinfo_arr, res_len);
++  free(addrinfo_arr);
++  free(sockaddr_arr);
++  free(sockbuff);
++  return 0;
++}
++
++void freeaddrinfo(struct addrinfo *p) {
++  WSEDEBUG("WWSock| freeaddrinfo[%d]: \n", __LINE__);
++  free(p);
++}
+\ No newline at end of file
+diff --git a/wasmedge_stubs/wasi_socket_ext.h b/wasmedge_stubs/wasi_socket_ext.h
+new file mode 100644
+index 0000000000..ee4dc75b43
+--- /dev/null
++++ b/wasmedge_stubs/wasi_socket_ext.h
+@@ -0,0 +1,331 @@
++#pragma once
++// Based on https://github.com/hangedfish/wasmedge_wasi_socket_c
++
++#include <sys/socket.h>
++
++// struct sockaddr_in {
++// 	sa_family_t sin_family;
++// 	in_port_t sin_port;
++// 	struct in_addr sin_addr;
++// 	uint8_t sin_zero[8];
++// };
++
++// struct sockaddr_in6 {
++// 	sa_family_t     sin6_family;
++// 	in_port_t       sin6_port;
++// 	uint32_t        sin6_flowinfo;
++// 	struct in6_addr sin6_addr;
++// 	uint32_t        sin6_scope_id;
++// };
++
++#ifndef SHUT_RD
++#define SHUT_RD 0
++#define SHUT_WR 1
++#define SHUT_RDWR 2
++#endif
++
++// #ifndef SOCK_STREAM
++// #define SOCK_STREAM    1
++// #define SOCK_DGRAM     2
++// #endif
++
++#define SOCK_RAW 3
++#define SOCK_RDM 4
++#define SOCK_SEQPACKET 5
++#define SOCK_DCCP 6
++#define SOCK_PACKET 10
++
++#ifndef SOCK_CLOEXEC
++#define SOCK_CLOEXEC 02000000
++#define SOCK_NONBLOCK 04000
++#endif
++
++#define PF_UNSPEC 0
++#define PF_LOCAL 1
++#define PF_UNIX PF_LOCAL
++#define PF_FILE PF_LOCAL
++#define PF_INET 2
++#define PF_AX25 3
++#define PF_IPX 4
++#define PF_APPLETALK 5
++#define PF_NETROM 6
++#define PF_BRIDGE 7
++#define PF_ATMPVC 8
++#define PF_X25 9
++#define PF_INET6 10
++#define PF_ROSE 11
++#define PF_DECnet 12
++#define PF_NETBEUI 13
++#define PF_SECURITY 14
++#define PF_KEY 15
++#define PF_NETLINK 16
++#define PF_ROUTE PF_NETLINK
++#define PF_PACKET 17
++#define PF_ASH 18
++#define PF_ECONET 19
++#define PF_ATMSVC 20
++#define PF_RDS 21
++#define PF_SNA 22
++#define PF_IRDA 23
++#define PF_PPPOX 24
++#define PF_WANPIPE 25
++#define PF_LLC 26
++#define PF_IB 27
++#define PF_MPLS 28
++#define PF_CAN 29
++#define PF_TIPC 30
++#define PF_BLUETOOTH 31
++#define PF_IUCV 32
++#define PF_RXRPC 33
++#define PF_ISDN 34
++#define PF_PHONET 35
++#define PF_IEEE802154 36
++#define PF_CAIF 37
++#define PF_ALG 38
++#define PF_NFC 39
++#define PF_VSOCK 40
++#define PF_KCM 41
++#define PF_QIPCRTR 42
++#define PF_SMC 43
++#define PF_XDP 44
++#define PF_MAX 45
++
++// #define AF_UNSPEC       PF_UNSPEC
++// #define AF_LOCAL        PF_LOCAL
++// #define AF_UNIX         AF_LOCAL
++// #define AF_FILE         AF_LOCAL
++// #define AF_INET         PF_INET
++// #define AF_AX25         PF_AX25
++// #define AF_IPX          PF_IPX
++// #define AF_APPLETALK    PF_APPLETALK
++// #define AF_NETROM       PF_NETROM
++// #define AF_BRIDGE       PF_BRIDGE
++// #define AF_ATMPVC       PF_ATMPVC
++// #define AF_X25          PF_X25
++// #define AF_INET6        PF_INET6
++// #define AF_ROSE         PF_ROSE
++// #define AF_DECnet       PF_DECnet
++// #define AF_NETBEUI      PF_NETBEUI
++// #define AF_SECURITY     PF_SECURITY
++// #define AF_KEY          PF_KEY
++// #define AF_NETLINK      PF_NETLINK
++// #define AF_ROUTE        PF_ROUTE
++// #define AF_PACKET       PF_PACKET
++// #define AF_ASH          PF_ASH
++// #define AF_ECONET       PF_ECONET
++// #define AF_ATMSVC       PF_ATMSVC
++// #define AF_RDS          PF_RDS
++// #define AF_SNA          PF_SNA
++// #define AF_IRDA         PF_IRDA
++// #define AF_PPPOX        PF_PPPOX
++// #define AF_WANPIPE      PF_WANPIPE
++// #define AF_LLC          PF_LLC
++// #define AF_IB           PF_IB
++// #define AF_MPLS         PF_MPLS
++// #define AF_CAN          PF_CAN
++// #define AF_TIPC         PF_TIPC
++// #define AF_BLUETOOTH    PF_BLUETOOTH
++// #define AF_IUCV         PF_IUCV
++// #define AF_RXRPC        PF_RXRPC
++// #define AF_ISDN         PF_ISDN
++// #define AF_PHONET       PF_PHONET
++// #define AF_IEEE802154   PF_IEEE802154
++// #define AF_CAIF         PF_CAIF
++// #define AF_ALG          PF_ALG
++// #define AF_NFC          PF_NFC
++// #define AF_VSOCK        PF_VSOCK
++// #define AF_KCM          PF_KCM
++// #define AF_QIPCRTR      PF_QIPCRTR
++// #define AF_SMC          PF_SMC
++// #define AF_XDP          PF_XDP
++// #define AF_MAX          PF_MAX
++
++// WasmEdge wasi_sock_opt_so
++#define SO_REUSEADDR 0
++#ifdef SO_TYPE
++#undef SO_TYPE
++#define SO_TYPE 1
++#endif
++#define SO_ERROR 2
++#define SO_DONTROUTE 3
++#define SO_BROADCAST 4
++#ifdef SO_SNDBUF
++#undef SO_SNBBUF
++#define SO_SNDBUF 5
++#endif
++#define SO_RCVBUF 6
++#define SO_KEEPALIVE 7
++#define SO_OOBINLINE 8
++#define SO_LINGER 9
++#define SO_RCVLOWAT 10
++#define SO_RCVTIMEO 11
++#define SO_SNDTIME0 12
++#define SO_ACCEPTCONN 13
++
++// #ifndef SO_DEBUG
++// #define SO_DEBUG        1
++// #define SO_REUSEADDR    2
++// #define SO_TYPE         3
++// #define SO_ERROR        4
++// #define SO_DONTROUTE    5
++// #define SO_BROADCAST    6
++// #define SO_SNDBUF       7
++// #define SO_RCVBUF       8
++// #define SO_KEEPALIVE    9
++// #define SO_OOBINLINE    10
++// #define SO_NO_CHECK     11
++// #define SO_PRIORITY     12
++// #define SO_LINGER       13
++// #define SO_BSDCOMPAT    14
++// #define SO_REUSEPORT    15
++// #define SO_PASSCRED     16
++// #define SO_PEERCRED     17
++// #define SO_RCVLOWAT     18
++// #define SO_SNDLOWAT     19
++// #define SO_ACCEPTCONN   30
++// #define SO_PEERSEC      31
++// #define SO_SNDBUFFORCE  32
++// #define SO_RCVBUFFORCE  33
++// #define SO_PROTOCOL     38
++// #define SO_DOMAIN       39
++// #endif
++
++#ifndef SO_RCVTIMEO
++#if __LONG_MAX == 0x7fffffff
++#define SO_RCVTIMEO 66
++#define SO_SNDTIMEO 67
++#else
++#define SO_RCVTIMEO 20
++#define SO_SNDTIMEO 21
++#endif
++#endif
++
++#ifndef SO_TIMESTAMP
++#if __LONG_MAX == 0x7fffffff
++#define SO_TIMESTAMP 63
++#define SO_TIMESTAMPNS 64
++#define SO_TIMESTAMPING 65
++#else
++#define SO_TIMESTAMP 29
++#define SO_TIMESTAMPNS 35
++#define SO_TIMESTAMPING 37
++#endif
++#endif
++
++#define SO_SECURITY_AUTHENTICATION 22
++#define SO_SECURITY_ENCRYPTION_TRANSPORT 23
++#define SO_SECURITY_ENCRYPTION_NETWORK 24
++
++#define SO_BINDTODEVICE 25
++
++#define SO_ATTACH_FILTER 26
++#define SO_DETACH_FILTER 27
++#define SO_GET_FILTER SO_ATTACH_FILTER
++
++#define SO_PEERNAME 28
++#define SCM_TIMESTAMP SO_TIMESTAMP
++#define SO_PASSSEC 34
++#define SCM_TIMESTAMPNS SO_TIMESTAMPNS
++#define SO_MARK 36
++#define SCM_TIMESTAMPING SO_TIMESTAMPING
++#define SO_RXQ_OVFL 40
++#define SO_WIFI_STATUS 41
++#define SCM_WIFI_STATUS SO_WIFI_STATUS
++#define SO_PEEK_OFF 42
++#define SO_NOFCS 43
++#define SO_LOCK_FILTER 44
++#define SO_SELECT_ERR_QUEUE 45
++#define SO_BUSY_POLL 46
++#define SO_MAX_PACING_RATE 47
++#define SO_BPF_EXTENSIONS 48
++#define SO_INCOMING_CPU 49
++#define SO_ATTACH_BPF 50
++#define SO_DETACH_BPF SO_DETACH_FILTER
++#define SO_ATTACH_REUSEPORT_CBPF 51
++#define SO_ATTACH_REUSEPORT_EBPF 52
++#define SO_CNX_ADVICE 53
++#define SCM_TIMESTAMPING_OPT_STATS 54
++#define SO_MEMINFO 55
++#define SO_INCOMING_NAPI_ID 56
++#define SO_COOKIE 57
++#define SCM_TIMESTAMPING_PKTINFO 58
++#define SO_PEERGROUPS 59
++#define SO_ZEROCOPY 60
++#define SO_TXTIME 61
++#define SCM_TXTIME SO_TXTIME
++#define SO_BINDTOIFINDEX 62
++#define SO_DETACH_REUSEPORT_BPF 68
++
++#ifndef SOL_SOCKET
++#define SOL_SOCKET 1
++#endif
++
++#define SOL_IP 0
++#define SOL_IPV6 41
++#define SOL_ICMPV6 58
++
++#define SOL_RAW 255
++#define SOL_DECNET 261
++#define SOL_X25 262
++#define SOL_PACKET 263
++#define SOL_ATM 264
++#define SOL_AAL 265
++#define SOL_IRDA 266
++#define SOL_NETBEUI 267
++#define SOL_LLC 268
++#define SOL_DCCP 269
++#define SOL_NETLINK 270
++#define SOL_TIPC 271
++#define SOL_RXRPC 272
++#define SOL_PPPOL2TP 273
++#define SOL_BLUETOOTH 274
++#define SOL_PNPIPE 275
++#define SOL_RDS 276
++#define SOL_IUCV 277
++#define SOL_CAIF 278
++#define SOL_ALG 279
++#define SOL_NFC 280
++#define SOL_KCM 281
++#define SOL_TLS 282
++#define SOL_XDP 283
++
++#define SOMAXCONN 128
++
++// #define MSG_OOB       0x0001
++// #define MSG_PEEK      0x0002
++// #define MSG_DONTROUTE 0x0004
++// #define MSG_CTRUNC    0x0008
++// #define MSG_PROXY     0x0010
++// #define MSG_TRUNC     0x0020
++// #define MSG_DONTWAIT  0x0040
++// #define MSG_EOR       0x0080
++// #define MSG_WAITALL   0x0100
++// #define MSG_FIN       0x0200
++// #define MSG_SYN       0x0400
++// #define MSG_CONFIRM   0x0800
++// #define MSG_RST       0x1000
++// #define MSG_ERRQUEUE  0x2000
++// #define MSG_NOSIGNAL  0x4000
++// #define MSG_MORE      0x8000
++// #define MSG_WAITFORONE 0x10000
++// #define MSG_BATCH     0x40000
++// #define MSG_ZEROCOPY  0x4000000
++// #define MSG_FASTOPEN  0x20000000
++// #define MSG_CMSG_CLOEXEC 0x40000000
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++int socket(int, int, int);
++
++int bind(int, const struct sockaddr *, socklen_t);
++int connect(int, const struct sockaddr *, socklen_t);
++int listen(int, int);
++int accept(int, struct sockaddr *__restrict, socklen_t *__restrict);
++
++int setsockopt(int, int, int, const void *, socklen_t);
++
++#ifdef __cplusplus
++}
++#endif
+\ No newline at end of file
+-- 
+2.38.1
+
