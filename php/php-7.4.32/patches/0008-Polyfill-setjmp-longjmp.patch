@@ -1,0 +1,465 @@
+From 6c33996f4ec3cad08e6bbd670f788b2ecebc846a Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <Wasm Labs Team>
+Date: Fri, 13 Jan 2023 11:09:41 +0100
+Subject: [PATCH 8/8] Polyfill setjmp/longjmp
+
+
+   4.3% Zend/
+  88.3% polyfill_setjmp/
+   5.7% sapi/cgi/
+diff --git a/Zend/zend.c b/Zend/zend.c
+index bf72cce2..7236a417 100644
+--- a/Zend/zend.c
++++ b/Zend/zend.c
+@@ -709,9 +709,7 @@ static void executor_globals_ctor(zend_executor_globals *executor_globals) /* {{
+ #endif
+ 	executor_globals->saved_fpu_cw_ptr = NULL;
+ 	executor_globals->active = 0;
+-#ifndef WASM_WASI
+ 	executor_globals->bailout = NULL;
+-#endif
+ 	executor_globals->error_handling  = EH_NORMAL;
+ 	executor_globals->exception_class = NULL;
+ 	executor_globals->exception = NULL;
+@@ -1121,8 +1119,6 @@ ZEND_COLD void zenderror(const char *error) /* {{{ */
+ BEGIN_EXTERN_C()
+ ZEND_API ZEND_COLD ZEND_NORETURN void _zend_bailout(const char *filename, uint32_t lineno) /* {{{ */
+ {
+-
+-#ifndef WASM_WASI
+ 	if (!EG(bailout)) {
+ 		zend_output_debug_string(1, "%s(%d) : Bailed out without a bailout address!", filename, lineno);
+ 		exit(-1);
+@@ -1133,7 +1129,6 @@ ZEND_API ZEND_COLD ZEND_NORETURN void _zend_bailout(const char *filename, uint32
+ 	CG(in_compilation) = 0;
+ 	EG(current_execute_data) = NULL;
+ 	LONGJMP(*EG(bailout), FAILURE);
+-#endif
+ }
+ /* }}} */
+ END_EXTERN_C()
+diff --git a/Zend/zend.h b/Zend/zend.h
+index 75bea569..ae2d48b9 100644
+--- a/Zend/zend.h
++++ b/Zend/zend.h
+@@ -209,7 +209,6 @@ typedef int (*zend_write_func_t)(const char *str, size_t str_length);
+ 
+ #define zend_bailout()		_zend_bailout(__FILE__, __LINE__)
+ 
+-#ifndef WASM_WASI
+ #define zend_try												\
+ 	{															\
+ 		JMP_BUF *__orig_bailout = EG(bailout);					\
+@@ -226,17 +225,6 @@ typedef int (*zend_write_func_t)(const char *str, size_t str_length);
+ 	}
+ #define zend_first_try		EG(bailout)=NULL;	zend_try
+ 
+-#else // WASM_WASI
+-#define zend_try												\
+-	{															\
+-		if (1) {
+-#define zend_catch												\
+-		} else {
+-#define zend_end_try()											\
+-		}														\
+-	}
+-#define zend_first_try		zend_try
+-#endif // WASM_WASI
+ 
+ BEGIN_EXTERN_C()
+ int zend_startup(zend_utility_functions *utility_functions);
+diff --git a/Zend/zend_globals.h b/Zend/zend_globals.h
+index e95771ef..deca979b 100644
+--- a/Zend/zend_globals.h
++++ b/Zend/zend_globals.h
+@@ -23,7 +23,9 @@
+ 
+ #ifndef WASM_WASI
+ #include <setjmp.h>
+-#endif
++#else
++#include "polyfill_setjmp/setjmp.h"
++#endif // WASM_WASI
+ 
+ #include "zend_globals_macros.h"
+ 
+@@ -149,9 +151,7 @@ struct _zend_executor_globals {
+ 
+ 	HashTable included_files;	/* files already included */
+ 
+-#ifndef WASM_WASI
+ 	JMP_BUF *bailout;
+-#endif
+ 
+ 	int error_reporting;
+ 	int exit_status;
+diff --git a/Zend/zend_vm_execute.h b/Zend/zend_vm_execute.h
+index 23085464..2875fd37 100644
+--- a/Zend/zend_vm_execute.h
++++ b/Zend/zend_vm_execute.h
+@@ -2378,11 +2378,7 @@ static ZEND_VM_COLD ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_EXIT_SPEC_HANDLER
+ 		} while (0);
+ 		FREE_OP(free_op1);
+ 	}
+-#ifndef WASM_WASI
+ 	zend_bailout();
+-#else
+-	exit(0);
+-#endif // WASM_WASI
+ 	ZEND_VM_NEXT_OPCODE(); /* Never reached */
+ }
+ 
+diff --git a/configure.ac b/configure.ac
+index 08e53903..ee08c875 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -774,6 +774,11 @@ PHP_ARG_WITH([wasm-runtime],
+   [default],
+   [no])
+ 
++if test "$PHP_WASM_RUNTIME" != "no"; then
++  PHP_ADD_SOURCES(polyfill_setjmp, setjmp.c setjmp_core.S, -DWASM_SETJMP)
++  CFLAGS="$CFLAGS -DWASM_SETJMP"
++fi
++
+ if test "$PHP_WASM_RUNTIME" != "default"; then
+   case $host_alias in
+     *wasm*)
+diff --git a/polyfill_setjmp/README.md b/polyfill_setjmp/README.md
+new file mode 100644
+index 00000000..cd3089f7
+--- /dev/null
++++ b/polyfill_setjmp/README.md
+@@ -0,0 +1,4 @@
++# `setjmp/longjmp` with asyncify
++
++The implementation is taken from the [Ruby WASM](https://github.com/ruby/ruby/blob/36420068725e5b4b86b3481fa1f82b249a60d928/wasm/README.md) support library.
++wasm-opt -O --asyncify -g --pass-arg=asyncify-ignore-imports -o php-cgi-sync php/build-output/php/php-7.4.32/bin/php-cgi
+diff --git a/polyfill_setjmp/asyncify.h b/polyfill_setjmp/asyncify.h
+new file mode 100644
+index 00000000..dff80a55
+--- /dev/null
++++ b/polyfill_setjmp/asyncify.h
+@@ -0,0 +1,23 @@
++#ifndef PHP_WASM_SUPPORT_ASYNCIFY_H
++#define PHP_WASM_SUPPORT_ASYNCIFY_H
++
++__attribute__((import_module("asyncify"), import_name("start_unwind")))
++void asyncify_start_unwind(void *buf);
++#define asyncify_start_unwind(buf) do {  \
++    extern void *php_asyncify_unwind_buf; \
++    php_asyncify_unwind_buf = (buf);      \
++    asyncify_start_unwind((buf));        \
++  } while (0)
++__attribute__((import_module("asyncify"), import_name("stop_unwind")))
++void asyncify_stop_unwind(void);
++#define asyncify_stop_unwind() do {      \
++    extern void *php_asyncify_unwind_buf; \
++    php_asyncify_unwind_buf = NULL;       \
++    asyncify_stop_unwind();              \
++  } while (0)
++__attribute__((import_module("asyncify"), import_name("start_rewind")))
++void asyncify_start_rewind(void *buf);
++__attribute__((import_module("asyncify"), import_name("stop_rewind")))
++void asyncify_stop_rewind(void);
++
++#endif
+diff --git a/polyfill_setjmp/setjmp.c b/polyfill_setjmp/setjmp.c
+new file mode 100644
+index 00000000..0443d710
+--- /dev/null
++++ b/polyfill_setjmp/setjmp.c
+@@ -0,0 +1,136 @@
++/*
++ This is a WebAssembly userland setjmp/longjmp implementation based on Binaryen's Asyncify.
++ Inspired by Alon Zakai's snippet released under the MIT License:
++ * https://github.com/kripken/talks/blob/991fb1e4b6d7e4b0ea6b3e462d5643f11d422771/jmp.c
++
++ WebAssembly doesn't have context-switching mechanism for now, so emulate it by Asyncify,
++ which transforms WebAssembly binary to unwind/rewind the execution point and store/restore
++ locals.
++
++ The basic concept of this implementation is:
++ 1. setjmp captures the current execution context by unwinding to the root frame, then immediately
++    rewind to the setjmp call using the captured context. The context is saved in jmp_buf.
++ 2. longjmp unwinds to the root frame and rewinds to a setjmp call re-using a passed jmp_buf.
++
++ This implementation also supports switching context across different call stack (non-standard)
++
++ This approach is good at behavior reproducibility and self-containedness compared to Emscripten's
++ JS exception approach. However this is super expensive because Asyncify inserts many glue code to
++ control execution point in userland.
++
++ This implementation will be replaced with future stack-switching feature.
++ */
++#include <stdint.h>
++#include <stdlib.h>
++#include <assert.h>
++#include <stdbool.h>
++#include "polyfill_setjmp/asyncify.h"
++#include "polyfill_setjmp/setjmp.h"
++
++// #define PHP_WASM_ENABLE_DEBUG_LOG 1
++
++#ifdef PHP_WASM_ENABLE_DEBUG_LOG
++# include <stdio.h>
++# define PHP_WASM_DEBUG_LOG(...) fprintf(stderr, __VA_ARGS__)
++#else
++# define PHP_WASM_DEBUG_LOG(...)
++#endif
++
++enum php_wasm_jmp_buf_state {
++    // Initial state
++    JMP_BUF_STATE_INITIALIZED = 0,
++    // Unwinding to the root or rewinding to the setjmp call
++    // to capture the current execution context
++    JMP_BUF_STATE_CAPTURING   = 1,
++    // Ready for longjmp
++    JMP_BUF_STATE_CAPTURED    = 2,
++    // Unwinding to the root or rewinding to the setjmp call
++    // to restore the execution context
++    JMP_BUF_STATE_RETURNING   = 3,
++};
++
++void
++async_buf_init(struct __php_wasm_asyncify_jmp_buf* buf)
++{
++    buf->top = &buf->buffer[0];
++    buf->end = &buf->buffer[WASM_SETJMP_STACK_BUFFER_SIZE];
++}
++
++// Global unwinding/rewinding jmpbuf state
++static php_wasm_jmp_buf *_php_wasm_active_jmpbuf;
++void *php_asyncify_unwind_buf;
++
++__attribute__((noinline))
++int
++_php_wasm_setjmp_internal(php_wasm_jmp_buf *env)
++{
++    PHP_WASM_DEBUG_LOG("[%s] env = %p, env->state = %d, _php_wasm_active_jmpbuf = %p\n", __func__, env, env->state, _php_wasm_active_jmpbuf);
++    switch (env->state) {
++    case JMP_BUF_STATE_INITIALIZED: {
++        PHP_WASM_DEBUG_LOG("[%s] JMP_BUF_STATE_INITIALIZED\n", __func__);
++        env->state = JMP_BUF_STATE_CAPTURING;
++        env->payload = 0;
++        _php_wasm_active_jmpbuf = env;
++        async_buf_init(&env->setjmp_buf);
++        asyncify_start_unwind(&env->setjmp_buf);
++        return -1; // return a dummy value
++    }
++    case JMP_BUF_STATE_CAPTURING: {
++        asyncify_stop_rewind();
++        PHP_WASM_DEBUG_LOG("[%s] JMP_BUF_STATE_CAPTURING\n", __func__);
++        env->state = JMP_BUF_STATE_CAPTURED;
++        _php_wasm_active_jmpbuf = NULL;
++        return 0;
++    }
++    case JMP_BUF_STATE_RETURNING: {
++        asyncify_stop_rewind();
++        PHP_WASM_DEBUG_LOG("[%s] JMP_BUF_STATE_RETURNING\n", __func__);
++        env->state = JMP_BUF_STATE_CAPTURED;
++        _php_wasm_active_jmpbuf = NULL;
++        return env->payload;
++    }
++    default:
++        assert(0 && "unexpected state");
++    }
++    return 0;
++}
++
++void
++_php_wasm_longjmp(php_wasm_jmp_buf* env, int value)
++{
++    PHP_WASM_DEBUG_LOG("[%s] env = %p, env->state = %d, value = %d\n", __func__, env, env->state, value);
++    assert(env->state == JMP_BUF_STATE_CAPTURED);
++    assert(value != 0);
++    env->state = JMP_BUF_STATE_RETURNING;
++    env->payload = value;
++    _php_wasm_active_jmpbuf = env;
++    async_buf_init(&env->longjmp_buf);
++    asyncify_start_unwind(&env->longjmp_buf);
++}
++
++void *
++php_wasm_handle_jmp_unwind(void)
++{
++    PHP_WASM_DEBUG_LOG("[%s] _php_wasm_active_jmpbuf = %p\n", __func__, _php_wasm_active_jmpbuf);
++    if (!_php_wasm_active_jmpbuf) {
++        return NULL;
++    }
++
++    switch (_php_wasm_active_jmpbuf->state) {
++    case JMP_BUF_STATE_CAPTURING: {
++        PHP_WASM_DEBUG_LOG("[%s] JMP_BUF_STATE_CAPTURING\n", __func__);
++        // save the captured Asyncify stack top
++        _php_wasm_active_jmpbuf->dst_buf_top = _php_wasm_active_jmpbuf->setjmp_buf.top;
++        break;
++    }
++    case JMP_BUF_STATE_RETURNING: {
++        PHP_WASM_DEBUG_LOG("[%s] JMP_BUF_STATE_RETURNING\n", __func__);
++        // restore the saved Asyncify stack top
++        _php_wasm_active_jmpbuf->setjmp_buf.top = _php_wasm_active_jmpbuf->dst_buf_top;
++        break;
++    }
++    default:
++        assert(0 && "unexpected state");
++    }
++    return &_php_wasm_active_jmpbuf->setjmp_buf;
++}
+diff --git a/polyfill_setjmp/setjmp.h b/polyfill_setjmp/setjmp.h
+new file mode 100644
+index 00000000..cc2d5ae1
+--- /dev/null
++++ b/polyfill_setjmp/setjmp.h
+@@ -0,0 +1,62 @@
++#ifndef PHP_WASM_SUPPORT_SETJMP_H
++#define PHP_WASM_SUPPORT_SETJMP_H
++
++#include <stdbool.h>
++
++#ifndef WASM_SETJMP_STACK_BUFFER_SIZE
++# define WASM_SETJMP_STACK_BUFFER_SIZE 6144
++#endif
++
++struct __php_wasm_asyncify_jmp_buf {
++    void* top;
++    void* end;
++    char buffer[WASM_SETJMP_STACK_BUFFER_SIZE];
++};
++
++typedef struct {
++    // Internal Asyncify buffer space to save execution context
++    struct __php_wasm_asyncify_jmp_buf setjmp_buf;
++    // Internal Asyncify buffer space used while unwinding from longjmp
++    // but never used for rewinding.
++    struct __php_wasm_asyncify_jmp_buf longjmp_buf;
++    // Used to save top address of Asyncify stack `setjmp_buf`, which is
++    // overwritten during first rewind.
++    void *dst_buf_top;
++    // A payload value given by longjmp and returned by setjmp for the second time
++    int payload;
++    // Internal state field
++    int state;
++} php_wasm_jmp_buf;
++
++// noinline to avoid breaking Asyncify assumption
++__attribute__((noinline))
++int _php_wasm_setjmp(php_wasm_jmp_buf *env);
++__attribute__((noinline))
++void _php_wasm_longjmp(php_wasm_jmp_buf *env, int payload);
++
++#define php_wasm_setjmp(env) ((env).state = 0, _php_wasm_setjmp(&(env)))
++
++// NOTE: Why is `_php_wasm_longjmp` not `noreturn`? Why put `unreachable` in the call site?
++// Asyncify expects that `_php_wasm_longjmp` returns its control, and Asyncify inserts a return
++// for unwinding after the call. This means that "`_php_wasm_longjmp` returns its control but the
++// next line in the caller (C level) won't be executed".
++// On the other hand, `noreturn` means the callee won't return its control to the caller,
++// so compiler can assume that a function with the attribute won't reach the end of the function.
++// Therefore `_php_wasm_longjmp`'s semantics is not exactly same as `noreturn`.
++#define php_wasm_longjmp(env, payload) (_php_wasm_longjmp(&env, payload), __builtin_unreachable())
++
++// Returns the Asyncify buffer of next rewinding if unwound for setjmp capturing or longjmp.
++// Used by the top level Asyncify handling in wasm/runtime.c
++void *php_wasm_handle_jmp_unwind(void);
++
++
++//
++// POSIX-compatible declarations
++//
++
++typedef php_wasm_jmp_buf jmp_buf;
++
++#define setjmp(env) php_wasm_setjmp(env)
++#define longjmp(env, payload) php_wasm_longjmp(env, payload)
++
++#endif
+diff --git a/polyfill_setjmp/setjmp_core.S b/polyfill_setjmp/setjmp_core.S
+new file mode 100644
+index 00000000..e927d730
+--- /dev/null
++++ b/polyfill_setjmp/setjmp_core.S
+@@ -0,0 +1,27 @@
++	# extern int _php_wasm_setjmp_internal(php_wasm_jmp_buf *env);
++	.functype	_php_wasm_setjmp_internal (i32) -> (i32)
++	# extern int __stack_pointer;
++	.globaltype 	__stack_pointer, i32
++
++	# A wrapper of _php_wasm_setjmp_internal to save and restore stack pointer
++	# This cannot be implemented in C because there is no way to manipulate stack pointer
++	# without C-epilogue.
++
++	# extern int _php_wasm_setjmp(php_wasm_jmp_buf *env);
++	.section	.text._php_wasm_setjmp,"",@
++	.globl		_php_wasm_setjmp
++	.type		_php_wasm_setjmp,@function
++_php_wasm_setjmp:
++	.functype	_php_wasm_setjmp (i32) -> (i32)
++	.local		i32, i32
++	# save sp (this local is stored in asyncify stack and restored when rewinding)
++	global.get	__stack_pointer
++	local.set	1
++
++	local.get	0
++	call		_php_wasm_setjmp_internal
++
++	# restore sp
++	local.get	1
++	global.set	__stack_pointer
++	end_function
+diff --git a/sapi/cgi/cgi_main.c b/sapi/cgi/cgi_main.c
+index 8a64f496..af9fff75 100644
+--- a/sapi/cgi/cgi_main.c
++++ b/sapi/cgi/cgi_main.c
+@@ -45,8 +45,13 @@
+ # include <unistd.h>
+ #endif
+ 
+-#ifndef WASM_WASI
+-#include <signal.h>
++#ifdef WASM_SETJMP
++#include "polyfill_setjmp/setjmp.h"
++#include "polyfill_setjmp/asyncify.h"
++#endif
++
++
++#ifdef WASM_WASI
+ #endif
+ 
+ #include <locale.h>
+@@ -1749,7 +1754,32 @@ static zend_module_entry cgi_module_entry = {
+ 
+ /* {{{ main
+  */
++#ifdef WASM_SETJMP
++int main_without_setjmp(int argc, char *argv[]);
++int main(int argc, char *argv[])
++{
++	int result;
++	void *asyncify_buf;
++
++	while (1) {
++		result = main_without_setjmp(argc, argv);
++		asyncify_stop_unwind();
++
++		if ((asyncify_buf = php_wasm_handle_jmp_unwind()) != NULL) {
++			asyncify_start_rewind(asyncify_buf);
++			continue;
++		}
++
++		break;
++	}
++
++	return result;
++}
++
++int main_without_setjmp(int argc, char *argv[])
++#else
+ int main(int argc, char *argv[])
++#endif
+ {
+ 	int free_query_string = 0;
+ 	int exit_status = SUCCESS;
+-- 
+2.37.2
+
