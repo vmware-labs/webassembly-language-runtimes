@@ -1,9 +1,11 @@
 BUILDER_ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
+WASM_BASE_TAG ?= $(shell git rev-parse --short HEAD)
+
 .PHONY: wasm-base
 wasm-base:
-	docker build --build-arg BINARYEN_VERSION=111 -f ${BUILDER_ROOT_DIR}/Dockerfile.wasm-base -t ghcr.io/vmware-labs/wasm-base:20220116 ${BUILDER_ROOT_DIR}
+	docker build --build-arg BINARYEN_VERSION=111 -f ${BUILDER_ROOT_DIR}/Dockerfile.wasm-base -t ghcr.io/vmware-labs/wasm-base:$(WASM_BASE_TAG) ${BUILDER_ROOT_DIR}
 
 .PHONY: wasi-builder-19
 wasi-builder-19: wasm-base
-	docker build --build-arg WASI_SDK_VERSION=19 -f ${BUILDER_ROOT_DIR}/Dockerfile.wasi-builder -t ghcr.io/vmware-labs/wasi-builder:19 ${BUILDER_ROOT_DIR}
+	docker build --build-arg WASM_BASE=$(WASM_BASE_TAG) --build-arg WASI_SDK_VERSION=19 -f ${BUILDER_ROOT_DIR}/Dockerfile.wasi-builder -t ghcr.io/vmware-labs/wasi-builder:19 ${BUILDER_ROOT_DIR}
