@@ -52,6 +52,6 @@ mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 mkdir -p ${WASMLABS_OUTPUT}/usr/local/lib 2>/dev/null || exit 1
 
 cp python.wasm ${WASMLABS_OUTPUT}/bin/python${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}.wasm || exit 1
-cp usr/local/lib/python3.11.zip ${WASMLABS_OUTPUT}/usr/local/lib/ || exit 1
+cp usr/local/lib/python311.zip ${WASMLABS_OUTPUT}/usr/local/lib/ || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
