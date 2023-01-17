@@ -8,7 +8,7 @@ fi
 
 cd "${WASMLABS_CHECKOUT_PATH}"
 
-mkdir build
+mkdir -p build
 
 ruby tool/downloader.rb -d tool -e gnu config.guess config.sub
 
