@@ -1,0 +1,34 @@
+name: Build Python
+on:
+  push:
+    # By specifying branches explicitly, we avoid this workflow from
+    # running on tag push. We have a dedicated workflow to be ran when
+    # a tag is pushed.
+    branches:
+      - "*"
+  pull_request:
+jobs:
+  build-python:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: 3.11.1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build Python
+        run: make python/v${{ matrix.version }}
+      - name: Rename artifacts
+        shell: bash
+        run: |
+          sudo mv python/build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}.wasm
+      - name: Upload python-aio-${{ matrix.version }}.zip artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-aio-${{ matrix.version }}.zip
+          path: |
+            python/build-output/python/v${{ matrix.version }}/bin/python-${{ matrix.version }}.wasm
+            python/build-output/python/v${{ matrix.version }}/usr
+          if-no-files-found: error
