@@ -8,11 +8,15 @@ This repository contains patches provided for language runtimes to be compiled f
 
 All you need in order to run these builds is to have `docker` or `podman` available in your system. You can execute the following `Makefile` targets:
 
-- `php/php-7.3.33`
-    - Resulting binaries are placed in `php/build-output/php/php-7.3.33/bin`.
+- `php/php-7.3.33`, `php/php-7.4.32`, `php/wasmedge-php-7.4.32`,
+  `php/php-8.1.11`, `php/php-8.2.0
+    - Resulting binaries are placed in `php/build-output/php`.
 
-- `php/php-7.4.32`, `php/wasmedge-php-7.4.32`
-    - Resulting binaries are placed in `php/build-output/php/php-7.4.32/bin`.
+- `python/v3.11.1`
+    - Resulting binaries are placed in `php/build-output/python`.
+
+- `ruby/v3_2_0`
+    - Resulting binaries are placed in `php/build-output/ruby`.
 
 ### Build strategy
 
