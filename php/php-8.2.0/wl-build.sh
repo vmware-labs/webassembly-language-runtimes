@@ -51,11 +51,13 @@ make -j ${MAKE_TARGETS} || exit 1
 logStatus "Preparing artifacts... "
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 
-cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME} || exit 1
+logStatus "Running wasm-opt with the asyncify pass on php-cgi.."
+wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}.wasm sapi/cgi/php-cgi || exit 1
 
 if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
 then
-    cp sapi/cli/php ${WASMLABS_OUTPUT}/bin/php${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME} || exit 1
+    logStatus "Running wasm-opt with the asyncify pass on php.."
+    wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WASMLABS_OUTPUT}/bin/php${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}.wasm sapi/cli/php || exit 1
 fi
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

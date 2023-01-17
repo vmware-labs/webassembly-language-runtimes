@@ -1,0 +1,87 @@
+# Note that for this workflow to be triggered, the tag needs to be
+# created of the form `ruby/<version>+<buildinfo>`, where <buildinfo>
+# by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
+# with `git rev-parse --short HEAD`). An example of a tag following
+# the convention that triggers automation would be
+# `ruby/3.2.0+20221123-8dfe8b9`.
+name: Release Ruby
+on:
+  push:
+    tags:
+      - ruby/*
+jobs:
+  release-ruby:
+    strategy:
+      matrix:
+        include:
+          - version: 3.2.0
+            target_version: 3_2_0
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        # Only run for the Ruby version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: startsWith(github.event.ref,  format('refs/tags/ruby/{0}+', matrix.version))
+        uses: actions/checkout@v3
+      - name: Build Ruby
+        # Only run for the Ruby version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: startsWith(github.event.ref, format('refs/tags/ruby/{0}+', matrix.version))
+        run: make ruby/v${{ matrix.target_version }}
+      - name: Rename release artifacts
+        # Only run for the Ruby version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: startsWith(github.event.ref, format('refs/tags/ruby/{0}+', matrix.version))
+        shell: bash
+        run: |
+          sudo mv ruby/build-output/ruby/v${{ matrix.target_version }}/bin/ruby{,-${{ matrix.version }}}.wasm
+      - name: Create release
+        # Only run for the Ruby version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: startsWith(github.event.ref, format('refs/tags/ruby/{0}+', matrix.version))
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create --generate-notes ${{ github.ref_name }} || true
+      - name: Append Ruby release assets
+        # Only run for the Ruby version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: ${{ startsWith(github.event.ref, format('refs/tags/ruby/{0}+', matrix.version))}}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            ruby/build-output/ruby/v${{ matrix.target_version }}/bin/*.wasm
+      - name: Generate release assets digests
+        # Only run for the Ruby version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: ${{ startsWith(github.event.ref, format('refs/tags/ruby/{0}+', matrix.version))}}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for asset in ruby/build-output/ruby/v${{ matrix.target_version }}/bin/*.wasm; do
+            sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
+          done
+      - name: Append release assets digests
+        # Only run for the Ruby version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: ${{ startsWith(github.event.ref, format('refs/tags/ruby/{0}+', matrix.version))}}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            ruby/build-output/ruby/v${{ matrix.target_version }}/bin/*.sha256sum

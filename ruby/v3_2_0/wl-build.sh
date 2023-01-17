@@ -10,9 +10,15 @@ cd "${WASMLABS_CHECKOUT_PATH}"
 
 mkdir -p build
 
+logStatus "Downloading autotools data... "
+
 ruby tool/downloader.rb -d tool -e gnu config.guess config.sub
 
+logStatus "Generating configure script... "
+
 ./autogen.sh
+
+logStatus "Configuring ruby..."
 
 ./configure \
     --host wasm32-unknown-wasi \
@@ -26,8 +32,10 @@ ruby tool/downloader.rb -d tool -e gnu config.guess config.sub
     debugflags="" \
     wasmoptflags="-O2"
 
+logStatus "Building ruby..."
 make ruby
 
-cp ruby ${WASMLABS_OUTPUT}/bin/ || exit 1
+logStatus "Preparing artifacts... "
+mv ruby ${WASMLABS_OUTPUT}/bin/ruby.wasm || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
