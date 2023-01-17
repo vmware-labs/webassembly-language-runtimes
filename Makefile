@@ -8,6 +8,10 @@ php/php-*:
 php/wasmedge-php-7.4.32:
 	WASMLABS_RUNTIME=wasmedge make -C php $(subst php/wasmedge-php-,php-,$@)
 
+.PHONY: ruby/v*
+ruby/v*:
+	make -C ruby $(subst ruby/,,$@)
+
 .PHONY: clean
 clean:
 	make -C php clean
