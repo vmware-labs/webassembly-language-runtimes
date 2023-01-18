@@ -1,0 +1,54 @@
+#!//usr/bin/env bash
+# Inspired by
+# https://raw.githubusercontent.com/ruby/ruby/df6b72b8ff7af16a56fa48f3b4abb1d8850f4d1c/wasm/wasm-opt
+#
+# A fake wasm-opt, which does nothing at all
+# See also: tool/wasm-clangw
+
+function logStatus {
+    if [[ -n "${WASMLABS_OUTPUT}" ]]; then
+        echo "$(date --iso-8601=ns) | $@" >>  $WASMLABS_OUTPUT/wasmlabs-progress.log
+    else
+        echo "$(date --iso-8601=ns) | $@"
+    fi
+}
+
+if [[ -z "${WASMLABS_SKIP_WASM_OPT}" ]]; then
+   logStatus "wasm-opt (with args \"$@\") was intercepted; executing $BINARYEN_PATH/bin/wasm-opt"
+   exec $BINARYEN_PATH/bin/wasm-opt "$@"
+fi
+
+logStatus "wasm-opt (with args \"$@\") was intercepted; this invocation will be a no-op"
+
+set -e
+input=
+output=
+while [ $# -ne 0 ]; do
+  case "$1" in
+    -o)
+      shift
+      output=$1
+  ;;
+    -*)
+      # ignore other options
+  ;;
+    *)
+      input=$1
+  ;;
+  esac
+  shift
+done
+
+if [ -z "$input" ]; then
+  echo "missing input binary"
+  exit 1
+fi
+
+if [ -z "$output" ]; then
+  echo "missing output binary"
+  exit 1
+fi
+
+if [ "$input" != "$output" ]; then
+  cp "$input" "$output"
+fi

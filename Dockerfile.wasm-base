@@ -1,9 +1,16 @@
 FROM ubuntu:20.04
-ARG BINARYEN_VERSION=111
+ARG BINARYEN_VERSION
+ENV BINARYEN_PATH=/opt
 RUN apt update && \
     DEBIAN_FRONTEND=noninteractive apt install -y \
       wget && \
     wget https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz && \
     tar -xf binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz --strip-components=1 -C /opt && \
-    rm binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz
-ENV PATH="$PATH:/opt/bin"
+    rm binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz && \
+    mkdir -p /opt/priority-bin
+# wasm-opt is called in unexpected contexts
+# (https://github.com/llvm/llvm-project/issues/55781). To avoid this,
+# we install a `wasm-opt` wrapper with a higher priority in the PATH
+# that can disable wasm-opt execution when desired.
+ADD images/wasm-base/wasm-opt /opt/priority-bin/
+ENV PATH="/opt/priority-bin:$PATH:/opt/bin"

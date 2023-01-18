@@ -46,7 +46,16 @@ then
 fi
 
 logStatus "Building '${MAKE_TARGETS}'... "
+# By exporting WASMLABS_SKIP_WASM_OPT envvar during the build, the
+# wasm-opt wrapper in the wasm-base image will be a dummy wrapper that
+# is effectively a NOP.
+#
+# This is due to https://github.com/llvm/llvm-project/issues/55781, so
+# that we get to choose which optimization passes are executed after
+# the artifacts have been built.
+export WASMLABS_SKIP_WASM_OPT=1
 make -j ${MAKE_TARGETS} || exit 1
+unset WASMLABS_SKIP_WASM_OPT
 
 logStatus "Preparing artifacts... "
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
