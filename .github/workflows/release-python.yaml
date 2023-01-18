@@ -40,11 +40,16 @@ jobs:
         shell: bash
         run: |
           sudo mv python/build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}.wasm
-      - name: Install zip
-        uses: montudor/action-zip@v1
       - name: Bundle Python with standard libraries
-        run: sudo zip -qq -r python-aio-${{ matrix.version }}.zip bin/python-${{ matrix.version }}.wasm usr
-        working-directory: python/build-output/python/v${{ matrix.version }}
+        # Only run for the Python version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
+        run: |
+          pushd python/build-output/python/v${{ matrix.version }}
+          sudo zip -qq -r python-aio-${{ matrix.version }}.zip bin/python-${{ matrix.version }}.wasm usr
+          popd
       - name: Create release
         # Only run for the Python version specified in the git tag.
         #
