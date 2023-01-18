@@ -1,1 +1,1 @@
-export WLR_TAG="php/7.4.32"
+export WLR_TAG="python/3.11.1"
