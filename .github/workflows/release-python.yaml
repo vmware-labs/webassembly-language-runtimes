@@ -3,7 +3,7 @@
 # by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
 # with `git rev-parse --short HEAD`). An example of a tag following
 # the convention that triggers automation would be
-# `python/7.3.33+20221123-8dfe8b9`.
+# `python/3.11.1+20221123-8dfe8b9`.
 name: Release Python
 on:
   push:
