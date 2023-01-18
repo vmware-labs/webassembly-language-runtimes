@@ -12,6 +12,10 @@ php/wasmedge-php-7.4.32:
 ruby/v*:
 	make -C ruby $(subst ruby/,,$@)
 
+.PHONY: python/v*
+python/v*:
+	make -C python $(subst python/,,$@)
+
 .PHONY: clean
 clean:
 	make -C php clean

@@ -9,3 +9,7 @@ wasm-base:
 .PHONY: wasi-builder-19
 wasi-builder-19: wasm-base
 	docker build --build-arg WASM_BASE=$(WASM_BASE_TAG) --build-arg WASI_SDK_VERSION=19 -f ${BUILDER_ROOT_DIR}/Dockerfile.wasi-builder -t ghcr.io/vmware-labs/wasi-builder:19 ${BUILDER_ROOT_DIR}
+
+.PHONY: wasi-builder-16
+wasi-builder-16: wasm-base
+	docker build --build-arg WASM_BASE=$(WASM_BASE_TAG) --build-arg WASI_SDK_VERSION=16 -f ${BUILDER_ROOT_DIR}/Dockerfile.wasi-builder -t ghcr.io/vmware-labs/wasi-builder:16 ${BUILDER_ROOT_DIR}

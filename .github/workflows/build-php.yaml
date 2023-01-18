@@ -59,8 +59,10 @@ jobs:
         with:
           name: php-${{ matrix.version }}${{ matrix.suffix }}.wasm
           path: php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.wasm
+          if-no-files-found: error
       - name: Upload php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm artifact
         uses: actions/upload-artifact@v3
         with:
           name: php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm
           path: php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm
+          if-no-files-found: error

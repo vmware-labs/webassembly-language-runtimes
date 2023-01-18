@@ -1,4 +1,4 @@
-name: Build Ruby
+name: Build Python
 on:
   push:
     # By specifying branches explicitly, we avoid this workflow from
@@ -8,26 +8,27 @@ on:
       - "*"
   pull_request:
 jobs:
-  build-ruby:
+  build-python:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - version: 3.2.0
-            target_version: 3_2_0
+          - version: 3.11.1
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Build Ruby
-        run: make ruby/v${{ matrix.target_version }}
+      - name: Build Python
+        run: make python/v${{ matrix.version }}
       - name: Rename artifacts
         shell: bash
         run: |
-          sudo mv ruby/build-output/ruby/v${{ matrix.target_version }}/bin/ruby{,-${{ matrix.version }}}.wasm
-      - name: Upload ruby-${{ matrix.version }}.wasm artifact
+          sudo mv python/build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}.wasm
+      - name: Upload python-aio-${{ matrix.version }}.zip artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ruby-${{ matrix.version }}.wasm
-          path: ruby/build-output/ruby/v${{ matrix.target_version }}/bin/ruby-${{ matrix.version }}.wasm
+          name: python-aio-${{ matrix.version }}.zip
+          path: |
+            python/build-output/python/v${{ matrix.version }}/bin/python-${{ matrix.version }}.wasm
+            python/build-output/python/v${{ matrix.version }}/usr
           if-no-files-found: error
