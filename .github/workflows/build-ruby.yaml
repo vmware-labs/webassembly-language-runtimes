@@ -30,3 +30,4 @@ jobs:
         with:
           name: ruby-${{ matrix.version }}.wasm
           path: ruby/build-output/ruby/v${{ matrix.target_version }}/bin/ruby-${{ matrix.version }}.wasm
+          if-no-files-found: error
