@@ -5,6 +5,7 @@ FROM ghcr.io/vmware-labs/wasi-builder:${WASI_SDK_VERSION}
 # github workflow configuration for a list of possible dependencies -
 # https://github.com/python/cpython/blob/main/.github/workflows/posix-deps-apt.sh
 RUN DEBIAN_FRONTEND=noninteractive apt install -y \
+      tcl \
       uuid-dev \
       zlib1g-dev
 
