@@ -12,5 +12,5 @@ RUN apt update && \
 # (https://github.com/llvm/llvm-project/issues/55781). To avoid this,
 # we install a `wasm-opt` wrapper with a higher priority in the PATH
 # that can disable wasm-opt execution when desired.
-ADD images/wasm-base/wasm-opt /opt/priority-bin/
+ADD scripts/wrappers/wasm-opt /opt/priority-bin/
 ENV PATH="/opt/priority-bin:$PATH:/opt/bin"
