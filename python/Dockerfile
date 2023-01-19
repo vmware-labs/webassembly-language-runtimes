@@ -1,4 +1,4 @@
-ARG WASI_SDK_VERSION=16
+ARG WASI_SDK_VERSION
 FROM ghcr.io/vmware-labs/wasi-builder:${WASI_SDK_VERSION}
 
 # If more capabilities are required from the build-erpython, consult this

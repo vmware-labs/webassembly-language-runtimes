@@ -6,7 +6,7 @@ ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 include ../Makefile.builders
 
 .PHONY: python-builder
-python-builder: wasi-builder-16
+python-builder: wasi-builder-$(WASI_SDK_VERSION)
 	docker build -f ${ROOT_DIR}/Dockerfile --build-arg WASI_SDK_VERSION=$(WASI_SDK_VERSION) -t ghcr.io/vmware-labs/python-builder:wasi-$(WASI_SDK_VERSION) ${ROOT_DIR}
 
 .PHONY: v*
