@@ -47,8 +47,12 @@ fi
 # the artifacts have been built.
 export WASMLABS_SKIP_WASM_OPT=1
 
-logStatus "Configuring build with '${PYTHON_WASM_CONFIGURE}'... "
-CONFIG_SITE=./Tools/wasm/config.site-wasm32-wasi ./configure -C --host=wasm32-wasi --build=$(./config.guess) ${PYTHON_WASM_CONFIGURE} || exit 1
+if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+    logStatus "Configuring build with '${PYTHON_WASM_CONFIGURE}'... "
+    CONFIG_SITE=./Tools/wasm/config.site-wasm32-wasi ./configure -C --host=wasm32-wasi --build=$(./config.guess) ${PYTHON_WASM_CONFIGURE} || exit 1
+else
+    logStatus "Skipping configure..."
+fi
 
 export MAKE_TARGETS='python.wasm wasm_stdlib'
 

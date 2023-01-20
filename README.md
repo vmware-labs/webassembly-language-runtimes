@@ -138,9 +138,9 @@ git add php/php-7.3.33
 git commit -m "Add support to build php version 7.3.33"
 ```
 
-## Performing a release
+## Releasing
 
-In order to perform a release, you first have to tag the project you want to release. You can create a tag by using the `scripts/wl-tag.sh` script.
+In order to release a new version, you first have to tag the project you want to release. You can create a tag by using the `scripts/wl-tag.sh` script.
 
 This script accepts the path to be released, and will create a local tag of the form `<project>/<version>+YYYYMMDD-<short-sha>`. All parameters will be automatically filled by the script, so in order to create a valid tag for PHP 7.3.33, for example, you only have to execute:
 

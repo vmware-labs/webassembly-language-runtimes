@@ -23,18 +23,22 @@ export CFLAGS="${CFS} ${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_SQLITE} ${CFLAGS_
 
 cd "${WASMLABS_CHECKOUT_PATH}"
 
-logStatus "Generating configure script... "
-./buildconf --force || exit 1
+if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+    logStatus "Generating configure script... "
+    ./buildconf --force
 
-export PHP_CONFIGURE='--without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite'
+    export PHP_CONFIGURE='--without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite'
 
-if [[ -v WASMLABS_RUNTIME ]]
-then
-    export PHP_CONFIGURE=" --with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
+    if [[ -v WASMLABS_RUNTIME ]]
+    then
+        export PHP_CONFIGURE=" --with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
+    fi
+
+    logStatus "Configuring build with '${PHP_CONFIGURE}'... "
+    ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
+else
+    logStatus "Skipping configure..."
 fi
-
-logStatus "Configuring build with '${PHP_CONFIGURE}'... "
-./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
 
 export MAKE_TARGETS='cgi'
 if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
