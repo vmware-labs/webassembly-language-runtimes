@@ -1,5 +1,5 @@
 ARG WASM_BASE
-FROM ghcr.io/vmware-labs/wasm-base:${WASM_BASE}
+FROM wasm-base:${WASM_BASE}
 ARG WASI_SDK_VERSION
 ENV WASI_SDK=wasi-sdk-${WASI_SDK_VERSION}
 ENV WASI_SDK_ROOT=/wasi-sdk

@@ -1,5 +1,5 @@
 ARG WASI_SDK_VERSION
-FROM ghcr.io/vmware-labs/wasi-builder:${WASI_SDK_VERSION}
+FROM wasi-builder:${WASI_SDK_VERSION}
 
 # If more capabilities are required from the build-erpython, consult this
 # github workflow configuration for a list of possible dependencies -
