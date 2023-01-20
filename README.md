@@ -13,10 +13,10 @@ All you need in order to run these builds is to have `docker` or `podman` availa
     - Resulting binaries are placed in `php/build-output/php`.
 
 - `python/v3.11.1`
-    - Resulting binaries are placed in `php/build-output/python`.
+    - Resulting binaries are placed in `python/build-output/python`.
 
 - `ruby/v3_2_0`
-    - Resulting binaries are placed in `php/build-output/ruby`.
+    - Resulting binaries are placed in `ruby/build-output/ruby`.
 
 ### Build strategy
 
