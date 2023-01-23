@@ -22,13 +22,17 @@ export LDFLAGS="${LDFLAGS_WASI}"
 
 cd "${WASMLABS_CHECKOUT_PATH}"
 
-logStatus "Generating configure script... "
-./buildconf --force
+if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+    logStatus "Generating configure script... "
+    ./buildconf --force
 
-export PHP_CONFIGURE=' --disable-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite'
+    export PHP_CONFIGURE=' --disable-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite'
 
-logStatus "Configuring build with '${PHP_CONFIGURE}'... "
-./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
+    logStatus "Configuring build with '${PHP_CONFIGURE}'... "
+    ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
+else
+    logStatus "Skipping configure..."
+fi
 
 logStatus "Building php-cgi... "
 # By exporting WASMLABS_SKIP_WASM_OPT envvar during the build, the

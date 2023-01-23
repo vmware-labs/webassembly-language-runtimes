@@ -7,12 +7,12 @@ include ../Makefile.builders
 
 .PHONY: python-builder
 python-builder: wasi-builder-$(WASI_SDK_VERSION)
-	docker build --platform linux/amd64 -f ${ROOT_DIR}/Dockerfile --build-arg WASI_SDK_VERSION=$(WASI_SDK_VERSION) -t python-builder:wasi-$(WASI_SDK_VERSION) ${ROOT_DIR}
+	docker build --platform linux/amd64 -f ${ROOT_DIR}/Dockerfile --build-arg WASI_SDK_VERSION=$(WASI_SDK_VERSION) -t ghcr.io/vmware-labs/wasmlabs/python-builder:wasi-$(WASI_SDK_VERSION) ${ROOT_DIR}
 
 .PHONY: v*
 v*: python-builder
 	mkdir -p build-output build-staging
-	docker run --platform linux/amd64 --rm -e WASMLABS_RUNTIME -v ${ROOT_DIR}/build-output:/wlr/build-output -v ${ROOT_DIR}/build-staging:/wlr/build-staging python-builder:wasi-${WASI_SDK_VERSION} ./wl-make.sh python/$@
+	docker run --platform linux/amd64 --rm -e WASMLABS_RUNTIME -v ${ROOT_DIR}/build-output:/wlr/build-output -v ${ROOT_DIR}/build-staging:/wlr/build-staging ghcr.io/vmware-labs/wasmlabs/python-builder:wasi-${WASI_SDK_VERSION} ./wl-make.sh python/$@
 
 .PHONY: clean
 clean:

@@ -16,8 +16,6 @@ export CFLAGS_SQLITE='-DSQLITE_OMIT_WAL=1 -DSQLITE_DEFAULT_SYNCHRONOUS=0 -DSQLIT
 
 logStatus "Using SQLITE DEFINES: ${CFLAGS_SQLITE}"
 
-export SQLITE_CONFIGURE=' --disable-threadsafe --enable-tempstore=yes'
-
 export CFLAGS_BUILD='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI'
 
 # We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
@@ -26,8 +24,13 @@ export LDFLAGS="${LDFLAGS_WASI}"
 
 cd "${WASMLABS_CHECKOUT_PATH}"
 
-logStatus "Configuring build with '${SQLITE_CONFIGURE}'... "
-./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE} || exit 1
+if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+    export SQLITE_CONFIGURE=' --disable-threadsafe --enable-tempstore=yes'
+    logStatus "Configuring build with '${SQLITE_CONFIGURE}'... "
+    ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE} || exit 1
+else
+    logStatus "Skipping configure..."
+fi
 
 logStatus "Building... "
 make libsqlite3.la || exit 1

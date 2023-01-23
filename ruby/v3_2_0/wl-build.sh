@@ -10,27 +10,28 @@ cd "${WASMLABS_CHECKOUT_PATH}"
 
 mkdir -p build
 
-logStatus "Downloading autotools data... "
+if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+    logStatus "Downloading autotools data... "
+    ruby tool/downloader.rb -d tool -e gnu config.guess config.sub
 
-ruby tool/downloader.rb -d tool -e gnu config.guess config.sub
+    logStatus "Generating configure script... "
+    ./autogen.sh
 
-logStatus "Generating configure script... "
-
-./autogen.sh
-
-logStatus "Configuring ruby..."
-
-./configure \
-    --host wasm32-unknown-wasi \
-    --with-ext=ripper,monitor \
-    --with-static-linked-ext \
-    LDFLAGS=" \
+    logStatus "Configuring ruby..."
+    ./configure \
+        --host wasm32-unknown-wasi \
+        --with-ext=ripper,monitor \
+        --with-static-linked-ext \
+        LDFLAGS=" \
       -Xlinker --stack-first \
       -Xlinker -z -Xlinker stack-size=16777216 \
     " \
-    optflags="-O2" \
-    debugflags="" \
-    wasmoptflags="-O2"
+        optflags="-O2" \
+        debugflags="" \
+        wasmoptflags="-O2"
+else
+    logStatus "Skipping configure..."
+fi
 
 logStatus "Building ruby..."
 make ruby
