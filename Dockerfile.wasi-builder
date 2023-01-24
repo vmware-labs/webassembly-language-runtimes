@@ -9,6 +9,7 @@ RUN apt update && \
         autoconf \
         automake \
         build-essential \
+        cmake \
         clang \
         git \
         pkg-config

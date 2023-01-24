@@ -6,7 +6,7 @@ then
     exit 1
 fi
 
-cd "${WASMLABS_CHECKOUT_PATH}"
+cd "${WASMLABS_SOURCE_PATH}"
 
 mkdir -p build
 

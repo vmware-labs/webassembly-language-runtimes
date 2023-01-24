@@ -6,15 +6,15 @@ then
     exit 1
 fi
 
-cd "${WASMLABS_CHECKOUT_PATH}"
+cd "${WASMLABS_SOURCE_PATH}"
 
 # The PREFIX for builder-python MUST be outside of the current build as we need
 # a distclean before building for WASI. The distclean will recursively remove
 # all .so files in the current folder, so if builder-python is installed here
 # it will be botched.
-export BUILDER_PYTHON_PREFIX="${WASMLABS_CHECKOUT_PATH}/../builder-python"
+export BUILDER_PYTHON_PREFIX="$(realpath ${WASMLABS_SOURCE_PATH}/../builder-python)"
 
-if builder-python/bin/python3.11 -c "import sys; import zipfiles; exit( 0 if sys.path[1].startswith(sys.argv[1]) else 1)" "${BUILDER_PYTHON_PREFIX}"
+if ${BUILDER_PYTHON_PREFIX}/bin/python3.11 -c "import sys; import zipfile"
 then
     logStatus "Using pre-built builder python (on host) from ${BUILDER_PYTHON_PREFIX}... "
 else

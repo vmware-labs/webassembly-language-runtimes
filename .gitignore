@@ -5,3 +5,4 @@ build-staging
 *.log
 # Except this file
 !.gitignore
+.wl-local-conf.sh

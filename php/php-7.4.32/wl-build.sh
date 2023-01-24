@@ -21,7 +21,7 @@ export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI'
 export LDFLAGS="${LDFS} ${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_SQLITE} ${LDFLAGS}"
 export CFLAGS="${CFS} ${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_SQLITE} ${CFLAGS_DEPENDENCIES} ${CFLAGS_PHP} ${LDFLAGS} ${CFLAGS}"
 
-cd "${WASMLABS_CHECKOUT_PATH}"
+cd "${WASMLABS_SOURCE_PATH}"
 
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     logStatus "Generating configure script... "
@@ -31,6 +31,10 @@ if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
 
     if [[ -v WASMLABS_RUNTIME ]]
     then
+        if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
+        then
+            export LDFLAGS="-lwasmedge_sock ${LDFLAGS}"
+        fi
         export PHP_CONFIGURE=" --with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
     fi
 

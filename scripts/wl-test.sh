@@ -29,7 +29,7 @@ then
     echo "No wasm runtime in PATH."
 fi
 
-export WASMLABS_TEST_RUNTIME_WRAPPER=${WASMLABS_REPO_ROOT}/scripts/runtimes/${WASMLABS_TEST_RUNTIME}.sh
+export WASMLABS_TEST_RUNTIME_WRAPPER=${WASMLABS_REPO_ROOT}/scripts/wrappers/${WASMLABS_TEST_RUNTIME}.sh
 
 if ! [ -x ${WASMLABS_TEST_RUNTIME_WRAPPER} ]
 then

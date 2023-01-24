@@ -6,7 +6,7 @@ then
     exit 1
 fi
 
-cd "${WASMLABS_CHECKOUT_PATH}"
+cd "${WASMLABS_SOURCE_PATH}"
 
 logStatus "Downloading files from singlestore-labs/python-wasi... "
 git clone --depth 1 --branch main --no-checkout https://github.com/singlestore-labs/python-wasi

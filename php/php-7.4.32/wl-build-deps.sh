@@ -18,3 +18,10 @@ $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}/libs/sqlite/version-3.39.2 || exit 1
 
 export CFLAGS_DEPENDENCIES="-I${WASMLABS_OUTPUT_BASE}/sqlite/version-3.39.2/include ${CFLAGS_DEPENDENCIES}"
 export LDFLAGS_DEPENDENCIES="-L${WASMLABS_OUTPUT_BASE}/sqlite/version-3.39.2/lib ${LDFLAGS_DEPENDENCIES}"
+
+
+### wasmedge_sock
+$WASMLABS_MAKE ${WASMLABS_REPO_ROOT}/libs-internal/wasmedge_sock || exit 1
+
+export CFLAGS_DEPENDENCIES="-I${WASMLABS_OUTPUT_BASE}/libs-internal/wasmedge_sock/include ${CFLAGS_DEPENDENCIES}"
+export LDFLAGS_DEPENDENCIES="-L${WASMLABS_OUTPUT_BASE}/libs-internal/wasmedge_sock/lib ${LDFLAGS_DEPENDENCIES}"
