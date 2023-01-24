@@ -24,7 +24,7 @@ export CFLAGS_BUILD=''
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_SQLITE} ${CFLAGS_BUILD} ${LDFLAGS_WASI}"
 export LDFLAGS="${LDFLAGS_WASI}"
 
-cd "${WASMLABS_CHECKOUT_PATH}"
+cd "${WASMLABS_SOURCE_PATH}"
 
 logStatus "Configuring build with '${SQLITE_CONFIGURE}'... "
 ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE} || exit 1

@@ -25,7 +25,7 @@ then
     exit 1
 fi
 
-cd "${WASMLABS_CHECKOUT_PATH}"
+cd "${WASMLABS_SOURCE_PATH}"
 echo "Calling 'WASMLABS_TESTED_MODULE=${WASMLABS_TESTED_MODULE} php -f run-tests.php -- -p ${WASMLABS_TEST_RUNTIME_WRAPPER} -j6' to run tests..."
 php -f run-tests.php -- -p ${WASMLABS_TEST_RUNTIME_WRAPPER} -j6 \
     tests/lang \

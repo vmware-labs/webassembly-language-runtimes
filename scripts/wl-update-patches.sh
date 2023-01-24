@@ -6,6 +6,6 @@ then
     exit 1
 fi
 
-cd ${WASMLABS_CHECKOUT_PATH} || exit 1
+cd ${WASMLABS_SOURCE_PATH} || exit 1
 mv -f ${WASMLABS_ENV}/patches/* /tmp/
 git format-patch -X ${WASMLABS_TAG} -o ${WASMLABS_ENV}/patches || exit 1
