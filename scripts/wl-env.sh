@@ -84,3 +84,8 @@ mkdir -p ${WASMLABS_OUTPUT}/include
 mkdir -p ${WASMLABS_OUTPUT}/lib
 
 export WASMLABS_ENV=${PATH_TO_ENV}
+
+if [[ -f ${WASMLABS_REPO_ROOT}/.wl-local-conf.sh ]]
+then
+    source ${WASMLABS_REPO_ROOT}/.wl-local-conf.sh
+fi
