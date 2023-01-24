@@ -52,7 +52,7 @@ export RANLIB=${WASI_SDK_ROOT}/bin/llvm-ranlib
 if ! builtin type -P wasm-opt
 then
     logStatus "Using wasm-opt wrapper from ${WASMLABS_REPO_ROOT}/scripts/wrappers"
-    export PATH="$PATH:${WASMLABS_REPO_ROOT}/scripts/wrappers"
+    export PATH="${WASMLABS_REPO_ROOT}/scripts/wrappers:$PATH"
 fi
 
 if [[ -f ${WASMLABS_ENV}/wl-build-deps.sh ]]

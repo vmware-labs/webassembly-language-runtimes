@@ -31,7 +31,10 @@ if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
 
     if [[ -v WASMLABS_RUNTIME ]]
     then
-        export LDFLAGS="-lwasmedge_sock ${LDFLAGS}"
+        if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
+        then
+            export LDFLAGS="-lwasmedge_sock ${LDFLAGS}"
+        fi
         export PHP_CONFIGURE=" --with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
     fi
 
