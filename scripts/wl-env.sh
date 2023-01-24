@@ -94,7 +94,7 @@ mkdir -p ${WASMLABS_OUTPUT}/lib
 
 export WASMLABS_ENV=${PATH_TO_ENV}
 
-if [[ -f ${WASMLABS_REPO_ROOT}/.wl-local-conf.sh ]]
+if [[ -f ${WASMLABS_REPO_ROOT}/.wl-local-conf.sh AND ! -v WASI_SDK_ROOT AND ! -v BINARYEN_PATH ]]
 then
     source ${WASMLABS_REPO_ROOT}/.wl-local-conf.sh
 fi
