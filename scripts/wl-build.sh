@@ -12,6 +12,12 @@ then
     exit 1
 fi
 
+if [[ ! -v BINARYEN_PATH ]]
+then
+    echo "Please set BINARYEN_PATH and run again"
+    exit 1
+fi
+
 function onExit {
     echo "=============================================================="
     echo "Build progress logs:"
@@ -35,6 +41,12 @@ export CXX=${WASI_SDK_ROOT}/bin/clang++
 export NM=${WASI_SDK_ROOT}/bin/llvm-nm
 export AR=${WASI_SDK_ROOT}/bin/llvm-ar
 export RANLIB=${WASI_SDK_ROOT}/bin/llvm-ranlib
+
+if ! builtin type -P wasm-opt
+then
+    logStatus "Using wasm-opt wrapper from ${WASMLABS_REPO_ROOT}/scripts/wrappers"
+    export PATH="$PATH:${WASMLABS_REPO_ROOT}/scripts/wrappers"
+fi
 
 if [[ -f ${WASMLABS_ENV}/wl-build-deps.sh ]]
 then
