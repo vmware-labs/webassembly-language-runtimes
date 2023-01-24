@@ -14,7 +14,7 @@ cd "${WASMLABS_SOURCE_PATH}"
 # it will be botched.
 export BUILDER_PYTHON_PREFIX="$(realpath ${WASMLABS_SOURCE_PATH}/../builder-python)"
 
-if builder-python/bin/python3.11 -c "import sys; import zipfiles; exit( 0 if sys.path[1].startswith(sys.argv[1]) else 1)" "${BUILDER_PYTHON_PREFIX}"
+if ${BUILDER_PYTHON_PREFIX}/bin/python3.11 -c "import sys; import zipfile"
 then
     logStatus "Using pre-built builder python (on host) from ${BUILDER_PYTHON_PREFIX}... "
 else
