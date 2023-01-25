@@ -13,7 +13,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - version: 3.11.1
+          - name: wasmedge-python
+            suffix: -wasmedge
+            version: 3.11.1
+          - name: python
+            suffix: ""
+            version: 3.11.1
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -23,12 +28,12 @@ jobs:
       - name: Rename artifacts
         shell: bash
         run: |
-          sudo mv python/build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}.wasm
+          sudo mv python/build-output/python/v${{ matrix.version }}/bin/python{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
       - name: Upload python-aio-${{ matrix.version }}.zip artifact
         uses: actions/upload-artifact@v3
         with:
           name: python-aio-${{ matrix.version }}.zip
           path: |
-            python/build-output/python/v${{ matrix.version }}/bin/python-${{ matrix.version }}.wasm
+            python/build-output/python/v${{ matrix.version }}/bin/python-${{ matrix.version }}${{ matrix.suffix }}.wasm
             python/build-output/python/v${{ matrix.version }}/usr
           if-no-files-found: error
