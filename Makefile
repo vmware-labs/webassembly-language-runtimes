@@ -20,6 +20,13 @@ ruby/v*:
 python/v*:
 	make -C python $(subst python/,,$@)
 
+.PHONY: python/wasmedge-v3.11.1
+python/wasmedge-v3.11.1:
+	WASMLABS_RUNTIME=wasmedge make -C python $(subst python/wasmedge-,,$@)
+
 .PHONY: clean
 clean:
 	make -C php clean
+	make -C ruby clean
+	make -C python clean
+

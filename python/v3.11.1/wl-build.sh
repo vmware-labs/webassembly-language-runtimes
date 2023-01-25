@@ -33,9 +33,13 @@ export LDFLAGS="${LDFLAGS_DEPENDENCIES} ${LDFLAGS}"
 
 export PYTHON_WASM_CONFIGURE="--with-build-python=${BUILDER_PYTHON_PREFIX}/bin/python3.11"
 
-if [[ -v WASMLABS_RUNTIME ]]
+if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
 then
-    export PYTHON_WASM_CONFIGURE=" --with-wasm-runtime=${WASMLABS_RUNTIME} ${PYTHON_WASM_CONFIGURE}"
+    if [[ ! -v WABT_ROOT ]]
+    then
+        echo "WABT_ROOT is needed to patch imports for wasmedge"
+        exit 1
+    fi
 fi
 
 # By exporting WASMLABS_SKIP_WASM_OPT envvar during the build, the
@@ -61,14 +65,22 @@ make -j ${MAKE_TARGETS} || exit 1
 
 unset WASMLABS_SKIP_WASM_OPT
 
+logStatus "Optimizing python binary..."
+wasm-opt -O2 -o python-optimized.wasm python.wasm || exit 1
+
+if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
+then
+    logStatus "Patching python binary for wasmedge..."
+    ${WASMLABS_REPO_ROOT}/scripts/build-helpers/patch_wasmedge_wat_sock_accept.sh python-optimized.wasm || exit 1
+fi
+
 logStatus "Preparing artifacts... "
+TARGET_PYTHON_BINARY=${WASMLABS_OUTPUT}/bin/python${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}.wasm
+
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 mkdir -p ${WASMLABS_OUTPUT}/usr/local/lib 2>/dev/null || exit 1
 
-logStatus "Optimizing python binary..."
-wasm-opt -O2 -o ${WASMLABS_OUTPUT}/bin/python${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}.wasm python.wasm || exit 1
-
-logStatus "Copying standard libs..."
+cp python-optimized.wasm ${TARGET_PYTHON_BINARY} || exit 1
 cp usr/local/lib/python311.zip ${WASMLABS_OUTPUT}/usr/local/lib/ || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
