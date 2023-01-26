@@ -19,23 +19,23 @@ jobs:
         # make the PHP CLI conditionally compile local server code out
         # on all versions.
         include:
-          - name: wasmedge-php
+          - name: wasmedge-php-
             suffix: -wasmedge
             build-php-cli: true
             version: 7.4.32
-          - name: php
+          - name: php-
             suffix: ""
             build-php-cli: false
             version: 7.3.33
-          - name: php
+          - name: php-
             suffix: ""
             build-php-cli: false
             version: 7.4.32
-          - name: php
+          - name: php-
             suffix: ""
             build-php-cli: false
             version: 8.1.11
-          - name: php
+          - name: php-
             suffix: ""
             build-php-cli: false
             version: 8.2.0
@@ -54,7 +54,7 @@ jobs:
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
-        run: make php/${{ matrix.name }}-${{ matrix.version }}
+        run: make php/${{ matrix.name }}${{ matrix.version }}
       - name: Rename release artifacts
         # Only run for the PHP version specified in the git tag.
         #
