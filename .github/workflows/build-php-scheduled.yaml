@@ -1,12 +1,7 @@
-name: Build PHP
+name: Build PHP (scheduled)
 on:
-  push:
-    # By specifying branches explicitly, we avoid this workflow from
-    # running on tag push. We have a dedicated workflow to be ran when
-    # a tag is pushed.
-    branches:
-      - "*"
-  pull_request:
+  schedule:
+  - cron: "0 0 * * *"
 jobs:
   build-php:
     strategy:
@@ -18,26 +13,10 @@ jobs:
         # make the PHP CLI conditionally compile local server code out
         # on all versions.
         include:
-          - name: wasmedge-php-
-            suffix: -wasmedge
-            build-php-cli: true
-            version: 7.4.32
-          - name: php-
+          - name: ""
             suffix: ""
             build-php-cli: false
-            version: 7.3.33
-          - name: php-
-            suffix: ""
-            build-php-cli: false
-            version: 7.4.32
-          - name: php-
-            suffix: ""
-            build-php-cli: false
-            version: 8.1.11
-          - name: php-
-            suffix: ""
-            build-php-cli: false
-            version: 8.2.0
+            version: master
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
