@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
-if [[ "z$1" == "z" ]]
+# This script patches a wasm binary passed as first argument.
+# It changes the signature of the imported sock_accept method from WASI
+# to the signature defined by WasmEdge
+#
+# Note: the script assumes that it is working on an optimized binary
+# with stripped function names. The used regexes won't work otherwise.
+
+if [[ ! -f "$1" ]]
 then
-    echo "Pass target file as argument"
+    echo "Pass target file as argument. Could not find a file at '$1'"
     exit 1
 fi
 

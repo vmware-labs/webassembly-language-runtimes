@@ -1,9 +1,11 @@
 ARG WASM_BASE
 FROM ghcr.io/vmware-labs/wasmlabs/wasm-base:${WASM_BASE}
 ARG WASI_SDK_VERSION
+ARG WABT_VERSION=1.0.32
 ENV WASI_SDK=wasi-sdk-${WASI_SDK_VERSION}
 ENV WASI_SDK_ROOT=/wasi-sdk
 ENV WASI_SDK_PATH=${WASI_SDK_ROOT}
+ENV WABT=wabt-${WABT_VERSION}
 ENV WABT_ROOT=/wabt
 RUN apt update && \
       DEBIAN_FRONTEND=noninteractive apt install -y \
@@ -18,9 +20,9 @@ RUN wget https://github.com/WebAssembly/wasi-sdk/releases/download/${WASI_SDK}/$
       mkdir ${WASI_SDK_ROOT} && \
       tar xf ${WASI_SDK}.0-linux.tar.gz --strip-components=1 -C ${WASI_SDK_ROOT} && \
       rm ${WASI_SDK}.0-linux.tar.gz
-RUN wget https://github.com/WebAssembly/wabt/releases/download/1.0.32/wabt-1.0.32-ubuntu.tar.gz && \
+RUN wget https://github.com/WebAssembly/wabt/releases/download/${WABT_VERSION}/${WABT}-ubuntu.tar.gz && \
       mkdir ${WABT_ROOT} && \
-      tar xf wabt-1.0.32-ubuntu.tar.gz --strip-components=1 -C ${WABT_ROOT} && \
-      rm wabt-1.0.32-ubuntu.tar.gz
+      tar xf ${WABT}-ubuntu.tar.gz --strip-components=1 -C ${WABT_ROOT} && \
+      rm ${WABT}-ubuntu.tar.gz
 ADD . /wlr
 WORKDIR /wlr
