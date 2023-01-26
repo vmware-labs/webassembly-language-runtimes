@@ -6,6 +6,8 @@ You can build PHP by running the following Makefile targets:
 
 - `make php-7.3.33`
 - `make php-7.4.32`
+- `make php-8.1.11`
+- `make php-8.2.0`
 
 ## Running a script with php-cgi
 

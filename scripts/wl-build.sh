@@ -29,10 +29,10 @@ function onExit {
 }
 trap onExit EXIT
 
-echo "$(date --iso-8601=ns) | Using WASI_SDK_ROOT=$WASI_SDK_ROOT " >  $WASMLABS_OUTPUT/wasmlabs-progress.log
+echo "$(date --iso-8601=ns) | Using WASI_SDK_ROOT=$WASI_SDK_ROOT " | tee -a $WASMLABS_OUTPUT/wasmlabs-progress.log
 
 function logStatus {
-    echo "$(date --iso-8601=ns) | $@" >>  $WASMLABS_OUTPUT/wasmlabs-progress.log
+    echo "$(date --iso-8601=ns) | $@" | tee -a $WASMLABS_OUTPUT/wasmlabs-progress.log
 }
 
 export -f logStatus
