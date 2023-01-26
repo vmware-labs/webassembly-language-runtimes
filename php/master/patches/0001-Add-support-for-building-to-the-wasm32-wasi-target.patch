@@ -1,4 +1,4 @@
-From 37f3d49ba8a6f9726d4f7dbc790a20746af85809 Mon Sep 17 00:00:00 2001
+From 60d61decd6cc7514ad398f0ba1200bc15a0517ea Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Rafael=20Fern=C3=A1ndez=20L=C3=B3pez?=
  <rfernandezl@vmware.com>
 Date: Wed, 25 Jan 2023 14:38:28 +0100
@@ -7,17 +7,33 @@ Subject: [PATCH] Add support for building to the wasm32-wasi target
 This change performs initial adaptations allowing the PHP interpreter
 to be compiled for the wasm32-wasi target.
 
-There are certain standard library calls that had to be restricted to
-do no-ops given there is no system counterpart that allows these
-operations in a WASI system.
+Challenges found:
 
-Specifically, many operations targeting the filesystem, process
-operations, signal handling and network operations are no-oped at this
-time.
+- `setjmp`/`longjmp` not available in this platform: got a
+contribution to emulate it in order to run shutdown
+functions. Currently working on implementing fibers by emulating
+setjmp/longjmp.
 
-By targeting a WebAssembly+WASI environment, we are able to run the
-PHP interpreter in a sandbox isolated from the underlying Operating
-System.
+- Processes: WebAssembly has no concept of processes, so many
+process-related operations had to be emulated, or are no-ops. `getpid`
+and clocks are emulated. Signal handling has a minimal
+emulation. `uid, `gid`, and related concepts that do not map well to a
+WebAssembly sandbox are also removed.
+  - `mmap` implementation is a minimal emulation that allows to
+  allocate empty memory or map file contents to it.
+
+- Filesystem: many filesystem operations cannot be mapped to WASI, and
+so these operations are no-ops.
+  - `S_IFSOCK` matches `S_IFIFO` in current `wasi-libc`; removed the
+  `S_IFIFO` case, because `clang` will fail building due to a
+  duplicated constant in `switch` statements.
+  - File locks are also stubbed and always return success.
+
+- Networking: given the WebAssembly sandbox and capability-based
+security, it is not possible to open a socket as of today. Although
+the host is able to open a socket and forward a file descriptor,
+leaving the accept() syscall to the WebAssembly module, we have
+no-oped networking syscalls at this time.
 
 Co-Authored-By: Asen Alexandrov <alexandrov@vmware.com>
 ---
@@ -26,19 +42,19 @@ Co-Authored-By: Asen Alexandrov <alexandrov@vmware.com>
  Zend/zend_alloc.c                      | 18 +++++-
  Zend/zend_fibers.c                     | 22 +++++--
  Zend/zend_globals.h                    |  4 ++
- Zend/zend_types.h                      | 10 +++
+ Zend/zend_types.h                      | 10 ++++
  Zend/zend_virtual_cwd.c                | 11 +++-
  configure.ac                           | 15 +++--
  ext/fileinfo/libmagic/fsmagic.c        |  2 +
  ext/pdo_sqlite/sqlite_statement.c      |  2 +
- ext/posix/posix.c                      | 84 +++++++++++++++++++++++++-
+ ext/posix/posix.c                      | 82 +++++++++++++++++++++++++-
  ext/session/mod_files.c                |  2 +
  ext/standard/basic_functions.c         |  6 ++
  ext/standard/basic_functions_arginfo.h |  2 +
  ext/standard/dns.c                     | 14 +++++
  ext/standard/exec.c                    | 12 +++-
  ext/standard/file.c                    | 12 +++-
- ext/standard/filestat.c                | 20 ++++++
+ ext/standard/filestat.c                | 20 +++++++
  ext/standard/flock_compat.c            |  7 ++-
  ext/standard/ftp_fopen_wrapper.c       |  4 +-
  ext/standard/http_fopen_wrapper.c      |  4 +-
@@ -46,11 +62,11 @@ Co-Authored-By: Asen Alexandrov <alexandrov@vmware.com>
  ext/standard/microtime.c               |  2 +
  ext/standard/net.c                     |  6 +-
  ext/standard/pageinfo.c                | 14 +++++
- ext/standard/php_fopen_wrapper.c       | 20 +++++-
+ ext/standard/php_fopen_wrapper.c       | 20 ++++++-
  main/fastcgi.c                         | 12 ++++
  main/fopen_wrappers.c                  |  2 +
  main/main.c                            |  4 ++
- main/network.c                         | 53 +++++++++++++++-
+ main/network.c                         | 53 ++++++++++++++++-
  main/php_open_temporary_file.c         |  6 +-
  main/php_syslog.c                      |  2 +
  main/streams/plain_wrapper.c           | 28 ++++++++-
@@ -58,7 +74,7 @@ Co-Authored-By: Asen Alexandrov <alexandrov@vmware.com>
  sapi/cgi/cgi_main.c                    | 26 ++++++++
  sapi/fpm/fpm/fpm_unix.c                |  2 +
  sapi/litespeed/lsapilib.c              |  2 +
- 37 files changed, 459 insertions(+), 30 deletions(-)
+ 37 files changed, 458 insertions(+), 29 deletions(-)
 
 diff --git a/Zend/zend.c b/Zend/zend.c
 index 0eec5f8901..eac99afc53 100644
@@ -194,7 +210,7 @@ index 5f11f49b07..43b8d2ec05 100644
  	REAL_PAGE_SIZE = sysconf(_SC_PAGESIZE);
  #  elif defined(_SC_PAGE_SIZE)
 diff --git a/Zend/zend_fibers.c b/Zend/zend_fibers.c
-index a6168f17fd..5943977294 100644
+index a6168f17fd..19eac6da28 100644
 --- a/Zend/zend_fibers.c
 +++ b/Zend/zend_fibers.c
 @@ -39,7 +39,7 @@
@@ -240,7 +256,7 @@ index a6168f17fd..5943977294 100644
  		return NULL;
  	}
  # endif
-+#elif defined(__wasi__)
++#elif defined __wasi__
 +	pointer = malloc(alloc_size);
  #else
  	pointer = mmap(NULL, alloc_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
@@ -249,7 +265,7 @@ index a6168f17fd..5943977294 100644
  
  #ifdef ZEND_WIN32
  	VirtualFree(pointer, 0, MEM_RELEASE);
-+#elif defined(__wasi__)
++#elif defined __wasi__
 +	free(pointer);
  #else
  	munmap(pointer, stack->size + ZEND_FIBER_GUARD_PAGES * page_size);
@@ -443,7 +459,7 @@ index 90de059a3b..f426315e74 100644
  	}
  	efree(S);
 diff --git a/ext/posix/posix.c b/ext/posix/posix.c
-index 505493ec2f..9e7d809901 100644
+index 505493ec2f..e917ac61a9 100644
 --- a/ext/posix/posix.c
 +++ b/ext/posix/posix.c
 @@ -37,8 +37,10 @@
@@ -635,12 +651,9 @@ index 505493ec2f..9e7d809901 100644
  #if defined(ZTS) && defined(HAVE_TTYNAME_R) && defined(_SC_TTY_NAME_MAX)
  	buflen = sysconf(_SC_TTY_NAME_MAX);
  	if (buflen < 1) {
-@@ -488,8 +542,10 @@ PHP_FUNCTION(posix_ttyname)
- 		POSIX_G(last_error) = errno;
- 		RETURN_FALSE;
+@@ -490,6 +544,8 @@ PHP_FUNCTION(posix_ttyname)
  	}
--	RETURN_STRING(p);
-+  RETURN_STRING(p);
+ 	RETURN_STRING(p);
  #endif
 +#endif // __wasi__
 +	RETURN_STRING("");
