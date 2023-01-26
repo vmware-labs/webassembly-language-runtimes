@@ -13,10 +13,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: wasmedge-python
+          - prefix: wasmedge-
             suffix: -wasmedge
             version: 3.11.1
-          - name: python
+          - prefix: ""
             suffix: ""
             version: 3.11.1
     runs-on: ubuntu-latest
@@ -24,7 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build Python
-        run: make python/v${{ matrix.version }}
+        run: make python/${{ matrix.prefix }}v${{ matrix.version }}
       - name: Rename artifacts
         shell: bash
         run: |
