@@ -31,6 +31,13 @@ jobs:
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
         run: make python/v${{ matrix.version }}
+      - name: Build Python Wasmedge
+        # Only run for the Python version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
+        run: make python/wasmedge-v${{ matrix.version }}
       - name: Rename release artifacts
         # Only run for the Python version specified in the git tag.
         #
