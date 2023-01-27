@@ -24,6 +24,7 @@ python/v*:
 python/wasmedge-v3.11.1:
 	WASMLABS_RUNTIME=wasmedge make -C python $(subst python/wasmedge-,,$@)
 
+.PHONY: oci-python-3.11.1
 oci-python-3.11.1: python/wasmedge-v3.11.1
 	docker build \
 	--build-arg BUILD_OUTPUT_BASE=python/build-output \
