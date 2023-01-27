@@ -38,7 +38,7 @@ fi
 
 logStatus "Preparing artifacts... "
 mkdir -p ${WASMLABS_OUTPUT}/include/unicode
-cp common/unicode/ucnv.h ${WASMLABS_OUTPUT}/include/unicode || exit 1
+cp -v common/unicode/*.h ${WASMLABS_OUTPUT}/include/unicode || exit 1
 # cp lib/libicudata.a ${WASMLABS_OUTPUT}/lib/ || exit 1
 # cp lib/libicui18n.a ${WASMLABS_OUTPUT}/lib/ || exit 1
 # cp lib/libicuio.a ${WASMLABS_OUTPUT}/lib/ || exit 1
