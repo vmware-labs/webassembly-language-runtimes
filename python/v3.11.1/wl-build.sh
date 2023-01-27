@@ -78,9 +78,9 @@ logStatus "Preparing artifacts... "
 TARGET_PYTHON_BINARY=${WASMLABS_OUTPUT}/bin/python${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}.wasm
 
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
-mkdir -p ${WASMLABS_OUTPUT}/usr/local/lib 2>/dev/null || exit 1
+mkdir -p ${WASMLABS_OUTPUT}/usr 2>/dev/null || exit 1
 
-cp python-optimized.wasm ${TARGET_PYTHON_BINARY} || exit 1
-cp usr/local/lib/python311.zip ${WASMLABS_OUTPUT}/usr/local/lib/ || exit 1
+cp -v python-optimized.wasm ${TARGET_PYTHON_BINARY} || exit 1
+cp -TRv usr ${WASMLABS_OUTPUT}/usr || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
