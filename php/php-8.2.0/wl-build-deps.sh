@@ -1,5 +1,7 @@
 #!/bin/bash
 
+logStatus "Building dependencies..."
+
 if [[ ! -v WASMLABS_ENV ]]
 then
     echo "Wasmlabs environment is not set"
@@ -10,8 +12,6 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
     echo "You must source this script to add to CFLAGS and LDFLAGS: \$ source $0" >&2
     return
 fi
-
-logStatus "Building dependencies... "
 
 ### icu
 $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}/libs/icu/release-72-1 || exit 1

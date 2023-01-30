@@ -1,5 +1,5 @@
 #!/bin/bash
-logStatus "Building libs 'php/php-8.2.0'"
+logStatus "Building libs 'php/php-8.2.0-slim'"
 
 if [[ ! -v WASMLABS_ENV ]]
 then
@@ -14,16 +14,12 @@ export CFLAGS_CONFIG="-O2"
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
 export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
 
-########## Setup the libsql related flags #############
-export CFLAGS_SQLITE='-DSQLITE_OMIT_LOAD_EXTENSION=1'
-export LDFLAGS_SQLITE='-lsqlite3'
-
 ########## Setup the flags for php #############
 export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI'
 
 # We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
 export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_SQLITE}"
-export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_SQLITE} ${CFLAGS_DEPENDENCIES} ${CFLAGS_PHP} ${LDFLAGS}"
+export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_DEPENDENCIES} ${CFLAGS_PHP} ${LDFLAGS}"
 
 logStatus "CFLAGS="${CFLAGS}
 logStatus "LDFLAGS="${LDFLAGS}
@@ -35,14 +31,14 @@ if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     logStatus "Generating configure script..."
     ./buildconf --force || exit 1
 
-    export PHP_CONFIGURE='--without-iconv --without-openssl --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --disable-fiber-asm'
+    export PHP_CONFIGURE='--disable-all --without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --without-sqlite3 --disable-pdo --without-pdo-sqlite --disable-fiber-asm'
 
     if [[ -v WASMLABS_RUNTIME ]]
     then
         export PHP_CONFIGURE="--with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
     fi
 
-    logStatus "Configuring build with '${PHP_CONFIGURE}'... "
+    logStatus "Configuring build with '${PHP_CONFIGURE}'..."
     ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
 else
     logStatus "Skipping configure..."
