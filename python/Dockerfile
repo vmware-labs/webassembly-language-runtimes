@@ -8,5 +8,3 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y \
       tcl \
       uuid-dev \
       zlib1g-dev
-
-ADD . /wlr/php
