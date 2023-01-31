@@ -70,7 +70,7 @@ wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WASMLABS_OUTPUT}
 
 if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
 then
-    logStatus "Running wasm-opt with the asyncify pass on php.."
+    logStatus "Running wasm-opt with the asyncify pass on php..."
     wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WASMLABS_OUTPUT}/bin/php${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}.wasm sapi/cli/php || exit 1
 fi
 
