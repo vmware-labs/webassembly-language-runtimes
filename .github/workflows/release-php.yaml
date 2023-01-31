@@ -39,6 +39,10 @@ jobs:
             suffix: ""
             build-php-cli: false
             version: 8.2.0
+          - name: php-
+            suffix: -slim
+            build-php-cli: false
+            version: 8.2.0
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
