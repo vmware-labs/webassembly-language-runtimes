@@ -28,21 +28,20 @@ cd "${WASMLABS_SOURCE_PATH}"/icu4c/source
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     export ICU_CONFIGURE='--enable-static --disable-shared'
     logStatus "Configuring build with '${ICU_CONFIGURE}'... "
+    # ICU headers are enough for some builds (e.g.: PHP).
+    # Uncomment for executing ./configure and generte the Makefile
     # ./runConfigureICU Linux --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${ICU_CONFIGURE} || exit 1
 else
     logStatus "Skipping configure..."
 fi
 
+# ICU headers are enough for some builds (e.g.: PHP).
+# Uncomment for executing make and get the static libraries (lib/libicuXXXX.a)
 # logStatus "Building... "
-# make || exit 1
+# make -j || exit 1
 
 logStatus "Preparing artifacts... "
 mkdir -p ${WASMLABS_OUTPUT}/include/unicode
 cp -v common/unicode/*.h ${WASMLABS_OUTPUT}/include/unicode || exit 1
-# cp lib/libicudata.a ${WASMLABS_OUTPUT}/lib/ || exit 1
-# cp lib/libicui18n.a ${WASMLABS_OUTPUT}/lib/ || exit 1
-# cp lib/libicuio.a ${WASMLABS_OUTPUT}/lib/ || exit 1
-# cp lib/libicutu.a ${WASMLABS_OUTPUT}/lib/ || exit 1
-# cp lib/libicucu.a ${WASMLABS_OUTPUT}/lib/ || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

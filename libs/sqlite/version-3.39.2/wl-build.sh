@@ -33,7 +33,7 @@ else
 fi
 
 logStatus "Building... "
-make libsqlite3.la || exit 1
+make -j libsqlite3.la || exit 1
 
 logStatus "Preparing artifacts... "
 cp sqlite3.h sqlite3ext.h sqlite3session.h ${WASMLABS_OUTPUT}/include/ || exit 1
