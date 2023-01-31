@@ -5,4 +5,3 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y \
       re2c \
       libsqlite3-dev \
       tcl
-ADD . /wlr/php

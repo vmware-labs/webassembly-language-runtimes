@@ -1,1 +1,7 @@
+build-output
+build-staging
+
+/libs
 /php
+/python
+/ruby

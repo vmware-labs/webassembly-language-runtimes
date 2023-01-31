@@ -4,4 +4,3 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y \
       ruby \
       bison \
       gperf
-ADD . /wlr/ruby
