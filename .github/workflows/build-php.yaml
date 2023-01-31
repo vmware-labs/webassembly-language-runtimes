@@ -18,8 +18,8 @@ jobs:
         # make the PHP CLI conditionally compile local server code out
         # on all versions.
         include:
-          - name: php-
-            suffix: -wasmedge
+          - name: wasmedge-php-
+            suffix: ""
             build-php-cli: true
             version: 7.4.32
           - name: php-
