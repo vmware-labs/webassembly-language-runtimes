@@ -18,7 +18,7 @@ jobs:
         # make the PHP CLI conditionally compile local server code out
         # on all versions.
         include:
-          - name: wasmedge-php-
+          - name: php-
             suffix: -wasmedge
             build-php-cli: true
             version: 7.4.32
@@ -47,7 +47,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build PHP
-        run: make php/${{ matrix.name }}${{ matrix.version }}
+        run: make php/${{ matrix.name }}${{ matrix.version }}${{ matrix.suffix }}
       - name: Rename artifacts
         shell: bash
         run: |

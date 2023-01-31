@@ -7,6 +7,7 @@ then
     return
 fi
 
-export WASMLABS_REPO=https://git.code.sf.net/p/libuuid/code
-export WASMLABS_REPO_NAME=uuid
+export WASMLABS_REPO=https://github.com/madler/zlib
+export WASMLABS_REPO_NAME=zlib
+export WASMLABS_REPO_BRANCH=v1.2.11
 
