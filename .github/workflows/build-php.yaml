@@ -19,27 +19,33 @@ jobs:
         # on all versions.
         include:
           - name: wasmedge-php-
-            suffix: ""
+            suffix: -wasmedge
+            flavor: ""
             build-php-cli: true
             version: 7.4.32
           - name: php-
             suffix: ""
+            flavor: ""
             build-php-cli: false
             version: 7.3.33
           - name: php-
             suffix: ""
+            flavor: ""
             build-php-cli: false
             version: 7.4.32
           - name: php-
             suffix: ""
+            flavor: ""
             build-php-cli: false
             version: 8.1.11
           - name: php-
             suffix: ""
+            flavor: ""
             build-php-cli: false
             version: 8.2.0
           - name: php-
-            suffix: -slim
+            suffix: ""
+            flavor: -slim
             build-php-cli: false
             version: 8.2.0 
     runs-on: ubuntu-latest
@@ -47,26 +53,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build PHP
-        run: make php/${{ matrix.name }}${{ matrix.version }}${{ matrix.suffix }}
+        run: make php/${{ matrix.name }}${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}
       - name: Rename `php-cgi.wasm` binary (adding version and flavor)
         shell: bash
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.suffix }}/bin/php-cgi{,-${{ matrix.version }}${{ matrix.suffix }}}.wasm
+          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.suffix }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
       - name: Rename `php.wasm` binary (CLI) (adding version and flavor)
         shell: bash
         if: ${{ matrix.build-php-cli }}
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.suffix }}/bin/php{,-${{ matrix.version }}${{ matrix.suffix }}}.wasm
-      - name: Upload php-${{ matrix.version }}${{ matrix.suffix }}.wasm artifact
+          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.suffix }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
+      - name: Upload php-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}.wasm artifact
         uses: actions/upload-artifact@v3
         if: ${{ matrix.build-php-cli }}
         with:
-          name: php-${{ matrix.version }}${{ matrix.suffix }}.wasm
-          path: php/build-output/php/php-${{ matrix.version }}${{ matrix.suffix }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.wasm
+          name: php-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}.wasm
+          path: php/build-output/php/php-${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}.wasm
           if-no-files-found: error
-      - name: Upload php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm artifact
+      - name: Upload php-cgi-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}.wasm artifact
         uses: actions/upload-artifact@v3
         with:
-          name: php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm
-          path: php/build-output/php/php-${{ matrix.version }}${{ matrix.suffix }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm
+          name: php-cgi-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}.wasm artifact
+          path: php/build-output/php/php-${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}.wasm
           if-no-files-found: error
