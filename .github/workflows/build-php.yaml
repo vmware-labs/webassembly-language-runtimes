@@ -57,12 +57,12 @@ jobs:
       - name: Rename `php-cgi.wasm` binary (adding version and flavor)
         shell: bash
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.suffix }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
+          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
       - name: Rename `php.wasm` binary (CLI) (adding version and flavor)
         shell: bash
         if: ${{ matrix.build-php-cli }}
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.suffix }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
+          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
       - name: Upload php-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}.wasm artifact
         uses: actions/upload-artifact@v3
         if: ${{ matrix.build-php-cli }}
