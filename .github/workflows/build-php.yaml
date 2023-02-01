@@ -53,7 +53,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build PHP
-        run: make php/${{ matrix.name }}${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}
+        run: make php/${{ matrix.name }}${{ matrix.version }}${{ matrix.flavor }}
       - name: Rename `php-cgi.wasm` binary (adding version and flavor)
         shell: bash
         run: |
