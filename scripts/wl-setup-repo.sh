@@ -19,10 +19,7 @@ then
     git config user.name "no-reply@wasmlabs.dev"
     if [ -d ${WASMLABS_ENV}/patches/ ]
     then
-        for p in ${WASMLABS_ENV}/patches/*.patch
-        do
-            git am --no-gpg-sign $p || exit 1
-        done
+        git am --no-gpg-sign --ignore-space-change --ignore-whitespace ${WASMLABS_ENV}/patches/*.patch
     fi
 else
     echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
