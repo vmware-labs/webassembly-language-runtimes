@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/bash
+logStatus "Building libs 'php/php-8.2.0-slim'"
 
 if [[ ! -v WASMLABS_ENV ]]
 then
@@ -9,36 +10,35 @@ fi
 # export CFLAGS_CONFIG="-O3 -g"
 export CFLAGS_CONFIG="-O2"
 
+########## Setup the wasi related flags #############
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
 export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
 
-export CFLAGS_SQLITE='-DSQLITE_OMIT_LOAD_EXTENSION=1'
-export LDFLAGS_SQLITE='-lsqlite3'
-
+########## Setup the flags for php #############
 export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI'
 
-# We need to add LDFLAGS to CFLAGS because autoconf compiles(+links) to binary when checking stuff
-export LDFLAGS="${LDFS} ${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_SQLITE} ${LDFLAGS}"
-export CFLAGS="${CFS} ${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_SQLITE} ${CFLAGS_DEPENDENCIES} ${CFLAGS_PHP} ${LDFLAGS} ${CFLAGS}"
+# We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
+export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_SQLITE}"
+export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_DEPENDENCIES} ${CFLAGS_PHP} ${LDFLAGS}"
+
+logStatus "CFLAGS="${CFLAGS}
+logStatus "LDFLAGS="${LDFLAGS}
+
 
 cd "${WASMLABS_SOURCE_PATH}"
 
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
-    logStatus "Generating configure script... "
-    ./buildconf --force
+    logStatus "Generating configure script..."
+    ./buildconf --force || exit 1
 
-    export PHP_CONFIGURE='--without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite'
+    export PHP_CONFIGURE='--disable-all --without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --without-sqlite3 --disable-pdo --without-pdo-sqlite --disable-fiber-asm'
 
     if [[ -v WASMLABS_RUNTIME ]]
     then
-        if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
-        then
-            export LDFLAGS="-lwasmedge_sock ${LDFLAGS}"
-        fi
-        export PHP_CONFIGURE=" --with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
+        export PHP_CONFIGURE="--with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
     fi
 
-    logStatus "Configuring build with '${PHP_CONFIGURE}'... "
+    logStatus "Configuring build with '${PHP_CONFIGURE}'..."
     ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
 else
     logStatus "Skipping configure..."
@@ -50,7 +50,7 @@ then
     export MAKE_TARGETS="${MAKE_TARGETS} cli"
 fi
 
-logStatus "Building '${MAKE_TARGETS}'... "
+logStatus "Building '${MAKE_TARGETS}'..."
 # By exporting WASMLABS_SKIP_WASM_OPT envvar during the build, the
 # wasm-opt wrapper in the wasm-base image will be a dummy wrapper that
 # is effectively a NOP.
@@ -62,7 +62,7 @@ export WASMLABS_SKIP_WASM_OPT=1
 make -j ${MAKE_TARGETS} || exit 1
 unset WASMLABS_SKIP_WASM_OPT
 
-logStatus "Preparing artifacts... "
+logStatus "Preparing artifacts..."
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 
 logStatus "Running wasm-opt with the asyncify pass on php-cgi..."

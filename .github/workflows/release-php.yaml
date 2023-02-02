@@ -21,22 +21,32 @@ jobs:
         include:
           - name: wasmedge-php-
             suffix: -wasmedge
+            flavor: ""
             build-php-cli: true
             version: 7.4.32
           - name: php-
             suffix: ""
+            flavor: ""
             build-php-cli: false
             version: 7.3.33
           - name: php-
             suffix: ""
+            flavor: ""
             build-php-cli: false
             version: 7.4.32
           - name: php-
             suffix: ""
+            flavor: ""
             build-php-cli: false
             version: 8.1.11
           - name: php-
             suffix: ""
+            flavor: ""
+            build-php-cli: false
+            version: 8.2.0
+          - name: php-
+            suffix: ""
+            flavor: -slim
             build-php-cli: false
             version: 8.2.0
     runs-on: ubuntu-latest
@@ -54,7 +64,7 @@ jobs:
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
-        run: make php/${{ matrix.name }}${{ matrix.version }}
+        run: make php/${{ matrix.name }}${{ matrix.version }}${{ matrix.flavor }}
       - name: Rename release artifacts
         # Only run for the PHP version specified in the git tag.
         #
@@ -63,7 +73,7 @@ jobs:
         if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         shell: bash
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
+          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
       - name: Rename release artifacts
         # Only run for the PHP version specified in the git tag.
         #
@@ -72,7 +82,7 @@ jobs:
         if: ${{ startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version)) && matrix.build-php-cli }}
         shell: bash
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
+          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
       - name: Create release
         # Only run for the PHP version specified in the git tag.
         #
@@ -93,7 +103,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            php/build-output/php/php-${{ matrix.version }}/bin/*.wasm
+            php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/*.wasm
       - name: Generate release assets digests
         # Only run for the PHP version specified in the git tag.
         #
@@ -103,7 +113,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in php/build-output/php/php-${{ matrix.version }}/bin/*.wasm; do
+          for asset in php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/*.wasm; do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
@@ -116,4 +126,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            php/build-output/php/php-${{ matrix.version }}/bin/*.sha256sum
+            php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/*.sha256sum

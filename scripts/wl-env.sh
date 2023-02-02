@@ -62,10 +62,10 @@ fi
 export WASMLABS_REPO_ROOT="$(git rev-parse --show-toplevel)"
 export WASMLABS_MAKE=${WASMLABS_REPO_ROOT}/wl-make.sh
 
-if [[ -f ${PATH_TO_ENV}/../wl-env-repo.sh ]]
+if [[ -f ${PATH_TO_ENV}/wl-env-repo.sh ]]
 then
     # Setup source and staging for targets from another repository
-    source ${PATH_TO_ENV}/../wl-env-repo.sh
+    source ${PATH_TO_ENV}/wl-env-repo.sh
 
     export WASMLABS_TAG=$(basename ${PATH_TO_ENV})
 
@@ -74,7 +74,7 @@ then
     export WASMLABS_SOURCE_PATH=${WASMLABS_STAGING}/checkout
 
 else
-    # Setup source and stating for targets in this repository
+    # Setup source and staging for targets in this repository
     RELATIVE_PATH_TO_ENV=$(realpath --relative-to ${WASMLABS_REPO_ROOT} ${PATH_TO_ENV})
     export WASMLABS_ENV_NAME=${RELATIVE_PATH_TO_ENV}
     export WASMLABS_STAGING=${WASMLABS_REPO_ROOT}/build-staging/${WASMLABS_ENV_NAME}

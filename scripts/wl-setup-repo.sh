@@ -12,7 +12,7 @@ then
     exit 0
 fi
 
-if git clone --depth=1 -b ${WASMLABS_TAG} ${WASMLABS_REPO} ${WASMLABS_SOURCE_PATH}
+if git clone --depth=1 -b ${WASMLABS_REPO_BRANCH} ${WASMLABS_REPO} ${WASMLABS_SOURCE_PATH}
 then
     cd ${WASMLABS_SOURCE_PATH} || exit 1
     git config user.email "Wasm Labs Team"

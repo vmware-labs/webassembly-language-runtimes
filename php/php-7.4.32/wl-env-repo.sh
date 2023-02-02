@@ -9,4 +9,5 @@ fi
 
 export WASMLABS_REPO=https://github.com/php/php-src.git
 export WASMLABS_REPO_NAME=php
+export WASMLABS_REPO_BRANCH=php-7.4.32
 

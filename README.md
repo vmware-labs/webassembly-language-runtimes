@@ -18,13 +18,13 @@ All you need in order to run these builds is to have `docker` or `podman` availa
 - `ruby/v3_2_0`
     - Resulting binaries are placed in `ruby/build-output/ruby`.
 
-### Build strategy
+## Build strategy
 
 If you are interested in knowing more about the build system and how it produces the final binaries, keep reading.
 
 ### Code Organization
 
-All build orchestration scripts are written in bash in this initial version. The start with a `wl-` prefix (short for WasmLabs). Review the [build orchestration scripts](#build-orchestration-scripts) section for more info.
+All build orchestration scripts are written in bash in this initial version. They start with a `wl-` prefix (short for WasmLabs). Review the [build orchestration scripts](#build-orchestration-scripts) section for more info.
 
 All intermediary source code checkouts and build objects get created within the `build-staging` folder. The final output gets written to the `build-output` folder.
 
@@ -33,14 +33,14 @@ The patches and scripts to build different language runtimes are organized in a 
 For language runtimes we have something like this.
 
 ```
-$LANGUAGE_RUNTIME_NAME (e.g. php)
+${LANGUAGE_RUNTIME_NAME} (e.g. 'php')
 ├── README.md (generic notes about what was patched to build this language)
-├── $VERSION_TAG_IN_REPO (e.g. php-7.4.32 from the php repo)
+├── ${VERSION_TAG_IN_REPO} (e.g. 'php-7.4.32' from the php repo)
 │   ├── README.md (generic notes about what was patched to build this version)
 │   ├── patches (consecutive patches on top of the tagged version, applied before building)
-│   │   ├── (e.g. 0001-Initial-port-of-7.3.33-patch-to-7.4.32.patch)
-│   │   ├── (e.g. 0002-Fix-mmap-issues.-Add-readme.patch)
-│   │   └── (e.g. 0003-Remove-files.patch)
+│   │   ├── (e.g. '0001-Initial-port-of-7.3.33-patch-to-7.4.32.patch')
+│   │   ├── (e.g. '0002-Fix-mmap-issues.-Add-readme.patch')
+│   │   └── Etc...
 │   ├── wl-build-deps.sh (script that builds dependencies)
 │   └── wl-build.sh (script that builds for this tag)
 └── wl-env-repo.sh (script that sets up the source code repository for given langauge and tag)
@@ -49,21 +49,22 @@ $LANGUAGE_RUNTIME_NAME (e.g. php)
 For common shared libraries we have something limilar.
 ```
 libs (common libraries, needed by different modules)
-└── $LIBRARY_NAME (e.g. sqlite)
+└── ${LIBRARY_NAME} (e.g. 'sqlite')
     ├── README.md (generic notes about what was patched to build this language)
-    ├──$VERSION_TAG_IN_REPO (e.g. version-3.39.2 from the sqlite repo)
+    ├──${VERSION_TAG_IN_REPO} (e.g. 'version-3.39.2' from the sqlite repo)
     │   ├── patches (consecutive patches on top of the tagged version, applied before building)
-    │   │   ├── (e.g. 0001-Patch-to-build-sqlite-3.39.2-for-wasm32-wasi.patch)
-    │   │   └── (e.g. 0002-Remove-build-script-from-patched-repo.patch)
+    │   │   ├── (e.g. '0001-Patch-to-build-sqlite-3.39.2-for-wasm32-wasi.patch')
+    │   │   ├── (e.g. '0002-Remove-build-script-from-patched-repo.patch')
+    │   │   └── Etc...
     │   └── wl-build.sh (script that builds for this tag)
     └── wl-env-repo.sh (script that sets up the source code repository for given langauge and tag)
 ```
 
 ### Build orchestration scripts
 
-1. The main script used to build something is `wl-make.sh` in the root folder. It gets called with a path to the folder for a respective tag of what we want to build
+1. The main script used to build something is `wl-make.sh` in the root folder. It gets called with a path to the folder for a respective tag of what we want to build.
 
-2. It will first __source__ the `scripts/wl-env.sh` script. This one sets all environment variables necessary to checkout and build the desired target. It gets the same path from `wl-make.sh` and is useful when you try to build locally
+2. It will first __source__ the `scripts/wl-env.sh` script. This one sets all environment variables necessary to checkout and build the desired target. It gets the same path from `wl-make.sh` and is useful when you try to build locally.
 
 3. Then `wl-make.sh` will call `scripts/wl-setup-repo.sh` to create a shallow clone of the necessary repository only for the specific tag that we want to build. On top of that it applies any relevant patches from the `patches` subfolder of the tagged version folder.
 

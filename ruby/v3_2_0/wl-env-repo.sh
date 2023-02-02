@@ -9,3 +9,5 @@ fi
 
 export WASMLABS_REPO=https://github.com/ruby/ruby.git
 export WASMLABS_REPO_NAME=ruby
+export WASMLABS_REPO_BRANCH=v3_2_0
+

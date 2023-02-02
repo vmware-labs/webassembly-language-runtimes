@@ -9,4 +9,5 @@ fi
 
 export WASMLABS_REPO=https://github.com/sqlite/sqlite.git
 export WASMLABS_REPO_NAME=sqlite
+export WASMLABS_REPO_BRANCH=version-3.39.2
 
