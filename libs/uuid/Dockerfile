@@ -5,8 +5,5 @@ FROM ghcr.io/vmware-labs/wasmlabs/wasi-builder:${WASI_SDK_VERSION}
 # github workflow configuration for a list of possible dependencies -
 # https://github.com/python/cpython/blob/main/.github/workflows/posix-deps-apt.sh
 RUN DEBIAN_FRONTEND=noninteractive apt install -y \
-      tcl \
-      uuid-dev \
-      zlib1g-dev \
       libtool \
       libtool-bin
