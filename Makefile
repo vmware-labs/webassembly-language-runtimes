@@ -34,7 +34,13 @@ oci-python-3.11.1: python/wasmedge-v3.11.1
 		-f images/python/Dockerfile \
 		.
 
+.PHONY: libs/uuid/*
+libs/uuid/*:
+	make -C libs/uuid $(subst libs/uuid/,,$@)
 
+.PHONY: libs/zlib/*
+libs/zlib/*:
+	make -C libs/zlib $(subst libs/zlib/,,$@)
 
 .PHONY: clean
 clean:

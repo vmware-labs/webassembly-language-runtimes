@@ -1,0 +1,56 @@
+From 2b2b9d2d8d3865f7671db158487a0254dd1578d2 Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <Wasm Labs Team>
+Date: Tue, 31 Jan 2023 15:55:52 +0200
+Subject: [PATCH] fix: Mock umask and getuid when missing
+
+
+diff --git a/configure.ac b/configure.ac
+index be62aa0..ab72f29 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -34,7 +34,7 @@ AC_TYPE_UINT64_T
+ AC_TYPE_UINT8_T
+ 
+ # Checks for library functions.
+-AC_CHECK_FUNCS([ftruncate gettimeofday memset socket strtoul usleep srandom])
++AC_CHECK_FUNCS([ftruncate gettimeofday memset socket strtoul usleep srandom umask getuid])
+ 
+ dnl version details from <major>.<minor>.<release>
+ PACKAGE_VERSION_MAJOR=$(echo $PACKAGE_VERSION | awk -F. '{print $1}')
+diff --git a/gen_uuid.c b/gen_uuid.c
+index c7b71f2..a2a6a2e 100644
+--- a/gen_uuid.c
++++ b/gen_uuid.c
+@@ -59,6 +59,11 @@
+ #include <sys/time.h>
+ #endif
+ #include <sys/stat.h>
++#if ! HAVE_UMASK && defined(__wasi__)
++static mode_t umask(mode_t mask) {
++    return 0755;
++}
++#endif
+ #ifdef HAVE_SYS_FILE_H
+ #include <sys/file.h>
+ #endif
+diff --git a/randutils.c b/randutils.c
+index 80893d3..8c79ff1 100644
+--- a/randutils.c
++++ b/randutils.c
+@@ -28,6 +28,13 @@
+ THREAD_LOCAL unsigned short ul_jrand_seed[3];
+ #endif
+ 
++#if ! HAVE_GETUID && defined(__wasi__)
++static int getuid (void)
++{
++	return 1;
++}
++#endif
++
+ int random_get_fd(void)
+ {
+ 	int i, fd;
+-- 
+2.38.1
+

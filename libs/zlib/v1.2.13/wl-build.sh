@@ -9,32 +9,24 @@ fi
 # export CFLAGS_CONFIG="-O3 -g"
 export CFLAGS_CONFIG="-O0"
 
-export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID"
-export LDFLAGS_WASI="-lwasi-emulated-getpid"
+export CFLAGS_WASI="--sysroot=${WASI_SYSROOT}"
 
-export CFLAGS_BUILD='-Werror -Wno-error=format'
+export CFLAGS_BUILD='-Werror -Wno-error=format -Wno-error=deprecated-non-prototype -Wno-error=unknown-warning-option'
 
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_BUILD}"
-export LDFLAGS="${LDFLAGS_WASI}"
 
 cd "${WASMLABS_SOURCE_PATH}"
 
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
-
-    logStatus "Generating configure"
-    ${WASMLABS_REPO_ROOT}/scripts/build-helpers/update_autoconf.sh || exit 1
-
-    autoreconf --verbose --install
-
-    export UUID_CONFIGURE=''
-    logStatus "Configuring build with '${UUID_CONFIGURE}'... "
-    ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${UUID_CONFIGURE} || exit 1
+    export ZLIB_CONFIGURE=''
+    logStatus "Configuring build with '${ZLIB_CONFIGURE}'... "
+    ./configure ${ZLIB_CONFIGURE} || exit 1
 else
     logStatus "Skipping configure..."
 fi
 
 logStatus "Building... "
-make || exit 1
+make libz.a || exit 1
 
 logStatus "Preparing artifacts... "
 make install \
