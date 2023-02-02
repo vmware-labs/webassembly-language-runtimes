@@ -23,7 +23,7 @@ fi
 
 function onExit {
     echo "=============================================================="
-    echo "Build progress logs:"
+    echo "Build progress logs for ${WASMLABS_ENV}:"
     cat $WASMLABS_OUTPUT/wasmlabs-progress.log
     unset -f logStatus
 }
@@ -40,6 +40,7 @@ export -f logStatus
 logStatus WASMLABS_ENV=${WASMLABS_ENV}
 logStatus WASI_SDK_ROOT=${WASI_SDK_ROOT}
 logStatus BINARYEN_PATH=${BINARYEN_PATH}
+logStatus WABT_ROOT=${WABT_ROOT}
 
 export WASI_SYSROOT="${WASI_SDK_ROOT}/share/wasi-sysroot"
 export CC=${WASI_SDK_ROOT}/bin/clang
