@@ -96,5 +96,11 @@ export WASMLABS_ENV=${PATH_TO_ENV}
 
 if [[ -f ${WASMLABS_REPO_ROOT}/.wl-local-conf.sh && ! -v WASI_SDK_ROOT && ! -v BINARYEN_PATH && ! -v WABT_ROOT ]]
 then
+    echo "!! Using build tools as configured in '${WASMLABS_REPO_ROOT}/.wl-local-conf.sh'"
     source ${WASMLABS_REPO_ROOT}/.wl-local-conf.sh
+
+elif [[ -f ${HOME}/.wl-local-conf.sh && ! -v WASI_SDK_ROOT && ! -v BINARYEN_PATH && ! -v WABT_ROOT ]]
+then
+    echo "!! Using build tools as configured in '${HOME}/.wl-local-conf.sh'"
+    source ${HOME}/.wl-local-conf.sh
 fi
