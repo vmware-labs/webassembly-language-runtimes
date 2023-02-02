@@ -14,6 +14,7 @@ function logStatus {
 }
 
 if [[ -z "${WASMLABS_SKIP_WASM_OPT}" ]]; then
+   logStatus "wasm-opt (with args \"$@\") was intercepted; executing $BINARYEN_PATH/bin/wasm-opt"
    exec $BINARYEN_PATH/bin/wasm-opt "$@"
 fi
 

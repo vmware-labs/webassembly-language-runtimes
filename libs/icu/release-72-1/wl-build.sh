@@ -10,7 +10,7 @@ fi
 # export CFLAGS_CONFIG="-O3 -g"
 export CFLAGS_CONFIG="-O0"
 
-export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -I./wasmlabs-stubs"
+export CFLAGS_WASI="--sysroot=${WASI_SYSROOT}"
 export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT}"
 
 export CFLAGS_ICU=''
