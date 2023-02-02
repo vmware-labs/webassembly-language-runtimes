@@ -1,4 +1,5 @@
 #!/bin/bash
+logStatus "Building libs 'php/master'"
 
 if [[ ! -v WASMLABS_ENV ]]
 then
@@ -24,17 +25,21 @@ export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0'
 export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_SQLITE}"
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_SQLITE} ${CFLAGS_DEPENDENCIES} ${CFLAGS_PHP} ${LDFLAGS}"
 
+logStatus "CFLAGS="${CFLAGS}
+logStatus "LDFLAGS="${LDFLAGS}
+
+
 cd "${WASMLABS_SOURCE_PATH}"
 
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
-    logStatus "Generating configure script... "
+    logStatus "Generating configure script..."
     ./buildconf --force || exit 1
 
-    export PHP_CONFIGURE=' --without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --disable-fiber-asm'
+    export PHP_CONFIGURE='--without-iconv --without-openssl --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --disable-fiber-asm --disable-posix --disable-sockets'
 
     if [[ -v WASMLABS_RUNTIME ]]
     then
-        export PHP_CONFIGURE=" --with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
+        export PHP_CONFIGURE="--with-wasm-runtime=${WASMLABS_RUNTIME} ${PHP_CONFIGURE}"
     fi
 
     logStatus "Configuring build with '${PHP_CONFIGURE}'... "
@@ -49,7 +54,7 @@ then
     export MAKE_TARGETS="${MAKE_TARGETS} cli"
 fi
 
-logStatus "Building '${MAKE_TARGETS}'... "
+logStatus "Building '${MAKE_TARGETS}'..."
 # By exporting WASMLABS_SKIP_WASM_OPT envvar during the build, the
 # wasm-opt wrapper in the wasm-base image will be a dummy wrapper that
 # is effectively a NOP.
@@ -61,15 +66,15 @@ export WASMLABS_SKIP_WASM_OPT=1
 make -j ${MAKE_TARGETS} || exit 1
 unset WASMLABS_SKIP_WASM_OPT
 
-logStatus "Preparing artifacts... "
+logStatus "Preparing artifacts..."
 mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 
-logStatus "Running wasm-opt with the asyncify pass on php-cgi.."
+logStatus "Running wasm-opt with the asyncify pass on php-cgi..."
 wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}.wasm sapi/cgi/php-cgi || exit 1
 
 if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
 then
-    logStatus "Running wasm-opt with the asyncify pass on php.."
+    logStatus "Running wasm-opt with the asyncify pass on php..."
     wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WASMLABS_OUTPUT}/bin/php${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}.wasm sapi/cli/php || exit 1
 fi
 
