@@ -7,11 +7,11 @@ on:
     branches:
       - "*"
     paths:
-       - .github/**
-       - 'libs/uuid/**'
-       - 'scripts/**'
-       - 'Makefile*'
-       - '*.sh'
+       - ".github/**"
+       - "libs/uuid/**"
+       - "scripts/**"
+       - "Makefile*"
+       - "*.sh"
   pull_request:
 jobs:
   build-uuid:

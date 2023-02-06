@@ -7,11 +7,11 @@ on:
     branches:
       - "*"
     paths:
-       - .github/**
-       - 'libs/zlib/**'
-       - 'scripts/**'
-       - 'Makefile*'
-       - '*.sh'
+       - ".github/**"
+       - "libs/zlib/**"
+       - "scripts/**"
+       - "Makefile*"
+       - "*.sh"
   pull_request:
 jobs:
   build-zlib:
