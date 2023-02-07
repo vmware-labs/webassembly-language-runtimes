@@ -1,15 +1,44 @@
 BUILDER_ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
-WASM_BASE_TAG ?= $(shell git rev-parse --short HEAD)
-
 .PHONY: wasm-base
+WASM_BASE_TAG ?= $(shell git rev-parse --short HEAD)
+WASM_BASE_NAME := ghcr.io/vmware-labs/wasmlabs/wasm-base:$(WASM_BASE_TAG)
 wasm-base:
-	docker build --platform linux/amd64 --build-arg BINARYEN_VERSION=111 -f ${BUILDER_ROOT_DIR}/Dockerfile.wasm-base -t ghcr.io/vmware-labs/wasmlabs/wasm-base:$(WASM_BASE_TAG) ${BUILDER_ROOT_DIR}
+	@(! docker image inspect $(WASM_BASE_NAME) 1>/dev/null 2>&1 || \
+		test -z "$(keep-containers)" ) && \
+	docker build \
+		--platform linux/amd64 \
+		--build-arg BINARYEN_VERSION=111 \
+		-f $(BUILDER_ROOT_DIR)/Dockerfile.wasm-base \
+		-t $(WASM_BASE_NAME) \
+		$(BUILDER_ROOT_DIR) \
+	|| echo "Reusing existing $(WASM_BASE_NAME)"
 
 .PHONY: wasi-builder-19
+WASI_BUILDER_19_NAME := ghcr.io/vmware-labs/wasmlabs/wasi-builder:19
 wasi-builder-19: wasm-base
-	docker build --platform linux/amd64 --build-arg WASM_BASE=$(WASM_BASE_TAG) --build-arg WASI_SDK_VERSION=19 -f ${BUILDER_ROOT_DIR}/Dockerfile.wasi-builder -t ghcr.io/vmware-labs/wasmlabs/wasi-builder:19 ${BUILDER_ROOT_DIR}
+	@(! docker image inspect $(WASI_BUILDER_19_NAME) 1>/dev/null 2>&1 || \
+		test -z "$(keep-containers)" ) && \
+	docker build \
+		--platform linux/amd64 \
+		--build-arg WASM_BASE=$(WASM_BASE_TAG) \
+		--build-arg WASI_SDK_VERSION=19 \
+		-f $(BUILDER_ROOT_DIR)/Dockerfile.wasi-builder \
+		-t $(WASI_BUILDER_19_NAME) \
+		$(BUILDER_ROOT_DIR) \
+	|| echo "Reusing existing $(WASI_BUILDER_19_NAME)"
 
 .PHONY: wasi-builder-16
+WASI_BUILDER_16_NAME := ghcr.io/vmware-labs/wasmlabs/wasi-builder:16
 wasi-builder-16: wasm-base
-	docker build --platform linux/amd64 --build-arg WASM_BASE=$(WASM_BASE_TAG) --build-arg WASI_SDK_VERSION=16 -f ${BUILDER_ROOT_DIR}/Dockerfile.wasi-builder -t ghcr.io/vmware-labs/wasmlabs/wasi-builder:16 ${BUILDER_ROOT_DIR}
+	@(! docker image inspect $(WASI_BUILDER_16_NAME) 1>/dev/null 2>&1 || \
+		test -z "$(keep-containers)" ) && \
+	docker build \
+		--platform linux/amd64 \
+		--build-arg WASM_BASE=$(WASM_BASE_TAG) \
+		--build-arg WASI_SDK_VERSION=16 \
+		-f $(BUILDER_ROOT_DIR)/Dockerfile.wasi-builder \
+		-t $(WASI_BUILDER_16_NAME) \
+		$(BUILDER_ROOT_DIR) \
+	|| echo "Reusing existing $(WASI_BUILDER_16_NAME)"
+

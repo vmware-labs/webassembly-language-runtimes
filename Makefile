@@ -27,15 +27,25 @@ python/wasmedge-v3.11.1:
 .PHONY: oci-python-3.11.1
 oci-python-3.11.1: python/wasmedge-v3.11.1
 	docker build \
-	--build-arg BUILD_OUTPUT_BASE=python/build-output \
-	--build-arg PYTHON_TAG=v3.11.1 \
-	--build-arg PYTHON_BINARY=python-wasmedge.wasm \
-	-t ghcr.io/vmware-labs/python-wasm:3.11.1-latest \
-	-f images/python/Dockerfile .
+		--build-arg BUILD_OUTPUT_BASE=python/build-output \
+		--build-arg PYTHON_TAG=v3.11.1 \
+		--build-arg PYTHON_BINARY=python-wasmedge.wasm \
+		-t ghcr.io/vmware-labs/python-wasm:3.11.1-latest \
+		-f images/python/Dockerfile \
+		.
+
+.PHONY: libs/uuid/*
+libs/uuid/*:
+	make -C libs/uuid $(subst libs/uuid/,,$@)
+
+.PHONY: libs/zlib/*
+libs/zlib/*:
+	make -C libs/zlib $(subst libs/zlib/,,$@)
 
 .PHONY: clean
 clean:
 	make -C php clean
 	make -C ruby clean
 	make -C python clean
+	make -C libs clean
 
