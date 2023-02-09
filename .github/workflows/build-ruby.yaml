@@ -24,10 +24,10 @@ jobs:
       - name: Rename artifacts
         shell: bash
         run: |
-          sudo mv ruby/build-output/ruby/v${{ matrix.target_version }}/bin/ruby{,-${{ matrix.version }}}.wasm
+          sudo mv build-output/ruby/v${{ matrix.target_version }}/bin/ruby{,-${{ matrix.version }}}.wasm
       - name: Upload ruby-${{ matrix.version }}.wasm artifact
         uses: actions/upload-artifact@v3
         with:
           name: ruby-${{ matrix.version }}.wasm
-          path: ruby/build-output/ruby/v${{ matrix.target_version }}/bin/ruby-${{ matrix.version }}.wasm
+          path: build-output/ruby/v${{ matrix.target_version }}/bin/ruby-${{ matrix.version }}.wasm
           if-no-files-found: error

@@ -2,12 +2,13 @@ WASI_SDK_VERSION ?= 19
 # NOTE - the default python build is failing with wasi-sdk-19
 
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+REPO_ROOT := $(ROOT_DIR)../..
 
-include ../../Makefile.builders
+include $(REPO_ROOT)/Makefile.helpers
 
 .PHONY: libuuid-builder
 LIBUUID_BUILDER_NAME := ghcr.io/vmware-labs/wasmlabs/libuuid-builder:wasi-$(WASI_SDK_VERSION)
-libuuid-builder: wasi-builder-$(WASI_SDK_VERSION)
+libuuid-builder:
 	@(! docker image inspect $(LIBUUID_BUILDER_NAME) 1>/dev/null 2>&1 || \
 		test -z "$(keep-containers)" ) && \
 	docker build \
@@ -20,17 +21,8 @@ libuuid-builder: wasi-builder-$(WASI_SDK_VERSION)
 
 .PHONY: v*
 libuuid-*: libuuid-builder
-	mkdir -p build-output build-staging
-	docker run \
-		--platform linux/amd64 \
-		--rm \
-		-e WASMLABS_RUNTIME \
-		-v $(ROOT_DIR)/build-output:/wlr/build-output \
-		-v $(ROOT_DIR)/build-staging:/wlr/build-staging \
-		-v $(ROOT_DIR):/wlr/libs/uuid \
-		$(LIBUUID_BUILDER_NAME) \
-		./wl-make.sh libs/uuid/$@
+	@$(call build_in_container,$(LIBUUID_BUILDER_NAME),$(REPO_ROOT),libs/uuid/$@)
 
 .PHONY: clean
 clean:
-	rm -rf build-output build-staging
+	rm -rf $(REPO_ROOT)/build-output/uuid $(REPO_ROOT)/build-staging/uuid

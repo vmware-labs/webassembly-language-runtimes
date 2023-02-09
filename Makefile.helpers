@@ -1,0 +1,40 @@
+define push_container_image
+    $(eval $@_IMAGE_NAME = $(1))
+    @(docker image inspect $($@_IMAGE_NAME) 1>/dev/null 2>&1 || \
+		(echo "Missing $($@_IMAGE_NAME). Cannot push" && false) ) && \
+	echo Pushing $($@_IMAGE_NAME) ... && \
+	echo Authenticating to ghcr.io ... && \
+	docker login ghcr.io && \
+	docker push $($@_IMAGE_NAME) && \
+	docker image rm $($@_IMAGE_NAME) && \
+	echo Pushed and deleted local tag to avoid usage of stale image in future.
+endef
+
+
+define make_builder_image
+    $(eval $@_IMAGE_NAME = $(1))
+    $(eval $@_ROOT_DIR = $(2))
+    $(eval $@_WASI_SDK_VERSION = $(3))
+	@echo Building $($@_IMAGE_NAME) in $($@_ROOT_DIR) ... && \
+	docker build \
+		--platform linux/amd64 \
+		-f $($@_ROOT_DIR)/Dockerfile \
+		--build-arg WASI_SDK_VERSION=$($@_WASI_SDK_VERSION) \
+		-t $($@_IMAGE_NAME) \
+		$($@_ROOT_DIR)
+endef
+
+
+define build_in_container
+    $(eval $@_IMAGE_NAME = $(1))
+    $(eval $@_REPO_ROOT = $(2))
+    $(eval $@_WL_MAKE_TARGET = $(3))
+	docker run \
+		--platform linux/amd64 \
+		--rm \
+		-e WASMLABS_RUNTIME \
+		-v $($@_REPO_ROOT):/wlr/ \
+		-v $($@_REPO_ROOT)/scripts/wrappers/wasm-opt:/opt/priority-bin/wasm-opt \
+		$($@_IMAGE_NAME) \
+		./wl-make.sh $($@_WL_MAKE_TARGET)
+endef

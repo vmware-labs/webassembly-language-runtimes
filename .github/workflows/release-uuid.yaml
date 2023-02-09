@@ -38,7 +38,7 @@ jobs:
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/libs/uuid/{0}+', matrix.version))
         run: |
-          pushd libs/uuid/build-output/uuid/libuuid-${{ matrix.version }}
+          pushd build-output/uuid/libuuid-${{ matrix.version }}
           sudo zip -qq -r libuuid-${{ matrix.version }}.zip include lib
           popd
       - name: Create release
@@ -61,7 +61,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            libs/uuid/build-output/uuid/libuuid-${{ matrix.version }}/libuuid-${{ matrix.version }}.zip
+            build-output/uuid/libuuid-${{ matrix.version }}/libuuid-${{ matrix.version }}.zip
       - name: Generate release assets digests
         # Only run for the LibUuid version specified in the git tag.
         #
@@ -71,7 +71,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in libs/uuid/build-output/uuid/libuuid-${{ matrix.version }}/libuuid-${{ matrix.version }}.zip; do
+          for asset in build-output/uuid/libuuid-${{ matrix.version }}/libuuid-${{ matrix.version }}.zip; do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
@@ -84,5 +84,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            libs/uuid/build-output/uuid/libuuid-${{ matrix.version }}/libuuid-${{ matrix.version }}.zip.sha256sum
+            build-output/uuid/libuuid-${{ matrix.version }}/libuuid-${{ matrix.version }}.zip.sha256sum
 

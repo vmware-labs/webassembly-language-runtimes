@@ -10,13 +10,13 @@ All you need in order to run these builds is to have `docker` or `podman` availa
 
 - `php/php-7.3.33`, `php/php-7.4.32`, `php/wasmedge-php-7.4.32`,
   `php/php-8.1.11`, `php/php-8.2.0`
-    - Resulting binaries are placed in `php/build-output/php`.
+    - Resulting binaries are placed in `build-output/php`.
 
 - `python/v3.11.1`
-    - Resulting binaries are placed in `python/build-output/python`.
+    - Resulting binaries are placed in `build-output/python`.
 
 - `ruby/v3_2_0`
-    - Resulting binaries are placed in `ruby/build-output/ruby`.
+    - Resulting binaries are placed in `build-output/ruby`.
 
 ## Build strategy
 

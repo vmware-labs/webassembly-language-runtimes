@@ -31,6 +31,6 @@ jobs:
         with:
           name: zlib-${{ matrix.version }}
           path: |
-            libs/zlib/build-output/zlib/v${{ matrix.version }}/include
-            libs/zlib/build-output/zlib/v${{ matrix.version }}/lib
+            build-output/zlib/v${{ matrix.version }}/include
+            build-output/zlib/v${{ matrix.version }}/lib
           if-no-files-found: error

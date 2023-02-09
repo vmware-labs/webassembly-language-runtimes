@@ -40,7 +40,7 @@ jobs:
         if: startsWith(github.event.ref, format('refs/tags/ruby/{0}+', matrix.version))
         shell: bash
         run: |
-          sudo mv ruby/build-output/ruby/v${{ matrix.target_version }}/bin/ruby{,-${{ matrix.version }}}.wasm
+          sudo mv build-output/ruby/v${{ matrix.target_version }}/bin/ruby{,-${{ matrix.version }}}.wasm
       - name: Create release
         # Only run for the Ruby version specified in the git tag.
         #
@@ -61,7 +61,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            ruby/build-output/ruby/v${{ matrix.target_version }}/bin/*.wasm
+            build-output/ruby/v${{ matrix.target_version }}/bin/*.wasm
       - name: Generate release assets digests
         # Only run for the Ruby version specified in the git tag.
         #
@@ -71,7 +71,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in ruby/build-output/ruby/v${{ matrix.target_version }}/bin/*.wasm; do
+          for asset in build-output/ruby/v${{ matrix.target_version }}/bin/*.wasm; do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
@@ -84,4 +84,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            ruby/build-output/ruby/v${{ matrix.target_version }}/bin/*.sha256sum
+            build-output/ruby/v${{ matrix.target_version }}/bin/*.sha256sum

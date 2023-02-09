@@ -1,44 +1,49 @@
 BUILDER_ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
+include Makefile.helpers
+
 .PHONY: wasm-base
-WASM_BASE_TAG ?= $(shell git rev-parse --short HEAD)
-WASM_BASE_NAME := ghcr.io/vmware-labs/wasmlabs/wasm-base:$(WASM_BASE_TAG)
+WASM_BASE_NAME := ghcr.io/vmware-labs/wasmlabs/wasm-base:latest
 wasm-base:
-	@(! docker image inspect $(WASM_BASE_NAME) 1>/dev/null 2>&1 || \
-		test -z "$(keep-containers)" ) && \
+	@echo Building $(WASM_BASE_NAME) in $(BUILDER_ROOT_DIR) ... && \
 	docker build \
 		--platform linux/amd64 \
 		--build-arg BINARYEN_VERSION=111 \
 		-f $(BUILDER_ROOT_DIR)/Dockerfile.wasm-base \
 		-t $(WASM_BASE_NAME) \
-		$(BUILDER_ROOT_DIR) \
-	|| echo "Reusing existing $(WASM_BASE_NAME)"
+		$(BUILDER_ROOT_DIR)
+
+.PHONY: push-wasm-base
+push-wasm-base:
+	@$(call push_container_image,$(WASM_BASE_NAME))
 
 .PHONY: wasi-builder-19
 WASI_BUILDER_19_NAME := ghcr.io/vmware-labs/wasmlabs/wasi-builder:19
-wasi-builder-19: wasm-base
-	@(! docker image inspect $(WASI_BUILDER_19_NAME) 1>/dev/null 2>&1 || \
-		test -z "$(keep-containers)" ) && \
+wasi-builder-19:
+	@echo Building $(WASI_BUILDER_19_NAME) in $(BUILDER_ROOT_DIR) ... && \
 	docker build \
 		--platform linux/amd64 \
-		--build-arg WASM_BASE=$(WASM_BASE_TAG) \
 		--build-arg WASI_SDK_VERSION=19 \
 		-f $(BUILDER_ROOT_DIR)/Dockerfile.wasi-builder \
 		-t $(WASI_BUILDER_19_NAME) \
-		$(BUILDER_ROOT_DIR) \
-	|| echo "Reusing existing $(WASI_BUILDER_19_NAME)"
+		$(BUILDER_ROOT_DIR)
+
+.PHONY: push-wasi-builder-19
+push-wasi-builder-19:
+	@$(call push_container_image,$(WASI_BUILDER_19_NAME))
 
 .PHONY: wasi-builder-16
 WASI_BUILDER_16_NAME := ghcr.io/vmware-labs/wasmlabs/wasi-builder:16
-wasi-builder-16: wasm-base
-	@(! docker image inspect $(WASI_BUILDER_16_NAME) 1>/dev/null 2>&1 || \
-		test -z "$(keep-containers)" ) && \
+wasi-builder-16:
+	@echo Building $(WASI_BUILDER_16_NAME) in $(BUILDER_ROOT_DIR) ... && \
 	docker build \
 		--platform linux/amd64 \
-		--build-arg WASM_BASE=$(WASM_BASE_TAG) \
 		--build-arg WASI_SDK_VERSION=16 \
 		-f $(BUILDER_ROOT_DIR)/Dockerfile.wasi-builder \
 		-t $(WASI_BUILDER_16_NAME) \
-		$(BUILDER_ROOT_DIR) \
-	|| echo "Reusing existing $(WASI_BUILDER_16_NAME)"
+		$(BUILDER_ROOT_DIR)
+
+.PHONY: push-wasi-builder-16
+push-wasi-builder-16:
+	@$(call push_container_image,$(WASI_BUILDER_16_NAME))
 

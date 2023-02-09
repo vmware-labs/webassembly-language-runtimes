@@ -46,8 +46,8 @@ jobs:
         if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
         shell: bash
         run: |
-          sudo mv python/build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}.wasm
-          sudo mv python/build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}-wasmedge.wasm
+          sudo mv build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}.wasm
+          sudo mv build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}-wasmedge.wasm
       - name: Bundle Python with standard libraries
         # Only run for the Python version specified in the git tag.
         #
@@ -55,7 +55,7 @@ jobs:
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
         run: |
-          pushd python/build-output/python/v${{ matrix.version }}
+          pushd build-output/python/v${{ matrix.version }}
           sudo zip -qq -r python-aio-${{ matrix.version }}.zip bin usr
           popd
       - name: Create release
@@ -78,7 +78,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            python/build-output/python/v${{ matrix.version }}/python-aio-${{ matrix.version }}.zip
+            build-output/python/v${{ matrix.version }}/python-aio-${{ matrix.version }}.zip
       - name: Generate release assets digests
         # Only run for the Python version specified in the git tag.
         #
@@ -88,7 +88,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in python/build-output/python/v${{ matrix.version }}/python-aio-${{ matrix.version }}.zip; do
+          for asset in build-output/python/v${{ matrix.version }}/python-aio-${{ matrix.version }}.zip; do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
@@ -101,5 +101,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            python/build-output/python/v${{ matrix.version }}/python-aio-${{ matrix.version }}.zip.sha256sum
+            build-output/python/v${{ matrix.version }}/python-aio-${{ matrix.version }}.zip.sha256sum
 

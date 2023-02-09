@@ -73,7 +73,7 @@ jobs:
         if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         shell: bash
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
+          sudo mv build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
       - name: Rename release artifacts
         # Only run for the PHP version specified in the git tag.
         #
@@ -82,7 +82,7 @@ jobs:
         if: ${{ startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version)) && matrix.build-php-cli }}
         shell: bash
         run: |
-          sudo mv php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
+          sudo mv build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
       - name: Create release
         # Only run for the PHP version specified in the git tag.
         #
@@ -103,7 +103,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/*.wasm
+            build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/*.wasm
       - name: Generate release assets digests
         # Only run for the PHP version specified in the git tag.
         #
@@ -113,7 +113,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/*.wasm; do
+          for asset in build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/*.wasm; do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
@@ -126,4 +126,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            php/build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/*.sha256sum
+            build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}/bin/*.sha256sum
