@@ -1,8 +1,9 @@
 WASI_SDK_VERSION ?= 19
 
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+REPO_ROOT := $(ROOT_DIR)..
 
-include $(ROOT_DIR)../Makefile.helpers
+include $(REPO_ROOT)/Makefile.helpers
 
 .PHONY: ruby-builder
 RUBY_BUILDER_NAME := ghcr.io/vmware-labs/wasmlabs/ruby-builder:wasi-$(WASI_SDK_VERSION)
@@ -15,8 +16,8 @@ push-ruby-builder:
 
 .PHONY: v*
 v*:
-	@$(call build_in_container,$(RUBY_BUILDER_NAME),ruby/$@)
+	@$(call build_in_container,$(RUBY_BUILDER_NAME),$(REPO_ROOT),ruby/$@)
 
 .PHONY: clean
 clean:
-	rm -rf build-output build-staging
+	rm -rf $(REPO_ROOT)/build-output/ruby $(REPO_ROOT)/build-staging/ruby

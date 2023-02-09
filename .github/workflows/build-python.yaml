@@ -28,12 +28,12 @@ jobs:
       - name: Rename artifacts
         shell: bash
         run: |
-          sudo mv python/build-output/python/v${{ matrix.version }}/bin/python{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
+          sudo mv build-output/python/v${{ matrix.version }}/bin/python{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
       - name: Upload python-aio-${{ matrix.version }}.zip artifact
         uses: actions/upload-artifact@v3
         with:
           name: python-aio-${{ matrix.version }}.zip
           path: |
-            python/build-output/python/v${{ matrix.version }}/bin/python-${{ matrix.version }}${{ matrix.suffix }}.wasm
-            python/build-output/python/v${{ matrix.version }}/usr
+            build-output/python/v${{ matrix.version }}/bin/python-${{ matrix.version }}${{ matrix.suffix }}.wasm
+            build-output/python/v${{ matrix.version }}/usr
           if-no-files-found: error

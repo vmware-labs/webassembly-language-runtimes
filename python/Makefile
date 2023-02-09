@@ -2,8 +2,9 @@ WASI_SDK_VERSION ?= 16
 # NOTE - the default python build is failing with wasi-sdk-19
 
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+REPO_ROOT := $(ROOT_DIR)..
 
-include $(ROOT_DIR)../Makefile.helpers
+include $(REPO_ROOT)/Makefile.helpers
 
 .PHONY: python-builder
 PYTHON_BUILDER_NAME := ghcr.io/vmware-labs/wasmlabs/python-builder:wasi-$(WASI_SDK_VERSION)
@@ -16,8 +17,8 @@ push-python-builder:
 
 .PHONY: v*
 v*:
-	@$(call build_in_container,$(PYTHON_BUILDER_NAME),python/$@)
+	@$(call build_in_container,$(PYTHON_BUILDER_NAME),$(REPO_ROOT),python/$@)
 
 .PHONY: clean
 clean:
-	rm -rf build-output build-staging
+	rm -rf $(REPO_ROOT)/build-output/python $(REPO_ROOT)/build-staging/python

@@ -2,8 +2,9 @@ WASI_SDK_VERSION ?= 19
 # NOTE - the default python build is failing with wasi-sdk-19
 
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+REPO_ROOT := $(ROOT_DIR)../..
 
-include $(ROOT_DIR)../../Makefile.helpers
+include $(REPO_ROOT)/Makefile.helpers
 
 .PHONY: libuuid-builder
 LIBUUID_BUILDER_NAME := ghcr.io/vmware-labs/wasmlabs/libuuid-builder:wasi-$(WASI_SDK_VERSION)
@@ -20,8 +21,8 @@ libuuid-builder:
 
 .PHONY: v*
 libuuid-*: libuuid-builder
-	@$(call build_in_container,$(LIBUUID_BUILDER_NAME),libs/uuid/$@)
+	@$(call build_in_container,$(LIBUUID_BUILDER_NAME),$(REPO_ROOT),libs/uuid/$@)
 
 .PHONY: clean
 clean:
-	rm -rf build-output build-staging
+	rm -rf $(REPO_ROOT)/build-output/uuid $(REPO_ROOT)/build-staging/uuid

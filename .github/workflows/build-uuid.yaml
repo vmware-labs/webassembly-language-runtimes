@@ -31,6 +31,6 @@ jobs:
         with:
           name: libuuid-${{ matrix.version }}
           path: |
-            libs/uuid/build-output/uuid/libuuid-${{ matrix.version }}/include
-            libs/uuid/build-output/uuid/libuuid-${{ matrix.version }}/lib
+            build-output/uuid/libuuid-${{ matrix.version }}/include
+            build-output/uuid/libuuid-${{ matrix.version }}/lib
           if-no-files-found: error

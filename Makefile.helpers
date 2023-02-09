@@ -27,16 +27,14 @@ endef
 
 define build_in_container
     $(eval $@_IMAGE_NAME = $(1))
-    $(eval $@_WL_MAKE_TARGET = $(2))
-	mkdir -p build-output build-staging
+    $(eval $@_REPO_ROOT = $(2))
+    $(eval $@_WL_MAKE_TARGET = $(3))
 	docker run \
 		--platform linux/amd64 \
 		--rm \
 		-e WASMLABS_RUNTIME \
-		-v $(ROOT_DIR)/build-output:/wlr/build-output \
-		-v $(ROOT_DIR)/build-staging:/wlr/build-staging \
-		-v $(ROOT_DIR)../:/wlr/ \
-		-v $(ROOT_DIR)../scripts/wrappers/wasm-opt:/opt/priority-bin/wasm-opt \
+		-v $($@_REPO_ROOT):/wlr/ \
+		-v $($@_REPO_ROOT)/scripts/wrappers/wasm-opt:/opt/priority-bin/wasm-opt \
 		$($@_IMAGE_NAME) \
 		./wl-make.sh $($@_WL_MAKE_TARGET)
 endef

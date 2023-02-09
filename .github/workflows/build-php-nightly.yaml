@@ -26,22 +26,22 @@ jobs:
       - name: Rename artifacts
         shell: bash
         run: |
-          sudo mv php/build-output/php/${{ matrix.version }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
+          sudo mv build-output/php/${{ matrix.version }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
       - name: Rename artifacts
         shell: bash
         if: ${{ matrix.build-php-cli }}
         run: |
-          sudo mv php/build-output/php/${{ matrix.version }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
+          sudo mv build-output/php/${{ matrix.version }}/bin/php{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
       - name: Upload php-${{ matrix.version }}${{ matrix.suffix }}.wasm artifact
         uses: actions/upload-artifact@v3
         if: ${{ matrix.build-php-cli }}
         with:
           name: php-${{ matrix.version }}${{ matrix.suffix }}.wasm
-          path: php/build-output/php/${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.wasm
+          path: build-output/php/${{ matrix.version }}/bin/php-${{ matrix.version }}${{ matrix.suffix }}.wasm
           if-no-files-found: error
       - name: Upload php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm artifact
         uses: actions/upload-artifact@v3
         with:
           name: php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm
-          path: php/build-output/php/${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm
+          path: build-output/php/${{ matrix.version }}/bin/php-cgi-${{ matrix.version }}${{ matrix.suffix }}.wasm
           if-no-files-found: error

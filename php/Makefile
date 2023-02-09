@@ -1,8 +1,9 @@
 WASI_SDK_VERSION ?= 19
 
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+REPO_ROOT := $(ROOT_DIR)..
 
-include $(ROOT_DIR)../Makefile.helpers
+include $(REPO_ROOT)/Makefile.helpers
 
 .PHONY: php-builder
 PHP_BUILDER_NAME := ghcr.io/vmware-labs/wasmlabs/php-builder:wasi-$(WASI_SDK_VERSION)
@@ -15,12 +16,12 @@ push-php-builder:
 
 .PHONY: php-*
 php-*:
-	@$(call build_in_container,$(PHP_BUILDER_NAME),php/$@)
+	@$(call build_in_container,$(PHP_BUILDER_NAME),$(REPO_ROOT),php/$@)
 
 .PHONY: master
 master:
-	@$(call build_in_container,$(PHP_BUILDER_NAME),php/$@)
+	@$(call build_in_container,$(PHP_BUILDER_NAME),$(REPO_ROOT),php/$@)
 
 .PHONY: clean
 clean:
-	rm -rf build-output build-staging
+	rm -rf $(REPO_ROOT)/build-output/php $(REPO_ROOT)/build-staging/php
