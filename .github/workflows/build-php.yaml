@@ -5,7 +5,7 @@ on:
     # running on tag push. We have a dedicated workflow to be ran when
     # a tag is pushed.
     branches:
-      - "*"
+      - main
   pull_request:
 jobs:
   build-php:
