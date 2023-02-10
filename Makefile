@@ -4,10 +4,6 @@
 php/php-*:
 	make -C php $(subst php/php-,php-,$@)
 
-.PHONY: php/wasmedge-php-7.4.32
-php/wasmedge-php-7.4.32:
-	WASMLABS_RUNTIME=wasmedge make -C php $(subst php/wasmedge-php-,php-,$@)
-
 .PHONY: php/master
 php/master:
 	make -C php master
@@ -47,4 +43,3 @@ clean:
 	make -C ruby clean
 	make -C python clean
 	make -C libs clean
-
