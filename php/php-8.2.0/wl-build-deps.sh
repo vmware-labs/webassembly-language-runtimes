@@ -36,6 +36,17 @@ if [[ ! -e "${WASMLABS_OUTPUT_BASE}/libxml2/v2.10.3/lib/libxml2.a" ]]; then
  fi
 
 
+### oniguruma
+export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}/oniguruma/v6.9.8/lib/pkgconfig:${PKG_CONFIG_PATH}
+
+if [[ ! -e "${WASMLABS_OUTPUT_BASE}/oniguruma/v6.9.8/lib/libonig.a" ]]; then
+    logStatus "Building Oniguruma dependency..."
+    $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}/libs/oniguruma/v6.9.8 || exit 1
+ else
+     logStatus "Skipping building Oniguruma dependency!"
+fi
+
+
 ### sqlite3
 export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}/sqlite/version-3.39.2/lib/pkgconfig:${PKG_CONFIG_PATH}
 
