@@ -21,8 +21,8 @@ if [[ ! -e "${WASMLABS_OUTPUT_BASE}/icu/release-72-1/include/unicode/utf.h" ]]; 
 else
     logStatus "Skipping building ICU dependency!"
 fi
-export CFLAGS_DEPENDENCIES="-I${WASMLABS_OUTPUT_BASE}/icu/release-72-1/include ${CFLAGS_DEPENDENCIES}"
-export LDFLAGS_DEPENDENCIES="-L${WASMLABS_OUTPUT_BASE}/icu/release-72-1/lib ${LDFLAGS_DEPENDENCIES}"
+# export CFLAGS_DEPENDENCIES="-I${WASMLABS_OUTPUT_BASE}/icu/release-72-1/include ${CFLAGS_DEPENDENCIES}"
+# export LDFLAGS_DEPENDENCIES="-L${WASMLABS_OUTPUT_BASE}/icu/release-72-1/lib ${LDFLAGS_DEPENDENCIES}"
 
 
 ### libxml2
