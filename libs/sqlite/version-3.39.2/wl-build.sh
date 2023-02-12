@@ -26,16 +26,16 @@ cd "${WASMLABS_SOURCE_PATH}"
 
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     export SQLITE_CONFIGURE="--prefix="${WASMLABS_OUTPUT}" --disable-threadsafe --enable-tempstore=yes"
-    logStatus "Configuring build with '${SQLITE_CONFIGURE}'... "
+    logStatus "Configuring build with '${SQLITE_CONFIGURE}'..."
     ./configure --config-cache --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE} || exit 1
 else
     logStatus "Skipping configure..."
 fi
 
-logStatus "Building... "
+logStatus "Building..."
 make -j libsqlite3.la || exit 1
 
-logStatus "Preparing artifacts... "
+logStatus "Preparing artifacts..."
 make lib_install || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
