@@ -26,14 +26,14 @@ export LDFLAGS_DEPENDENCIES="-L${WASMLABS_OUTPUT_BASE}/icu/release-72-1/lib ${LD
 
 
 ### libxml2
+export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}/libxml2/v2.10.3/lib/pkgconfig:${PKG_CONFIG_PATH}
+
 if [[ ! -e "${WASMLABS_OUTPUT_BASE}/libxml2/v2.10.3/lib/libxml2.a" ]]; then
     logStatus "Building LibXML dependency..."
     $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}/libs/libxml2/v2.10.3 || exit 1
  else
      logStatus "Skipping building LibXML dependency!"
  fi
-export CFLAGS_DEPENDENCIES="-I${WASMLABS_OUTPUT_BASE}/libxml2/v2.10.3/include ${CFLAGS_DEPENDENCIES}"
-export LDFLAGS_DEPENDENCIES="-L${WASMLABS_OUTPUT_BASE}/libxml2/v2.10.3/lib ${LDFLAGS_DEPENDENCIES}"
 
 
 ### sqlite3
