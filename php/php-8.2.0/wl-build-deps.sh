@@ -14,6 +14,17 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
 fi
 
 
+### zlib
+export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}"/zlib/v1.2.13/lib/pkgconfig:"${PKG_CONFIG_PATH}
+
+if [[ ! -e ${WASMLABS_OUTPUT_BASE}"/zlib/v1.2.13/lib/libz.a" ]]; then
+    logStatus "Building zlib dependency..."
+    $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}"/libs/zlib/v1.2.13" || exit 1
+else
+     logStatus "Skipping building zlib dependency!"
+fi
+
+
 ### libxml2
 export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}/libxml2/v2.10.3/lib/pkgconfig:${PKG_CONFIG_PATH}
 
