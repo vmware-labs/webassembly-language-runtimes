@@ -19,6 +19,8 @@ export LDFLAGS="${LDFLAGS_WASI}"
 
 cd "${WASMLABS_SOURCE_PATH}"
 
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/pkg_config_tools.sh
+
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
 
     logStatus "Generating configure"
@@ -26,7 +28,7 @@ if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
 
     autoreconf --verbose --install
 
-    export UUID_CONFIGURE=''
+    export UUID_CONFIGURE="${PKG_CONFIG_CONFIGURE_PREFIXES}"
     logStatus "Configuring build with '${UUID_CONFIGURE}'... "
     ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${UUID_CONFIGURE} || exit 1
 else
@@ -39,7 +41,9 @@ make || exit 1
 logStatus "Preparing artifacts... "
 make install \
     prefix=${WASMLABS_OUTPUT} \
-    libdir=${WASMLABS_OUTPUT}/lib \
-    pkgconfigdir=${WASMLABS_OUTPUT}/lib/pkgconfig
+    libdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi \
+    pkgconfigdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkgconfig
+
+add_pkg_config_Libs ${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkgconfig/uuid.pc ${LDFLAGS_WASI}
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
