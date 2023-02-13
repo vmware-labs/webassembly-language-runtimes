@@ -25,6 +25,17 @@ else
 fi
 
 
+### libpng
+export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}"/libpng/v1.6.39/lib/pkgconfig:"${PKG_CONFIG_PATH}
+
+if [[ ! -e ${WASMLABS_OUTPUT_BASE}"/libpng/v1.6.39/lib/libpng16.a" ]]; then
+    logStatus "Building libpng dependency..."
+    $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}"/libs/libpng/v1.6.39" || exit 1
+else
+     logStatus "Skipping building libpng dependency!"
+fi
+
+
 ### libxml2
 export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}/libxml2/v2.10.3/lib/pkgconfig:${PKG_CONFIG_PATH}
 

@@ -31,7 +31,7 @@ if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     logStatus "Generating configure script..."
     ./buildconf --force || exit 1
 
-    export PHP_CONFIGURE='--without-iconv --without-openssl --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --enable-mbstring --disable-fiber-asm'
+    export PHP_CONFIGURE='--without-iconv --without-openssl --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --enable-mbstring --enable-gd --disable-fiber-asm'
 
     if [[ -v WASMLABS_RUNTIME ]]
     then

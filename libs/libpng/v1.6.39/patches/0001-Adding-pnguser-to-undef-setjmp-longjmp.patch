@@ -1,0 +1,25 @@
+From 91834d163f06962e2096bfce938dec910c1b84e0 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jesu=CC=81s=20Gonza=CC=81lez?= <jesusgm@vmware.com>
+Date: Mon, 13 Feb 2023 23:44:09 +0100
+Subject: [PATCH] fix: Adding `pngusr.h` to #undef setjmp/longjmp functionality
+
+---
+ pngusr.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+ create mode 100644 pngusr.h
+
+diff --git a/pngusr.h b/pngusr.h
+new file mode 100644
+index 000000000..a846e4ab1
+--- /dev/null
++++ b/pngusr.h
+@@ -0,0 +1,6 @@
++/* Private build information for pnligbconf.h */
++/* See scrips/pnglibconf.dfa for more information */
++
++#undef PNG_SETJMP_SUPPORTED
++#undef PNG_SIMPLIFIED_READ_SUPPORTED
++#undef PNG_SIMPLIFIED_WRITE_SUPPORTED
+-- 
+2.37.0
+
