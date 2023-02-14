@@ -13,8 +13,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - prefix: wasmedge-
-            suffix: -wasmedge
+          - prefix: "wasmedge-"
+            suffix: "-wasmedge"
+            version: 3.11.1
+          - prefix: "aio-"
+            suffix: "-aio"
             version: 3.11.1
           - prefix: ""
             suffix: ""
@@ -29,10 +32,10 @@ jobs:
         shell: bash
         run: |
           sudo mv build-output/python/v${{ matrix.version }}/bin/python{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
-      - name: Upload python-aio-${{ matrix.version }}.zip artifact
+      - name: Upload python-${{ matrix.version }}.zip artifact
         uses: actions/upload-artifact@v3
         with:
-          name: python-aio-${{ matrix.version }}.zip
+          name: python-${{ matrix.version }}.zip
           path: |
             build-output/python/v${{ matrix.version }}/bin/python-${{ matrix.version }}${{ matrix.suffix }}.wasm
             build-output/python/v${{ matrix.version }}/usr

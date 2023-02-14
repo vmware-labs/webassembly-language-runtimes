@@ -20,6 +20,10 @@ python/v*:
 python/wasmedge-v3.11.1:
 	WASMLABS_RUNTIME=wasmedge make -C python $(subst python/wasmedge-,,$@)
 
+.PHONY: python/aio-v3.11.1
+python/aio-v3.11.1:
+	WASMLABS_BUILD_FLAVOR=aio make -C python $(subst python/aio-,,$@)
+
 .PHONY: oci-python-3.11.1
 oci-python-3.11.1: python/wasmedge-v3.11.1
 	docker build \
