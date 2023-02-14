@@ -38,7 +38,7 @@ RUN git clone --recurse-submodules https://github.com/kateinoigakukun/wasi-vfs
 RUN cd wasi-vfs && \
       git checkout ${WASI_VFS_VERSION} && \
       cargo build --release -p wasi-vfs-cli && \
-      cargo build --release --target=wasm32-wasi
+      cargo build --release --target=wasm32-unknown-unknown
 
 FROM wasi-base
 ARG WABT_VERSION
@@ -60,7 +60,7 @@ ENV WABT=${WABT}
 ENV WABT_ROOT=${WABT_ROOT}
 ENV WASI_VFS_ROOT=${WASI_VFS_ROOT}
 RUN mkdir -p /wasi-vfs/bin /wasi-vfs/lib
-COPY --from=builder-wasi-vfs /wasi-vfs/target/wasm32-wasi/release/libwasi_vfs.a /wasi-vfs/lib/
+COPY --from=builder-wasi-vfs /wasi-vfs/target/wasm32-unknown-unknown/release/libwasi_vfs.a /wasi-vfs/lib/
 COPY --from=builder-wasi-vfs /wasi-vfs/target/release/wasi-vfs /wasi-vfs/bin/
 RUN wget https://github.com/WebAssembly/wabt/releases/download/${WABT_VERSION}/${WABT}-ubuntu.tar.gz && \
       mkdir ${WABT_ROOT} && \
