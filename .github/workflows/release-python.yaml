@@ -87,7 +87,7 @@ jobs:
         run: |
           gh release upload ${{ github.ref_name }} \
             build-output/python/v${{ matrix.version }}/python-${{ matrix.version }}.zip \
-            build-output/python/v${{ matrix.version }}-aio/bin/python{,-${{ matrix.version }}}-aio.wasm
+            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}-aio.wasm
       - name: Generate release assets digests
         # Only run for the Python version specified in the git tag.
         #
@@ -114,4 +114,4 @@ jobs:
         run: |
           gh release upload ${{ github.ref_name }} \
             build-output/python/v${{ matrix.version }}/python-${{ matrix.version }}.zip.sha256sum \
-            build-output/python/v${{ matrix.version }}-aio/bin/python{,-${{ matrix.version }}}-aio.wasm.sha256sum
+            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}-aio.wasm.sha256sum
