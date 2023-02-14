@@ -15,7 +15,7 @@ export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID -D_WASI_EM
 export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
 
 ########## Setup the flags for php #############
-export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI'
+export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DPNG_USER_CONFIG -DWASM_WASI'
 
 # We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
 export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES}"

@@ -21,7 +21,8 @@ logStatus "Using LIBPNG CFLAGS: ${CFLAGS_LIBPNG}"
 logStatus "Using LIBPNG LDFLAGS: ${LDFLAGS_LIBPNG}"
 
 # Enabling private user build information from pngusr.h (see scripts/pnglibconf.dfa)
-export CFLAGS_BUILD='-DPNG_USER_CONFIG'
+export CPPFLAGS='-DPNG_USER_CONFIG'
+export CFLAGS_BUILD=''
 
 # We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_LIBPNG} ${CFLAGS_BUILD} ${LDFLAGS_WASI}"
@@ -42,6 +43,7 @@ INCLUDES=${CFLAGS_LIBPNG} make -j libpng16.la || exit 1
 
 logStatus "Preparing artifacts..."
 make install-pkgincludeHEADERS || exit 1
+make install-nodist_pkgincludeHEADERS || exit 1
 make install-libLTLIBRARIES || exit 1
 make install-pkgconfigDATA || exit 1
 make install-header-links || exit 1
