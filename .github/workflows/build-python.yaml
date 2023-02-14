@@ -13,12 +13,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - prefix: wasmedge-
-            suffix: -wasmedge
-            version: 3.11.1
           - prefix: ""
             suffix: ""
-            version: 3.11.1
+            version: "3.11.1"
+          - prefix: "wasmedge-"
+            suffix: "-wasmedge"
+            version: "3.11.1"
+          - prefix: "aio-"
+            suffix: "-aio"
+            version: "3.11.1"
+          - prefix: "aio-wasmedge-"
+            suffix: "-aio-wasmedge"
+            version: "3.11.1"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -28,12 +34,12 @@ jobs:
       - name: Rename artifacts
         shell: bash
         run: |
-          sudo mv build-output/python/v${{ matrix.version }}/bin/python{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}}.wasm
-      - name: Upload python-aio-${{ matrix.version }}.zip artifact
+          sudo mv build-output/python/v${{ matrix.version }}${{ matrix.suffix }}/bin/python{,-${{ matrix.version }}${{ matrix.suffix }}}.wasm
+      - name: Upload python-${{ matrix.version }}.zip artifact
         uses: actions/upload-artifact@v3
         with:
-          name: python-aio-${{ matrix.version }}.zip
+          name: python-${{ matrix.version }}.zip
           path: |
-            build-output/python/v${{ matrix.version }}/bin/python-${{ matrix.version }}${{ matrix.suffix }}.wasm
-            build-output/python/v${{ matrix.version }}/usr
+            build-output/python/v${{ matrix.version }}${{ matrix.suffix }}/bin/python-${{ matrix.version }}${{ matrix.suffix }}.wasm
+            build-output/python/v${{ matrix.version }}${{ matrix.suffix }}/usr
           if-no-files-found: error
