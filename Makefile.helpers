@@ -32,6 +32,7 @@ define build_in_container
 	docker run \
 		--platform linux/amd64 \
 		--rm \
+		-e WASMLABS_BUILD_FLAVOR \
 		-e WASMLABS_RUNTIME \
 		-v $($@_REPO_ROOT):/wlr/ \
 		-v $($@_REPO_ROOT)/scripts/wrappers/wasm-opt:/opt/priority-bin/wasm-opt \
