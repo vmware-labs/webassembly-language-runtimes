@@ -8,30 +8,12 @@ fi
 
 cd "${WASMLABS_SOURCE_PATH}"
 
-# The PREFIX for builder-python MUST be outside of the current build as we need
-# a distclean before building for WASI. The distclean will recursively remove
-# all .so files in the current folder, so if builder-python is installed here
-# it will be botched.
-export BUILDER_PYTHON_PREFIX="$(realpath ${WASMLABS_SOURCE_PATH}/../builder-python)"
-
-if ${BUILDER_PYTHON_PREFIX}/bin/python3.11 -c "import sys; import zipfile"
-then
-    logStatus "Using pre-built builder python (on host) from ${BUILDER_PYTHON_PREFIX}... "
-else
-    logStatus "Building builder python (on host) at ${BUILDER_PYTHON_PREFIX}... "
-    mkdir ${BUILDER_PYTHON_PREFIX}
-    make distclean
-    ${WASMLABS_REPO_ROOT}/scripts/wl-hostbuild.sh ./configure --prefix ${BUILDER_PYTHON_PREFIX} || exit 1
-    make install || exit 1
-    make distclean || exit 1
-fi
-
 export CFLAGS_CONFIG="-O0"
 
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_DEPENDENCIES} ${CFLAGS}"
 export LDFLAGS="${LDFLAGS_DEPENDENCIES} ${LDFLAGS}"
 
-export PYTHON_WASM_CONFIGURE="--with-build-python=${BUILDER_PYTHON_PREFIX}/bin/python3.11"
+export PYTHON_WASM_CONFIGURE="--with-build-python=python3"
 
 if [[ "${WASMLABS_RUNTIME}" == "wasmedge" ]]
 then
