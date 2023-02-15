@@ -9,7 +9,6 @@ fi
 cd "${WASMLABS_SOURCE_PATH}"
 
 export PREFIX=/wlr-rubies
-export XLDFLAGS="/wasi-vfs/lib/libwasi_vfs.a $XLDFLAGS"
 
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     logStatus "Downloading autotools data... "
@@ -22,7 +21,7 @@ if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     ./configure \
         --host wasm32-unknown-wasi \
         --prefix=$PREFIX \
-        --with-ext=bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor \
+        --with-ext="" \
         --with-static-linked-ext \
         --disable-install-doc \
         LDFLAGS=" \
@@ -40,8 +39,6 @@ logStatus "Building ruby..."
 make install
 
 logStatus "Preparing artifacts... "
-mv $PREFIX/bin/ruby ruby
-rm -rf $PREFIX/bin
-wasi-vfs pack ruby --mapdir $PREFIX::$PREFIX -o ${WASMLABS_OUTPUT}/bin/ruby.wasm || exit 1
+mv $PREFIX/bin/ruby ${WASMLABS_OUTPUT}/bin/ruby.wasm || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
