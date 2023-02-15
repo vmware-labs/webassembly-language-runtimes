@@ -19,7 +19,7 @@ jobs:
           - prefix: "wasmedge-"
             suffix: "-wasmedge"
             version: "3.11.1"
-          - prefix: "aio"
+          - prefix: "aio-"
             suffix: "-aio"
             version: "3.11.1"
           - prefix: "aio-wasmedge-"
