@@ -61,9 +61,9 @@ jobs:
         shell: bash
         run: |
           sudo mv build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}.wasm
-          sudo mv build-output/python/v${{ matrix.version }}-wasmedge/bin/python{,-${{ matrix.version }}}-wasmedge.wasm
+          sudo mv build-output/python/v${{ matrix.version }}-wasmedge/bin/python{,-${{ matrix.version }}-wasmedge}.wasm
           sudo mv build-output/python/v${{ matrix.version }}-aio/bin/python{,-${{ matrix.version }}}.wasm
-          sudo mv build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python{,-${{ matrix.version }}}-wasmedge.wasm
+          sudo mv build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python{,-${{ matrix.version }}-wasmedge}.wasm
       - name: Bundle Python with standard libraries
         # Only run for the Python version specified in the git tag.
         #
@@ -107,7 +107,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in python-${{ matrix.version }}.tar.gz build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm; do
+          for asset in \
+              python-${{ matrix.version }}.tar.gz \
+              build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm \
+              build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm; \
+          do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
