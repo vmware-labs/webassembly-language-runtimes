@@ -18,11 +18,18 @@ python/v*:
 
 .PHONY: python/wasmedge-v3.11.1
 python/wasmedge-v3.11.1:
-	WASMLABS_RUNTIME=wasmedge make -C python $(subst python/wasmedge-,,$@)
+	WASMLABS_BUILD_FLAVOR=wasmedge \
+	make -C python $(subst python/wasmedge-,,$@)
 
 .PHONY: python/aio-v3.11.1
 python/aio-v3.11.1:
-	WASMLABS_BUILD_FLAVOR=aio make -C python $(subst python/aio-,,$@)
+	WASMLABS_BUILD_FLAVOR=aio \
+	make -C python $(subst python/aio-,,$@)
+
+.PHONY: python/aio-wasmedge-v3.11.1
+python/aio-wasmedge-v3.11.1:
+	WASMLABS_BUILD_FLAVOR=aio-wasmedge \
+	make -C python $(subst python/aio-wasmedge-,,$@)
 
 .PHONY: oci-python-3.11.1
 oci-python-3.11.1: python/wasmedge-v3.11.1

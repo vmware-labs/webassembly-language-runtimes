@@ -45,6 +45,13 @@ jobs:
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
         run: make python/aio-v${{ matrix.version }}
+      - name: Build Python AIO Wasmedge
+        # Only run for the Python version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
+        run: make python/aio-wasmedge-v${{ matrix.version }}
       - name: Rename release artifacts
         # Only run for the Python version specified in the git tag.
         #
@@ -54,8 +61,9 @@ jobs:
         shell: bash
         run: |
           sudo mv build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}.wasm
-          sudo mv build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}-wasmedge.wasm
-          sudo mv build-output/python/v${{ matrix.version }}-aio/bin/python{,-${{ matrix.version }}}-aio.wasm
+          sudo mv build-output/python/v${{ matrix.version }}-wasmedge/bin/python{,-${{ matrix.version }}}-wasmedge.wasm
+          sudo mv build-output/python/v${{ matrix.version }}-aio/bin/python{,-${{ matrix.version }}}.wasm
+          sudo mv build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python{,-${{ matrix.version }}}-wasmedge.wasm
       - name: Bundle Python with standard libraries
         # Only run for the Python version specified in the git tag.
         #
@@ -63,9 +71,10 @@ jobs:
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
         run: |
-          pushd build-output/python/v${{ matrix.version }}
-          sudo zip -qq -r python-${{ matrix.version }}.zip bin usr
-          popd
+          tar -czvf python-${{ matrix.version }}.tar.gz --strip-components=3 \
+             build-output/python/v${{ matrix.version }}/bin/python-${{ matrix.version }}.wasm \
+             build-output/python/v${{ matrix.version }}/usr \
+             build-output/python/v${{ matrix.version }}-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm
       - name: Create release
         # Only run for the Python version specified in the git tag.
         #
@@ -86,8 +95,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            build-output/python/v${{ matrix.version }}/python-${{ matrix.version }}.zip \
-            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}-aio.wasm
+            python-${{ matrix.version }}.tar.gz \
+            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm
+            build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm
       - name: Generate release assets digests
         # Only run for the Python version specified in the git tag.
         #
@@ -97,10 +107,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in build-output/python/v${{ matrix.version }}/python-${{ matrix.version }}.zip; do
-            sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
-          done
-          for asset in build-output/python/v${{ matrix.version }}-aio/bin/*; do
+          for asset in python-${{ matrix.version }}.tar.gz build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm; do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
@@ -113,5 +120,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            build-output/python/v${{ matrix.version }}/python-${{ matrix.version }}.zip.sha256sum \
-            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}-aio.wasm.sha256sum
+            python-${{ matrix.version }}.tar.gz.sha256sum \
+            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm.sha256sum \
+            build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm
