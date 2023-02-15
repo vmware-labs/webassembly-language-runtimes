@@ -96,7 +96,7 @@ jobs:
         run: |
           gh release upload ${{ github.ref_name }} \
             python-${{ matrix.version }}.tar.gz \
-            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm
+            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm \
             build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm
       - name: Generate release assets digests
         # Only run for the Python version specified in the git tag.
