@@ -12,6 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        flavor: ["", "-slim"]
         include:
           - version: 3.2.0
             target_version: 3_2_0
@@ -20,14 +21,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build Ruby
-        run: make ruby/v${{ matrix.target_version }}
+        run: make ruby/v${{ matrix.target_version }}${{ matrix.flavor }}
       - name: Rename artifacts
         shell: bash
         run: |
-          sudo mv build-output/ruby/v${{ matrix.target_version }}/bin/ruby{,-${{ matrix.version }}}.wasm
-      - name: Upload ruby-${{ matrix.version }}.wasm artifact
+          sudo mv build-output/ruby/v${{ matrix.target_version }}${{ matrix.flavor }}/bin/ruby{,-${{ matrix.version }}${{ matrix.flavor }}}.wasm
+      - name: Upload ruby-${{ matrix.version }}${{ matrix.flavor }}.wasm artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ruby-${{ matrix.version }}.wasm
-          path: build-output/ruby/v${{ matrix.target_version }}/bin/ruby-${{ matrix.version }}.wasm
+          name: ruby-${{ matrix.version }}${{ matrix.flavor }}.wasm
+          path: build-output/ruby/v${{ matrix.target_version }}${{ matrix.flavor }}/bin/ruby-${{ matrix.version }}${{ matrix.flavor }}.wasm
           if-no-files-found: error
