@@ -4,5 +4,4 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y \
       libtool-bin \
       bison \
       re2c \
-      libsqlite3-dev \
       tcl

@@ -12,23 +12,23 @@ export CFLAGS_CONFIG="-O0"
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT}"
 export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT}"
 
-export CFLAGS_LIBXML2=''
+export CFLAGS_ONIGURUMA=''
 
-logStatus "Using LIBXML2 DEFINES: ${CFLAGS_LIBXML2}"
+logStatus "Using ONIGURUMA DEFINES: ${CFLAGS_ONIGURUMA}"
 
 export CFLAGS_BUILD=''
 
 # We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
-export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_LIBXML2} ${CFLAGS_BUILD} ${LDFLAGS_WASI}"
+export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_ONIGURUMA} ${CFLAGS_BUILD} ${LDFLAGS_WASI}"
 export LDFLAGS="${LDFLAGS_WASI}"
 
 cd "${WASMLABS_SOURCE_PATH}"
 
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     ./autogen.sh
-    export LIBXML2_CONFIGURE="--prefix=${WASMLABS_OUTPUT} --enable-static --disable-shared --with-minimum=yes --with-output=yes --with-schemas=yes --with-tree=yes --with-valid=yes --with-html=yes --with-xpath=yes --with-reader=yes --with-writer=yes --with-xinclude=yes --with-c14n=yes --with-sax1=yes"
-    logStatus "Configuring build with '${LIBXML2_CONFIGURE}'..."
-    ./configure --config-cache --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${LIBXML2_CONFIGURE} || exit 1
+    export ONIGURUMA_CONFIGURE="--prefix="${WASMLABS_OUTPUT}" --enable-static --disable-shared"
+    logStatus "Configuring build with '${ONIGURUMA_CONFIGURE}'... "
+    ./configure --config-cache --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${ONIGURUMA_CONFIGURE} || exit 1
 else
     logStatus "Skipping configure..."
 fi

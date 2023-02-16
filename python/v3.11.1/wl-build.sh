@@ -16,6 +16,15 @@ fi
 
 export CFLAGS_CONFIG="-O0"
 
+
+# This fails with upgraded clang for wasi-sdk19 and later. Disabled on cpython main.
+#
+# PyModule_AddIntMacro(module, CLOCK_MONOTONIC) and the like cause this.
+# In all POSIX variants CLOCK_MONOTONIC is a numeric constant, so python imports it as int macro
+# However, in wasi-libc clockid_t is defined as a pointer to struct __clockid.
+
+export CFLAGS_CONFIG="${CFLAGS_CONFIG} -Wno-int-conversion"
+
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_DEPENDENCIES} ${CFLAGS}"
 export LDFLAGS="${LDFLAGS_DEPENDENCIES} ${LDFLAGS}"
 

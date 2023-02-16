@@ -1,0 +1,47 @@
+From eda399b9adbddebedffa2233f4bcfe7223f9b6a4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jesu=CC=81s=20Gonza=CC=81lez?= <jesusgm@vmware.com>
+Date: Tue, 14 Feb 2023 18:52:25 +0100
+Subject: [PATCH] feat: Avoid setjmp/longjmp for WASI
+
+---
+ pngconf.h | 10 ++++++----
+ pngusr.h  |  6 ++++++
+ 2 files changed, 12 insertions(+), 4 deletions(-)
+ create mode 100644 pngusr.h
+
+diff --git a/pngconf.h b/pngconf.h
+index 74bfe27ce..ba283fb04 100644
+--- a/pngconf.h
++++ b/pngconf.h
+@@ -46,10 +46,12 @@
+ #  include <stdio.h>
+ #endif
+ 
+-#ifdef PNG_SETJMP_SUPPORTED
+-   /* Required for the definition of jmp_buf and the declaration of longjmp: */
+-#  include <setjmp.h>
+-#endif
++#ifndef __wasi__
++   #ifdef PNG_SETJMP_SUPPORTED
++      /* Required for the definition of jmp_buf and the declaration of longjmp: */
++   #  include <setjmp.h>
++   #endif
++#endif /* __wasi__ */
+ 
+ #ifdef PNG_CONVERT_tIME_SUPPORTED
+    /* Required for struct tm: */
+diff --git a/pngusr.h b/pngusr.h
+new file mode 100644
+index 000000000..1337ac8a6
+--- /dev/null
++++ b/pngusr.h
+@@ -0,0 +1,6 @@
++/* Private build information for pnligbconf.h */
++/* See scrips/pnglibconf.dfa for more information */
++
++#define PNG_NO_SETJMP
++#define PNG_NO_SIMPLIFIED_READ
++#define PNG_NO_SIMPLIFIED_WRITE
+-- 
+2.37.0
+

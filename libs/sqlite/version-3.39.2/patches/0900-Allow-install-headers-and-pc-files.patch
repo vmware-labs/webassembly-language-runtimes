@@ -1,0 +1,33 @@
+From 60ae74a4d98beb7c01e11c483232c8dcb3634cd9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jesu=CC=81s=20Gonza=CC=81lez?= <jesusgm@vmware.com>
+Date: Sun, 12 Feb 2023 06:49:38 +0100
+Subject: [PATCH] Allow installation of headers and pkg-config files with the
+ library
+
+---
+ Makefile.in | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile.in b/Makefile.in
+index 2a71bd2c5..4784cccc9 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -1450,9 +1450,14 @@ threadtest5: sqlite3.c $(TOP)/test/threadtest5.c
+ 
+ # Standard install and cleanup targets
+ #
+-lib_install:	libsqlite3.la
++lib_install:	libsqlite3.la sqlite3.h sqlite3.pc ${HAVE_TCL:1=tcl_install}
+ 	$(INSTALL) -d $(DESTDIR)$(libdir)
+ 	$(LTINSTALL) libsqlite3.la $(DESTDIR)$(libdir)
++	$(INSTALL) -d $(DESTDIR)$(includedir)
++	$(INSTALL) -m 0644 sqlite3.h $(DESTDIR)$(includedir)
++	$(INSTALL) -m 0644 $(TOP)/src/sqlite3ext.h $(DESTDIR)$(includedir)
++	$(INSTALL) -d $(DESTDIR)$(pkgconfigdir)
++	$(INSTALL) -m 0644 sqlite3.pc $(DESTDIR)$(pkgconfigdir)
+ 
+ install:	sqlite3$(TEXE) lib_install sqlite3.h sqlite3.pc ${HAVE_TCL:1=tcl_install}
+ 	$(INSTALL) -d $(DESTDIR)$(bindir)
+-- 
+2.37.0
+
