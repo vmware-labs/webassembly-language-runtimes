@@ -48,7 +48,7 @@ fi
 
 
 ### oniguruma
-export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}"/oniguruma/v6.9.8/lib/pkgconfig:"${PKG_CONFIG_PATH}
+export PKG_CONFIG_PATH="${WASMLABS_OUTPUT_BASE}/oniguruma/v6.9.8/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
 if [[ ! -e ${WASMLABS_OUTPUT_BASE}"/oniguruma/v6.9.8/lib/libonig.a" ]]; then
     logStatus "Building Oniguruma dependency..."
