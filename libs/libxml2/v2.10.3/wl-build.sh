@@ -26,7 +26,7 @@ cd "${WASMLABS_SOURCE_PATH}"
 
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     ./autogen.sh
-    export LIBXML2_CONFIGURE="--prefix="${WASMLABS_OUTPUT}" --enable-static --disable-shared --with-minimum=yes --with-output=yes --with-schemas=yes --with-tree=yes --with-valid=yes --with-html=yes --with-xpath=yes --with-reader=yes --with-writer=yes --with-xinclude=yes --with-c14n=yes --with-sax1=yes"
+    export LIBXML2_CONFIGURE="--prefix=${WASMLABS_OUTPUT} --enable-static --disable-shared --with-minimum=yes --with-output=yes --with-schemas=yes --with-tree=yes --with-valid=yes --with-html=yes --with-xpath=yes --with-reader=yes --with-writer=yes --with-xinclude=yes --with-c14n=yes --with-sax1=yes"
     logStatus "Configuring build with '${LIBXML2_CONFIGURE}'..."
     ./configure --config-cache --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${LIBXML2_CONFIGURE} || exit 1
 else
