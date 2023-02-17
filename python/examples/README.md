@@ -2,7 +2,7 @@ Here you can find a list of things to try out with Python.wasm
 
 The latest release is available at [python/3.11.1+20230217-15dfbed](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/python%2F3.11.1%2B20230217-15dfbed)
 
-If you hate walls of text and just want to look at the sample commands, take a look at [run_all_snippets.sh](./run_all_snippets.sh). You could even run it (from this folder as PWD) to try and reproduce most of the examples below. 
+If you hate walls of text and just want to look at the sample commands, take a look at [run_all_snippets.sh](./run_all_snippets.sh). You could even run it (from this folder as PWD) to try and reproduce most of the examples below.
 
 # Prerequisites
 
@@ -10,15 +10,13 @@ To give it a try, you will need to have a few tools installed in advance.
 
 Most notably, a shell that has enough Unicode support to show emojis. Yep, this is what we use as part of our examples 😄
 
-### `python3` on your machine
+Naturally, you'll need some basic tools to handle the artifacts - curl, wget, tar, gzip.
+
+### Python3 on your host machine
 
 Implementing pip for `python.wasm` is not universally possible, because WASI still does not offer full socket support. Downloading a package from the internet may not even work on some runtimes.
 
 But that is OK for most scenarios we are interested in, as `python.wasm` is likely to be used as a runtime in Cloud or Edge environments rather than a generic development platform. We will start by using a native python3.11 installation to setup a sample application. And then we will show how you can run it on `python.wasm`.
-
-### `wget`, `tar` and `gzip`
-
-These tools are required to download and extract the released binary.
 
 ### A WASI-compatible runtime
 
@@ -32,9 +30,9 @@ To try the examples with Docker you will need "Docker Desktop" + Wasm [version 4
 
 If you take a look at the release assets, you will find a few flavors:
 
- - python-3.11.1.wasm - WASI compliant interpreter and standard libs wrapped within a single Wasm binary
- - python-3.11.1-wasmedge.wasm - WASI+WasmEdge compliant interpreter and standard libs wrapped within a single Wasm binary. WasmEdge extends WASI's socket API
- - python-3.11.1.tar.gz - Both the WASI and WASI+WasmEdge interpreters as separate Wasm binaries. The standard libs are also available separately. All of these within the same archive.
+ - `python-3.11.1.wasm` - WASI compliant interpreter and standard libs wrapped within a single Wasm binary
+ - `python-3.11.1-wasmedge.wasm` - WASI+WasmEdge compliant interpreter and standard libs wrapped within a single Wasm binary. WasmEdge extends WASI's socket API
+ - `python-3.11.1.tar.gz` - Both the WASI and WASI+WasmEdge interpreters as separate Wasm binaries. The standard libs are also available separately. All of these within the same archive.
 
  You would want to use the first two versions when convenience is the most important factor. You get a single binary and you don't have to manage how it uses the Python standard library. It all just works.
 
@@ -62,7 +60,7 @@ curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/d
 
 Now, let's look into what we downloaded. The `python-3.11.1-wasmedge.wasm` and `python-3.11.1.wasm` binaries inside `tmp` can be used as standalone interpreters, as they embed the Python standard libraries.
 
-The ones in `tmp/unpacked/bin`, however, will need the files from `tmp/usr/local/lib` to work. These files include a `python311.zip` archive of the standard libraries, a placeholder `python3.11/lib-dynload` and a `python3.11/os.py`. The last two are not strictly necessary but if omitted will cause dependency warnings whenever python runs.
+The ones in `tmp/unpacked/bin`, however, will need the files from `tmp/unpacked/usr/local/lib` to work. These files include a `python311.zip` archive of the standard libraries, a placeholder `python3.11/lib-dynload` and a `python3.11/os.py`. The last two are not strictly necessary but if omitted will cause dependency warnings whenever python runs.
 
 ```shell-session
 tmp
@@ -85,7 +83,7 @@ tmp
 
 Running the packed binaries is as easy as
 
-```
+```shell-session
 wasmtime run \
   tmp/python-3.11.1.wasm \
   -- -c "import sys; from pprint import pprint as pp; \
