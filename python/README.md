@@ -6,46 +6,41 @@ The initially supported version is python 3.11.1.
 
 The build is based on CPython's WASM+WASI support - https://pythondev.readthedocs.io/wasm.html
 
-The initial version depends on pre-build WASM libraries found in https://github.com/singlestore-labs/python-wasi/tree/main/docker for `zlib` or `libuuid`. With time we will build those on our own during the build process.
+# Getting started
 
-# Prerequisites
+For more examples of how to use the released `python.wasm` see the [examples](./examples) folder.
 
-To run this build you will need
+# For developers
 
- - the following list of build tools
+In case you want to build this on you own, you will need _Docker_ and _GNU make_.
+## Building
 
-```
-sudo apt install -y autoconf automake build-essential clang git pkg-config wget
+Note: all commands and paths are relative to the root of the repository.
 
-```
- - wasi-sdk from here - https://github.com/WebAssembly/wasi-sdk/releases
-
-
-# Building
-
-You can build Python by running the following:
+Building the default flavor is as easy as
 
 ```
-export WASI_SDK_ROOT=/opt/wasi-sdk
-wl-make.sh python/v3.11.1
+make python/v3.11.1
 ```
 
-# Running python.wasm
-
-The build will provide you with a wasm binary and with a separate zip file that contains all scripts from python's standard library.
+You will get all the output files in `build-output/python`
 
 ```
 build-output/python/
 └── v3.11.1
     ├── bin
     │   └── python.wasm
-    ├── include
-    ├── lib
     └── usr
         └── local
             └── lib
                 └── python311.zip
 ```
+
+All intermediary files, including the source CPython repository can be found in `build-staging/python/v3.11.1`.
+
+## Running python.wasm
+
+As you see the build provides a wasm binary and a separate zip file that contains all scripts from python's standard library.
 
 The default PYTHONPATH includes `/usr/local/lib/python311.zip` so when running the binary you will need to ensure that python311.zip is mapped at the proper location in the WASM sandboxed environment. For example
 
