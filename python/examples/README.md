@@ -14,7 +14,7 @@ Most notably, a shell that has enough Unicode support to show emojis. Yep, this 
 
 Implementing pip for `python.wasm` is not universally possible, because WASI still does not offer full socket support. Downloading a package from the internet may not even work on some runtimes.
 
-But that is OK for most scenarios we are interested in, as `python.wasm` is likely to be used as a runtime in Cloud or Edge environments rather than a generic development platform. We will start by using a native python3.11 installation to setup a sample applications. And then we will show how you can run it on `python.wasm`.
+But that is OK for most scenarios we are interested in, as `python.wasm` is likely to be used as a runtime in Cloud or Edge environments rather than a generic development platform. We will start by using a native python3.11 installation to setup a sample application. And then we will show how you can run it on `python.wasm`.
 
 ### `wget`, `tar` and `gzip`
 
@@ -34,7 +34,7 @@ If you take a look at the release assets, you will find a few flavors:
 
  - python-3.11.1.wasm - WASI compliant interpreter and standard libs wrapped within a single Wasm binary
  - python-3.11.1-wasmedge.wasm - WASI+WasmEdge compliant interpreter and standard libs wrapped within a single Wasm binary. WasmEdge extends WASI's socket API
- - python-3.11.1.tar.gz - Both the WASI and WASI+WasmEdge interpretors as separate Wasm binaries. The standard libs are also available separately. All of these within the same archive.
+ - python-3.11.1.tar.gz - Both the WASI and WASI+WasmEdge interpreters as separate Wasm binaries. The standard libs are also available separately. All of these within the same archive.
 
  You would want to use the first two versions when convenience is the most important factor. You get a single binary and you don't have to manage how it uses the Python standard library. It all just works.
 
@@ -153,7 +153,7 @@ Next, let's assume we have a Python app that has additional dependencies. For ex
 
 ### Installing dependencies to the pre-compiled PYTHONPATH
 
-To set up the dependencies we will need `pip3` (or `python3 -m pip`) on the development machine, to download and install the necessary dependencies. The most straightforward way of doing this is by running pip with `--target` pointing the path that is already pre-compiled into the `python.wasm` binary. Namely, `usr/local/lib/python3.11/`
+To set up the dependencies we will need `pip3` (or `python3 -m pip`) on the development machine, to download and install the necessary dependencies. The most straightforward way of doing this is by running pip with `--target` pointing to the path that is already pre-compiled into the `python.wasm` binary. Namely, `usr/local/lib/python3.11/`
 
 However, we could use this approach only with the version where the python interpreter is not packed with the standard libraries. In this case the host folder with the standard libraries (along with the extra dependencies that we installed) will be pre-opened to the proper location within the Wasm application at runtime.
 
@@ -223,6 +223,7 @@ He will put on his 👖 and get out of the 🏠 for a walk.
 ```
 
 Passing an environment variable with WasmEdge is similar
+
 ```shell-session
 wasmedge \
   --env PYTHONPATH=/external-packages \
@@ -286,7 +287,7 @@ We need to do three things
 
 A vital piece of knowledge here is that whatever you mount in the running container gets automatically pre-opened by the WasmEdge runtime. Same goes for all environment variables that you pass to the container when you run it. 
 
-One way of doing what we want is to just mount `site-packages` from `venv-emoji` over the `site-packages` folder of the pre-compiled path in `/usr/local`. This is what this could look like:
+One way of doing what we want is to just mount `site-packages` from `venv-emoji` over the `site-packages` folder of the pre-compiled path in `/usr/local`. This is how this could look like:
 
 ```shell-session
 docker run --rm \
