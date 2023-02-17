@@ -32,11 +32,26 @@ python/aio-wasmedge-v3.11.1:
 	make -C python $(subst python/aio-wasmedge-,,$@)
 
 .PHONY: oci-python-3.11.1
-oci-python-3.11.1: python/wasmedge-v3.11.1
+oci-python-3.11.1: python/v3.11.1
 	docker build \
-		--build-arg PYTHON_TAG=v3.11.1 \
-		--build-arg PYTHON_BINARY=python-wasmedge.wasm \
-		-t ghcr.io/vmware-labs/python-wasm:3.11.1-latest \
+	    --platform wasm32/wasi \
+		--build-arg NAME=python-wasm \
+		--build-arg SUMMARY="CPython built for WASI+Wasmedge, by Wasm Labs" \
+		--build-arg ARTIFACTS_BASE_DIR=build-output/python/v3.11.1 \
+		--build-arg PYTHON_BINARY=python.wasm \
+		-t ghcr.io/vmware-labs/python-wasm:3.11.1 \
+		-f images/python/Dockerfile \
+		.
+
+.PHONY: oci-python-3.11.1-wasmedge
+oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
+	docker build \
+	    --platform wasm32/wasi \
+		--build-arg NAME=python-wasm \
+		--build-arg SUMMARY="CPython built for WASI+WasmEdge, by Wasm Labs" \
+		--build-arg ARTIFACTS_BASE_DIR=build-output/python/v3.11.1-wasmedge \
+		--build-arg PYTHON_BINARY=python.wasm \
+		-t ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge \
 		-f images/python/Dockerfile \
 		.
 
