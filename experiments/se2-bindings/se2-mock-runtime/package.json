@@ -1,0 +1,17 @@
+{
+  "name": "se2-mock-runtime",
+  "version": "1.0.0",
+  "description": "Mock of the SE2 runtime to test basic plugins",
+  "main": "bin/runtime.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "WasmLabs",
+  "license": "Apache-2.0",
+  "bin": {
+    "node.app": "./bin/runtime.js"
+  },
+  "dependencies": {
+    "yargs": "13.2"
+  }
+}

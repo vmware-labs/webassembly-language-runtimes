@@ -1,6 +1,9 @@
 # Ignore everything in these directories
 build-output
 build-staging
+__pycache__
+node_modules
+target
 .vscode/**
 *.log
 # Except this file
