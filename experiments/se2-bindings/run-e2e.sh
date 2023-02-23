@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 if [[ ! -v WASI_SDK_PATH ]]; then
     echo "WASI_SDK_PATH is required. Download wasi-sdk and set the variable"
     exit 1

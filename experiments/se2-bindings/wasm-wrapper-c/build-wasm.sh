@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 if [[ ! -v WASI_SDK_PATH ]]; then
     echo "WASI_SDK_PATH is required. Download wasi-sdk and set the variable"
     exit 1
@@ -9,7 +11,7 @@ if [[ "$1" == "--clean" ]]; then
 fi
 
 mkdir -p ${TARGET_DIR}/deps 2>/dev/null
-export DEPS_CHECKSUM="3d058be4c6e74d40c76307ac634f0930  -"
+export DEPS_CHECKSUM="319a16b509cbb1e4156691ed1d32f53d  -"
 if [ "${DEPS_CHECKSUM}" == "$(find target/wasm32-wasi/deps | md5sum)" ]; then
     echo "Dependencies already downloaded. Reusing..."
 else
