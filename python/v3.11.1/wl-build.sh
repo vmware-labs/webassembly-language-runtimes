@@ -91,4 +91,27 @@ else
     cp -TRv usr ${WASMLABS_OUTPUT}/usr || exit 1
 fi
 
+logStatus "Install includes"
+make inclinstall \
+    prefix=${WASMLABS_OUTPUT} \
+    libdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi \
+    pkgconfigdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkgconfig || exit 1
+
+logStatus "Create libpython3.11-aio.a"
+(${AR} -M <<EOF
+create libpython3.11-aio.a
+addlib libpython3.11.a
+addlib ${WASMLABS_REPO_ROOT}/build-output/zlib/v1.2.13/lib/libz.a
+addlib ${WASMLABS_REPO_ROOT}/build-output/sqlite/version-3.39.2/lib/libsqlite3.a
+addlib ${WASMLABS_REPO_ROOT}/build-output/uuid/libuuid-1.0.3/lib/libuuid.a
+addlib Modules/expat/libexpat.a
+addlib Modules/_decimal/libmpdec/libmpdec.a
+save
+end
+EOF
+) || echo exit 1
+
+mkdir -p ${WASMLABS_OUTPUT}/lib/wasm32-wasi/ 2>/dev/null || exit 1
+cp -v libpython3.11-aio.a ${WASMLABS_OUTPUT}/lib/wasm32-wasi/libpython3.11.a || exit 1
+
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

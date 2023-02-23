@@ -79,6 +79,19 @@ jobs:
             -C build-output/python/v${{ matrix.version }}-wasmedge/ \
             bin/python-${{ matrix.version }}-wasmedge.wasm
           gzip python-${{ matrix.version }}.tar
+      - name: Bundle LibPython
+        # Only run for the Python version specified in the git tag.
+        #
+        # This if could be moved to the parent `job` section when it's
+        # supported by GitHub (https://github.com/community/community/discussions/37883)
+        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
+        run: |
+          tar -cvf libpython-${{ matrix.version }}.tar \
+            -C build-output/python/v${{ matrix.version }}/ \
+            include \
+            lib \
+            usr
+          gzip libpython-${{ matrix.version }}.tar
       - name: Create release
         # Only run for the Python version specified in the git tag.
         #
@@ -100,6 +113,7 @@ jobs:
         run: |
           gh release upload ${{ github.ref_name }} \
             python-${{ matrix.version }}.tar.gz \
+            libpython-${{ matrix.version }}.tar.gz \
             build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm \
             build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm
       - name: Generate release assets digests
