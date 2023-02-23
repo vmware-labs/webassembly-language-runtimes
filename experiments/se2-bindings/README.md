@@ -1,6 +1,7 @@
 # Prerequisites
 
  - wasi-sdk, cmake, curl, tar, gzip - for the `wasm-wrapper-c` module
+ - `WASI_SDK_PATH` env variable set to point to the wasi-sdk installation
  - npm, node - for the `se2-mock-runtime`
 
 # How to build and run

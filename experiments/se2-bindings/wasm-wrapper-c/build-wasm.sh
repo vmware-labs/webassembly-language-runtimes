@@ -11,15 +11,10 @@ if [[ "$1" == "--clean" ]]; then
 fi
 
 mkdir -p ${TARGET_DIR}/deps 2>/dev/null
-export DEPS_CHECKSUM="319a16b509cbb1e4156691ed1d32f53d  -"
-if [ "${DEPS_CHECKSUM}" == "$(find target/wasm32-wasi/deps | md5sum)" ]; then
+if [ -f ${TARGET_DIR}/deps/include/python3.11/Python.h -a -f ${TARGET_DIR}/deps/lib/wasm32-wasi/libpython3.11.a ]; then
     echo "Dependencies already downloaded. Reusing..."
 else
     curl -sL https://github.com/assambar/webassembly-language-runtimes/releases/download/python%2F3.11.1%2B20230223-8a6223c/libpython-3.11.1.tar.gz | tar xzv -C ${TARGET_DIR}/deps
-    if [ "${DEPS_CHECKSUM}" != "$(find target/wasm32-wasi/deps | md5sum)" ]; then
-        echo "Dependency checksum mismatch. Run \`find target/wasm32-wasi/deps | md5sum\` and update DEPS_CHECKSUM"
-        exit 1
-    fi
 fi
 
 export INCLUDE_DIRS="$(realpath ${TARGET_DIR}/deps/include/python3.11)"
