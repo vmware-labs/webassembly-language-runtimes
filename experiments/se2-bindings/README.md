@@ -4,6 +4,11 @@
  - npm, node - for the `se2-mock-runtime`
 
 # How to build and run
+
+The fastest thing would be to just run the `run-e2e.sh` script.
+
+Or you can do things one by one, following the steps below:
+
 1. First build the wasm module in `wasm-wrapper-c` using `build-wasm.sh` in that folder.
 
     - This will build the wasm wrapper in `wasm-wrapper-c/target/wasm32-wasi/wasm-wrapper-c.wasm`
