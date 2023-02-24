@@ -28,14 +28,14 @@ echo -e "$(date --iso-8601=ns) | Building wasm-wrapper-c (logs silenced to build
 (
     cd wasm-wrapper-c
     ./build-wasm.sh --clean
-) 2>&1 >>build.log || exit 1
+) >>build.log 2>&1 || exit 1
 
 echo -e "\n" | tee -a build.log
 echo -e "$(date --iso-8601=ns) | Building se2-mock-runtime (logs silenced to build.log)..."  | tee -a build.log
 (
     cd se2-mock-runtime
     npm i
-) 2>&1 >>build.log || exit 1
+) >>build.log 2>&1 || exit 1
 
 echo -e "\n" | tee -a build.log
 echo -e "$(date --iso-8601=ns) | Running se2-mock-runtime..." | tee -a build.log
@@ -46,4 +46,4 @@ echo -e "$(date --iso-8601=ns) | Running se2-mock-runtime..." | tee -a build.log
         --wrapper ../wasm-wrapper-c/target/wasm32-wasi/wasm-wrapper-c.wasm \
         --plugin-root ../py-plugin/ \
         --python-usr-root ../wasm-wrapper-c/target/wasm32-wasi/deps/
-) 2>&1 | tee -a build.log
+) 

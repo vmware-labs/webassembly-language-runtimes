@@ -18,7 +18,7 @@ void _initialize()
 
     if (_plugin_module != NULL)
     {
-        fprintf(stderr, "Python module was already loaded!\n");
+        LOG_MSG(__FILENAME__, "Python module was already loaded!");
         exit(1);
     }
 
@@ -28,22 +28,24 @@ void _initialize()
 
 u8 *allocate(i32 size)
 {
-    printf("\t%s | called allocate(%d)\n", __FILENAME__, size);
-    return malloc(size);
+    LOG_MSG(__FILENAME__, "called allocate(%d)", size);
+    u8 *result = malloc(size);
+    LOG_MSG(__FILENAME__, "allocate(%d) returning %p", size, result);
+    return result;
 }
 
 void deallocate(u8 *pointer, i32 size)
 {
-    printf("\t%s | called deallocate(%p, %d)\n", __FILENAME__, pointer, size);
+    LOG_MSG(__FILENAME__, "called deallocate(%p, %d)", pointer, size);
     return free(pointer);
 }
 
 void run_e(u8 *pointer, i32 size, i32 ident)
 {
-    printf("\t%s | id=%d | called run_e(%p, %d, %d).\n", __FILENAME__, ident, pointer, size, ident);
+    LOG_MSG(__FILENAME__, "id=%d | called run_e(%p, %d, %d)", ident, pointer, size, ident);
     if (_plugin_module == NULL)
     {
-        fprintf(stderr, "\t%s | id=%d | run_e: plugin module was not loaded!\n", __FILENAME__, ident);
+        LOG_MSG(__FILENAME__, "id=%d | run_e: plugin module was not loaded!", ident);
         exit(1);
     }
 
@@ -52,7 +54,7 @@ void run_e(u8 *pointer, i32 size, i32 ident)
     {
         if (PyErr_Occurred())
             PyErr_Print();
-        fprintf(stderr, "\t%s | id=%d | run_e: cannot find function \"%s\"!\n", __FILENAME__, ident, "run_e");
+        LOG_MSG(__FILENAME__, "id=%d | run_e: cannot find function \"%s\"!", ident, "run_e");
         Py_XDECREF(pFunc);
         return;
     }
@@ -62,8 +64,8 @@ void run_e(u8 *pointer, i32 size, i32 ident)
     {
         if (PyErr_Occurred())
             PyErr_Print();
-        fprintf(stderr, "\t%s | id=%d | run_e: failed to convert arguments pointer=%p, size=%d, ident=%d!\n",
-                __FILENAME__, ident, pointer, size, ident);
+        LOG_MSG(__FILENAME__, "id=%d | run_e: failed to convert arguments pointer=%p, size=%d, ident=%d!",
+                ident, pointer, size, ident);
         Py_XDECREF(pFunc);
         return;
     }
@@ -72,7 +74,7 @@ void run_e(u8 *pointer, i32 size, i32 ident)
     if (pValue == NULL)
     {
         PyErr_Print();
-        fprintf(stderr, "\t%s | id=%d | run_e: call to python function failed!\n", __FILENAME__, ident);
+        LOG_MSG(__FILENAME__, "id=%d | run_e: call to python function failed!", ident);
         Py_XDECREF(pArgs);
         Py_XDECREF(pFunc);
         return;
@@ -82,5 +84,5 @@ void run_e(u8 *pointer, i32 size, i32 ident)
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
 
-    fprintf(stderr, "\t%s | id=%d | run_e: completed.\n", __FILENAME__, ident);
+    LOG_MSG(__FILENAME__, "id=%d | run_e: completed", ident);
 }

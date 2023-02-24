@@ -1,10 +1,13 @@
 #include "utils.h"
 
-#include <unistd.h>
 
+#include <dirent.h>
+#include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <dirent.h>
+#include <unistd.h>
+
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 #define PATH_MAX 4096
 
@@ -12,7 +15,7 @@ void print_current_dir()
 {
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) != NULL)
-        printf("\tutils.c | Current working dir: %s\n", cwd);
+        LOG_MSG(__FILENAME__, "Current working dir: %s", cwd);
 }
 
 void list_current_dir()
@@ -25,13 +28,13 @@ void list_current_dir()
     if (dp != NULL)
     {
         while ((ep = readdir(dp)) != NULL)
-            printf("\tutils.c |  %s\n", ep->d_name);
+            LOG_MSG(__FILENAME__, "  - %s", ep->d_name);
 
-        printf("\n\n");
+        LOG_MSG(__FILENAME__, "\n");
         (void)closedir(dp);
     }
     else
     {
-        perror("\tutils.c | Couldn't open the current directory");
+        perror("utils.c | E | Couldn't open the current directory");
     }
 }

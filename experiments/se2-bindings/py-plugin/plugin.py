@@ -1,5 +1,8 @@
 import sdk
 
+def log(msg, id=None):
+    print(f'\033[35m    [plugin.py]\033[0m | id={id} | {msg}', flush = True)
+
 def reverse(s):
     str = ""
     for i in s:
@@ -7,10 +10,10 @@ def reverse(s):
     return str
 
 def run_e(payload, ident):
-    print(f'\t\tplugin.py | id={ident} | Received payload "{payload}"')
+    log(f'Received payload "{payload}"', ident)
     result = reverse(payload)
 
-    print(f'\t\tplugin.py | id={ident} | Returning result "{result}"...')
+    log(f'Returning result "{result}"', ident)
     sdk.return_result(result, ident)
 
-    print(f'\t\tplugin.py | id={ident} | Result returned for {ident}.')
+    log(f'Result returned for "{ident}"', ident)

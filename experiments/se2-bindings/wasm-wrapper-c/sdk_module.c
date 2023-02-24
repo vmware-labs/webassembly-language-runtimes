@@ -1,5 +1,6 @@
 #include "sdk_module.h"
 #include "wasm_shim.h"
+#include "utils.h"
 
 #include <string.h>
 
@@ -20,7 +21,8 @@ sdk_return_result(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    fprintf(stderr, "\t%s | id=%d | called return_result(%p, %zd, %d).\n", __FILENAME__, ident, result, result_len, ident);
+    LOG_MSG(__FILENAME__, "id=%d | called return_result(%p, %zd, %d).",
+            ident, result, result_len, ident);
     env_return_result((u8 *)result, result_len, ident);
     Py_RETURN_NONE;
 }
@@ -41,7 +43,9 @@ sdk_return_error(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    fprintf(stderr, "\t%s | id=%d | called return_error(%d, %p, %zd, %d).\n", __FILENAME__, ident, error_code, msg, msg_len, ident);
+    LOG_MSG(__FILENAME__, "id=%d | called return_error(%d, %p, %zd, %d).",
+            ident, error_code, msg, msg_len, ident);
+
     env_return_error(error_code, (u8 *)msg, msg_len, ident);
     Py_RETURN_NONE;
 }

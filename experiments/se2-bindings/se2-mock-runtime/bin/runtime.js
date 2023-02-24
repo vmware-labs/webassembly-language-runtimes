@@ -7,6 +7,11 @@ const fs = require('fs');
 
 const { WasmMemoryManager } = require('../mem-utils');
 
+log = function() {
+    var prefix = "\x1b[33m[runtime.js]\x1b[0m |";
+    return Function.prototype.bind.call(console.log, console, prefix);
+}();
+
 // Parse args
 const options = yargs
     .usage("Usage: -wrapper WASM_MODULE_PATH -plugin PYTHON_PLUGIN_ROOT")
@@ -40,18 +45,18 @@ const importObject = {
         return_result(result, result_len, ident) {
             const buf = memMgr.wrapBuf(result, result_len);
             const strResult = memMgr.strFromBuf(buf);
-            console.log(`runtime.js | Returned result "${strResult}" with ident ${ident}`);
+            log(`Returned result "${strResult}" with ident ${ident}`);
         },
         return_error(code, msg, msg_len, ident) {
             const buf = memMgr.wrapBuf(msg, msg_len);
             const strMsg = memMgr.strFromBuf(buf);
-            console.log(`runtime.js | Returned error {code:${code}, message="${strMsg}"} with ident ${ident}`);
+            log(`Returned error {code:${code}, message="${strMsg}"} with ident ${ident}`);
         },
     },
 };
 
 (async () => {
-    console.log(`runtime.js | Loading module ${options.wrapper} ...`);
+    log(`Loading module ${options.wrapper} ...`);
     const wasmBuffer = fs.readFileSync(options.wrapper);
     wasmModule = await WebAssembly.instantiate(wasmBuffer, importObject);
     memMgr = new WasmMemoryManager(wasmModule.instance.exports);
@@ -63,17 +68,17 @@ const importObject = {
     else
         throw Error('WASM module should export either _start or _initialize');
 
-    console.log('runtime.js | Started wasm module');
+    log('Started wasm module');
 
     const strBuf = memMgr.bufFromString('Hello there');
 
     const ident = 12345;
-    console.log(`runtime.js | Calling wasmModule.run_e(${strBuf.getPtr()}, ${strBuf.getSize()}, ${ident})...`);
+    log(`Calling wasmModule.run_e(${strBuf.getPtr()}, ${strBuf.getSize()}, ${ident})...`);
     wasmModule.instance.exports.run_e(strBuf.getPtr(), strBuf.getSize(), ident);
 
-    console.log('runtime.js | wasmModule.run_e returned');
+    log('wasmModule.run_e returned');
     memMgr.deallocateBuf(strBuf);
 
 })().catch(e => {
-    console.log("runtime.js | Error: ", e);
+    log("Error: ", e);
 });
