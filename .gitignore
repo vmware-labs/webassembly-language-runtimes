@@ -4,7 +4,7 @@ build-staging
 __pycache__
 node_modules
 target
-.vscode/**
+.vscode
 *.log
 # Except this file
 !.gitignore
