@@ -61,7 +61,7 @@ define create_lib_sub_targets
 
 .PHONY: libs/$(1)/*
 libs/$(1)/*:
-	make -C libs/$(1) $(subst libs/$(1)/,,$@)
+	make -C libs/$(1) $$(subst libs/$(1)/,,$$@)
 
 endef
 
