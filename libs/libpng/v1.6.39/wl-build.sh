@@ -30,8 +30,15 @@ export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_LIBPNG}"
 
 cd "${WASMLABS_SOURCE_PATH}"
 
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/pkg_config_tools.sh
+
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
-    export LIBPNG_CONFIGURE="--prefix="${WASMLABS_OUTPUT}" --enable-static --disable-shared"
+    echo -e "\n\n\n"
+    env | grep PKG
+    env | grep zlib
+    env | grep ZLIB
+    echo -e "\n"
+    export LIBPNG_CONFIGURE="${PKG_CONFIG_CONFIGURE_PREFIXES} --enable-static --disable-shared"
     logStatus "Configuring build with '${LIBPNG_CONFIGURE}'... "
     ./configure --config-cache --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${LIBPNG_CONFIGURE} || exit 1
 else
@@ -42,12 +49,12 @@ logStatus "Building..."
 INCLUDES=${CFLAGS_LIBPNG} make -j libpng16.la || exit 1
 
 logStatus "Preparing artifacts..."
-make install-pkgincludeHEADERS || exit 1
-make install-nodist_pkgincludeHEADERS || exit 1
-make install-libLTLIBRARIES || exit 1
-make install-pkgconfigDATA || exit 1
-make install-header-links || exit 1
-make install-libpng-pc || exit 1
-make install-library-links || exit 1
+make install-pkgincludeHEADERS ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
+make install-nodist_pkgincludeHEADERS ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
+make install-libLTLIBRARIES ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
+make install-pkgconfigDATA ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
+make install-header-links ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
+make install-libpng-pc ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
+make install-library-links ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

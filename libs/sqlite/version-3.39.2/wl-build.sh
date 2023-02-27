@@ -24,8 +24,10 @@ export LDFLAGS="${LDFLAGS_WASI}"
 
 cd "${WASMLABS_SOURCE_PATH}"
 
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/pkg_config_tools.sh
+
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
-    export SQLITE_CONFIGURE="--prefix="${WASMLABS_OUTPUT}" --disable-threadsafe --enable-tempstore=yes"
+    export SQLITE_CONFIGURE="${PKG_CONFIG_CONFIGURE_PREFIXES} --disable-threadsafe --enable-tempstore=yes"
     logStatus "Configuring build with '${SQLITE_CONFIGURE}'..."
     ./configure --config-cache --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE} || exit 1
 else
@@ -36,6 +38,6 @@ logStatus "Building..."
 make -j libsqlite3.la || exit 1
 
 logStatus "Preparing artifacts..."
-make lib_install || exit 1
+make lib_install ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

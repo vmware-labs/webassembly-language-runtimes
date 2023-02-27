@@ -14,11 +14,11 @@ fi
 logStatus "Building dependencies... "
 
 ### sqlite3
-export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}"/sqlite/version-3.39.2/lib/pkgconfig:"${PKG_CONFIG_PATH}
+export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}"/sqlite/version-3.39.2/lib/wasm32-wasi/pkgconfig:"${PKG_CONFIG_PATH}
 
-if [[ ! -e ${WASMLABS_OUTPUT_BASE}"/sqlite/version-3.39.2/lib/libsqlite3.a" ]]; then
+if [[ ! -e ${WASMLABS_OUTPUT_BASE}"/sqlite/version-3.39.2/lib/wasm32-wasi/libsqlite3.a" ]]; then
     logStatus "Building SQLite dependency..."
-    $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}"/libs/sqlite/version-3.39.2" || exit 1
+    WASMLABS_BUILD_TYPE=dependency $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}"/libs/sqlite/version-3.39.2" || exit 1
 else
     logStatus "Skipping building SQLite dependency!"
 fi

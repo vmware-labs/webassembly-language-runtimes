@@ -31,9 +31,6 @@ logStatus "Building... "
 make -j || exit 1
 
 logStatus "Preparing artifacts... "
-make install \
-    prefix=${WASMLABS_OUTPUT} \
-    libdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi \
-    pkgconfigdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkgconfig
+make install ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

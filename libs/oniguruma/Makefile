@@ -5,4 +5,4 @@ REPO_ROOT := $(ROOT_DIR)../..
 
 include $(REPO_ROOT)/Makefile.helpers
 
-$(eval $(call create_default_lib_targets,$(REPO_ROOT),zlib,v,$(WASI_SDK_VERSION)))
+$(eval $(call create_default_lib_targets,$(REPO_ROOT),oniguruma,v,$(WASI_SDK_VERSION)))

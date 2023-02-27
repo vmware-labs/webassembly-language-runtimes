@@ -1,9 +1,0 @@
-ARG WASI_SDK_VERSION
-FROM ghcr.io/vmware-labs/wasmlabs/wasi-builder:${WASI_SDK_VERSION}
-
-# If more capabilities are required from the build-erpython, consult this
-# github workflow configuration for a list of possible dependencies -
-# https://github.com/python/cpython/blob/main/.github/workflows/posix-deps-apt.sh
-RUN DEBIAN_FRONTEND=noninteractive apt install -y \
-      libtool \
-      libtool-bin
