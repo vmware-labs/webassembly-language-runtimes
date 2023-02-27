@@ -20,7 +20,10 @@ RUN apt update && \
         cmake \
         clang \
         git \
+        libtool \
+        libtool-bin \
         pkg-config \
+        tcl \
         unzip
 RUN wget https://github.com/WebAssembly/wasi-sdk/releases/download/${WASI_SDK}/${WASI_SDK}.0-linux.tar.gz && \
       mkdir ${WASI_SDK_ROOT} && \
