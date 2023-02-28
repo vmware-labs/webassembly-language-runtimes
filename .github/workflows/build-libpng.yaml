@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - version: 1.6.39
-    uses: ./.github/workflows/build-lib.yaml
+    uses: ./.github/workflows/reusable-build-lib.yaml
     with:
       name: "libpng"
       version: ${{ matrix.version }}

@@ -24,11 +24,16 @@ jobs:
         uses: actions/checkout@v3
       - name: Build ${{ inputs.name }}
         run: make libs/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}
-      - name: Upload the lib${{ inputs.name }}-${{ inputs.version }} artifact
+      - name: Package ${{ inputs.name }}-${{ inputs.version }}.tar.gz
+        run: |
+          tar -cvf ${{ inputs.name }}-${{ inputs.version }}.tar \
+            -C build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}/ \
+            include \
+            lib
+          gzip ${{ inputs.name }}-${{ inputs.version }}.tar
+      - name: Upload the ${{ inputs.name }}-${{ inputs.version }} artifact
         uses: actions/upload-artifact@v3
         with:
-          name: lib${{ inputs.name }}-${{ inputs.version }}
-          path: |
-            build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}/include
-            build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}/lib
+          name: ${{ inputs.name }}-${{ inputs.version }}
+          path: ${{ inputs.name }}-${{ inputs.version }}.tar.gz
           if-no-files-found: error

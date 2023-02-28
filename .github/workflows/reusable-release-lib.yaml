@@ -1,0 +1,58 @@
+name: Release a library
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+      target-name:
+        required: true
+        type: string
+      tag-prefix:
+        required: true
+        type: string
+jobs:
+  release-lib:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build ${{ inputs.name }}
+        run: make libs/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}
+      - name: Package ${{ inputs.name }}-${{ inputs.version }}.tar.gz
+        run: |
+          tar -cvf ${{ inputs.name }}-${{ inputs.version }}.tar \
+            -C build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}/ \
+            include \
+            lib
+          gzip ${{ inputs.name }}-${{ inputs.version }}.tar
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create --generate-notes ${{ github.ref_name }} || true
+      - name: Append ${{ inputs.name }} release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            ${{ inputs.name }}-${{ inputs.version }}.tar.gz
+      - name: Generate release assets digests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for asset in ${{ inputs.name }}-${{ inputs.version }}.tar.gz; do
+            sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
+          done
+      - name: Append release assets digests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            ${{ inputs.name }}-${{ inputs.version }}.tar.gz.sha256sum
+
