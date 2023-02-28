@@ -29,18 +29,26 @@ function onExit {
 }
 trap onExit EXIT
 
-echo "$(date --iso-8601=ns) | Using WASI_SDK_ROOT=$WASI_SDK_ROOT " | tee $WASMLABS_OUTPUT/wasmlabs-progress.log
+if [[ ! -v WASMLABS_PROGRESS_LOG ]]
+then
+    export WASMLABS_PROGRESS_LOG=${WASMLABS_OUTPUT}/wasmlabs-progress.log
+    echo "$(date --iso-8601=ns) | Using WASI_SDK_ROOT=$WASI_SDK_ROOT " | tee ${WASMLABS_PROGRESS_LOG}
+fi
 
 function logStatus {
-    echo "$(date --iso-8601=ns) | $@" | tee -a $WASMLABS_OUTPUT/wasmlabs-progress.log
+    echo "$(date --iso-8601=ns) | ${WASMLABS_ENV_NAME} | $@" | tee -a ${WASMLABS_PROGRESS_LOG}
 }
 
 export -f logStatus
 
-logStatus WASMLABS_ENV=${WASMLABS_ENV}
+for line in $(env | grep -E "WASMLABS_\w+="); do
+    logStatus $line
+done
+
 logStatus WASI_SDK_ROOT=${WASI_SDK_ROOT}
 logStatus BINARYEN_PATH=${BINARYEN_PATH}
 logStatus WABT_ROOT=${WABT_ROOT}
+logStatus WASI_VFS_ROOT=${WASI_VFS_ROOT}
 
 export WASI_SYSROOT="${WASI_SDK_ROOT}/share/wasi-sysroot"
 export CC=${WASI_SDK_ROOT}/bin/clang
@@ -56,9 +64,11 @@ then
     export PATH="${WASMLABS_REPO_ROOT}/scripts/wrappers:$PATH"
 fi
 
+logStatus "Checking dependencies..."
 if [[ -f ${WASMLABS_ENV}/wl-build-deps.sh ]]
 then
     source ${WASMLABS_ENV}/wl-build-deps.sh
 fi
 
+logStatus "Building..."
 source ${WASMLABS_ENV}/wl-build.sh
