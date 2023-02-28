@@ -1,0 +1,34 @@
+name: Build a library
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+      target-name:
+        required: true
+        type: string
+      tag-prefix:
+        required: true
+        type: string
+jobs:
+  build-lib:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build ${{ inputs.name }}
+        run: make libs/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}
+      - name: Upload the lib${{ inputs.name }}-${{ inputs.version }} artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: lib${{ inputs.name }}-${{ inputs.version }}
+          path: |
+            build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}/include
+            build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}/lib
+          if-no-files-found: error
