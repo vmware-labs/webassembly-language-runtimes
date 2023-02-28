@@ -26,4 +26,3 @@ jobs:
       version: ${{ matrix.version }}
       target-name: "libpng"
       tag-prefix: "v"
-    runs-on: ubuntu-latest
