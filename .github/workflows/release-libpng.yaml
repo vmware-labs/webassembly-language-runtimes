@@ -15,14 +15,14 @@ jobs:
       matrix:
         include:
           - version: 1.6.39
-    # Only run for the Libpng version specified in the git tag.
-    #
-    # This if could be moved to the parent `job` section when it's
-    # supported by GitHub (https://github.com/community/community/discussions/37883)
-    if: startsWith(github.event.ref, format('refs/tags/libs/libpng/{0}+', matrix.version))
     uses: ./.github/workflows/reusable-release-lib.yaml
     with:
       name: "libpng"
       version: ${{ matrix.version }}
       target-name: "libpng"
       tag-prefix: "v"
+    # Only run for the Libpng version specified in the git tag.
+    #
+    # This if could be moved to the parent `job` section when it's
+    # supported by GitHub (https://github.com/community/community/discussions/37883)
+    if: startsWith(github.event.ref, format('refs/tags/libs/libpng/{0}+', matrix.version))
