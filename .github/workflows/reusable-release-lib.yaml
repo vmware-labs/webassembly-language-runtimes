@@ -14,17 +14,22 @@ on:
       tag-prefix:
         required: true
         type: string
+      trigger:
+        required: true
+        type: string
 jobs:
   release-lib:
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
+    # Only run for the ${{ inputs.target-name }} version specified in the git tag, which triggered this.
+    if: startsWith(${{ inputs.trigger }}, format('refs/tags/libs/{0}/{1}+', inputs.target-name, inputs.version))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build ${{ inputs.name }}
         run: make libs/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}
-      - name: Package ${{ inputs.name }}-${{ inputs.version }}.tar.gz
+      - name: Package ${{ inputs.name }}-.tar.gz
         run: |
           tar -cvf ${{ inputs.name }}-${{ inputs.version }}.tar \
             -C build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}/ \

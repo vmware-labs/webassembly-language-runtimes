@@ -21,8 +21,4 @@ jobs:
       version: ${{ matrix.version }}
       target-name: "libpng"
       tag-prefix: "v"
-    # Only run for the Libpng version specified in the git tag.
-    #
-    # This if could be moved to the parent `job` section when it's
-    # supported by GitHub (https://github.com/community/community/discussions/37883)
-    if: startsWith(github.event.ref, format('refs/tags/libs/libpng/{0}+', matrix.version))
+      trigger: ${{ github.event.ref }}
