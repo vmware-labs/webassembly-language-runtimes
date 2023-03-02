@@ -1,0 +1,17 @@
+# Note that for this workflow to be triggered, the tag needs to be
+# created of the form `libs/libxml2/<version>+<buildinfo>`, where <buildinfo>
+# by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
+# with `git rev-parse --short HEAD`).
+name: Release Lib XML2
+on:
+  push:
+    tags:
+      - libs/libxml2/*
+jobs:
+  release-libxml2:
+    uses: ./.github/workflows/reusable-release-lib.yaml
+    with:
+      name: "libxml2"
+      target-name: "libxml2"
+      tag-prefix: "v"
+      trigger: ${{ github.event.ref }}
