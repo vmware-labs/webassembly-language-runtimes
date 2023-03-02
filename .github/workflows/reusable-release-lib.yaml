@@ -21,21 +21,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Determine version
-        id: calculateVersion
+        id: determineVersion
         run: |
           VERSION=$(echo ${{ inputs.trigger }} | sed 's,refs/tags/libs/${{ inputs.target-name }}/,,g' | cut -f 1 -d \+)
           echo "value=${VERSION}" >> $GITHUB_OUTPUT
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build ${{ inputs.name }}
-        run: make libs/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ steps.calculateVersion.outputs.value }}
-      - name: Package ${{ inputs.name }}-.tar.gz
+        run: make libs/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ steps.determineVersion.outputs.value }}
+      - name: Package ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar.gz
         run: |
-          tar -cvf ${{ inputs.name }}-${{steps.calculateVersion.outputs.value}}.tar \
-            -C build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ steps.calculateVersion.outputs.value }}/ \
+          tar -cvf ${{ inputs.name }}-${{steps.determineVersion.outputs.value}}.tar \
+            -C build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ steps.determineVersion.outputs.value }}/ \
             include \
             lib
-          gzip ${{ inputs.name }}-${{ steps.calculateVersion.outputs.value }}.tar
+          gzip ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,12 +46,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            ${{ inputs.name }}-${{ steps.calculateVersion.outputs.value }}.tar.gz
+            ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar.gz
       - name: Generate release assets digests
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in ${{ inputs.name }}-${{ steps.calculateVersion.outputs.value }}.tar.gz; do
+          for asset in ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar.gz; do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
@@ -59,5 +59,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            ${{ inputs.name }}-${{ steps.calculateVersion.outputs.value }}.tar.gz.sha256sum
+            ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar.gz.sha256sum
 

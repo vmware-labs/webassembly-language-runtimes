@@ -13,7 +13,7 @@ jobs:
   release-zlib:
     uses: ./.github/workflows/reusable-release-lib.yaml
     with:
-      name: "zlib"
+      name: "libz"
       target-name: "zlib"
       tag-prefix: "v"
       trigger: ${{ github.event.ref }}

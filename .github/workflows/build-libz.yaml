@@ -9,6 +9,7 @@ on:
     paths:
        - ".github/**"
        - "libs/zlib/**"
+       - "libs/*"
        - "scripts/**"
        - "Makefile*"
        - "*.sh"
@@ -22,7 +23,7 @@ jobs:
           - version: 1.2.13
     uses: ./.github/workflows/reusable-build-lib.yaml
     with:
-      name: "zlib"
+      name: "libz"
       version: ${{ matrix.version }}
       target-name: "zlib"
       tag-prefix: "v"
