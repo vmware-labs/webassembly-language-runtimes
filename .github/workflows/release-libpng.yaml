@@ -11,14 +11,9 @@ on:
       - libs/libpng/*
 jobs:
   release-libpng:
-    strategy:
-      matrix:
-        include:
-          - version: 1.6.39
     uses: ./.github/workflows/reusable-release-lib.yaml
     with:
       name: "libpng"
-      version: ${{ matrix.version }}
       target-name: "libpng"
       tag-prefix: "v"
       trigger: ${{ github.event.ref }}
