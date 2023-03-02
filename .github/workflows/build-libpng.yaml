@@ -26,4 +26,4 @@ jobs:
       name: "libpng"
       version: ${{ matrix.version }}
       target-name: "libpng"
-      tag-prefix: "v"
+      target-prefix: "v"

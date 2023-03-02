@@ -26,4 +26,4 @@ jobs:
       name: "libuuid"
       version: ${{ matrix.version }}
       target-name: "uuid"
-      tag-prefix: "libuuid-"
+      target-prefix: "libuuid-"

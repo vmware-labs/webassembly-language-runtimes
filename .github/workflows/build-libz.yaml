@@ -26,4 +26,4 @@ jobs:
       name: "libz"
       version: ${{ matrix.version }}
       target-name: "zlib"
-      tag-prefix: "v"
+      target-prefix: "v"

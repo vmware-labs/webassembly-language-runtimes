@@ -13,5 +13,5 @@ jobs:
     with:
       name: "libsqlite"
       target-name: "sqlite"
-      tag-prefix: "version-"
+      target-prefix: "version-"
       trigger: ${{ github.event.ref }}

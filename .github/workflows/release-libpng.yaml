@@ -15,5 +15,5 @@ jobs:
     with:
       name: "libpng"
       target-name: "libpng"
-      tag-prefix: "v"
+      target-prefix: "v"
       trigger: ${{ github.event.ref }}

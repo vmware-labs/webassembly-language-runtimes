@@ -11,7 +11,7 @@ on:
       target-name:
         required: true
         type: string
-      tag-prefix:
+      target-prefix:
         required: true
         type: string
 jobs:
@@ -23,11 +23,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build ${{ inputs.name }}
-        run: make libs/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}
+        run: make libs/${{ inputs.target-name }}/${{ inputs.target-prefix }}${{ inputs.version }}
       - name: Package ${{ inputs.name }}-${{ inputs.version }}.tar.gz
         run: |
           tar -cvf ${{ inputs.name }}-${{ inputs.version }}.tar \
-            -C build-output/${{ inputs.target-name }}/${{ inputs.tag-prefix }}${{ inputs.version }}/ \
+            -C build-output/${{ inputs.target-name }}/${{ inputs.target-prefix }}${{ inputs.version }}/ \
             include \
             lib
           gzip ${{ inputs.name }}-${{ inputs.version }}.tar

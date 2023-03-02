@@ -13,5 +13,5 @@ jobs:
     with:
       name: "libxml2"
       target-name: "libxml2"
-      tag-prefix: "v"
+      target-prefix: "v"
       trigger: ${{ github.event.ref }}

@@ -26,4 +26,4 @@ jobs:
       name: "libsqlite"
       version: ${{ matrix.version }}
       target-name: "sqlite"
-      tag-prefix: "version-"
+      target-prefix: "version-"

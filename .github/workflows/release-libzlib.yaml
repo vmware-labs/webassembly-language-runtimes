@@ -15,5 +15,5 @@ jobs:
     with:
       name: "libz"
       target-name: "zlib"
-      tag-prefix: "v"
+      target-prefix: "v"
       trigger: ${{ github.event.ref }}

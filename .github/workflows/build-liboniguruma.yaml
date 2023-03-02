@@ -26,4 +26,4 @@ jobs:
       name: "libonig"
       version: ${{ matrix.version }}
       target-name: "oniguruma"
-      tag-prefix: "v"
+      target-prefix: "v"

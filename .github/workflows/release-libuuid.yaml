@@ -15,5 +15,5 @@ jobs:
     with:
       name: "libuuid"
       target-name: "uuid"
-      tag-prefix: "libuuid-"
+      target-prefix: "libuuid-"
       trigger: ${{ github.event.ref }}
