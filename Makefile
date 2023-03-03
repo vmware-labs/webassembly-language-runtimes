@@ -59,6 +59,7 @@ oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
 
 
 LIBS := \
+	bundle-wasmlabs \
 	icu \
 	libpng \
 	libxml2 \

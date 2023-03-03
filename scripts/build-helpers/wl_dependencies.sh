@@ -21,7 +21,11 @@ function wl_dependencies_add {
 
     if [[ ! -e "${WASMLABS_DEPS_ROOT}/build-output/${_TARGET}" ]]; then
         logStatus "Building ${_NAME} dependency..."
-        WASMLABS_DEPS_ROOT=${WASMLABS_DEPS_ROOT} WASMLABS_BUILD_TYPE=dependency $WASMLABS_MAKE "${WASMLABS_REPO_ROOT}/${_BUILD_COMMAND}" || exit 1
+        WASMLABS_DEPS_ROOT=${WASMLABS_DEPS_ROOT} \
+        WASMLABS_BUILD_TYPE=dependency \
+        env -u WASMLABS_PACKAGE_NAME \
+            -u WASMLABS_PACKAGE_VERSION \
+            $WASMLABS_MAKE "${WASMLABS_REPO_ROOT}/${_BUILD_COMMAND}" || exit 1
     else
         logStatus "Skipping building ${_NAME} dependency!"
     fi
