@@ -28,14 +28,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build ${{ inputs.name }}
-        run: make libs/${{ inputs.target-name }}/${{ inputs.target-prefix }}${{ steps.determineVersion.outputs.value }}
-      - name: Package ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar.gz
         run: |
-          tar -cvf ${{ inputs.name }}-${{steps.determineVersion.outputs.value}}.tar \
-            -C build-output/${{ inputs.target-name }}/${{ inputs.target-prefix }}${{ steps.determineVersion.outputs.value }}/ \
-            include \
-            lib
-          gzip ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar
+          WASMLABS_PACKAGE_NAME=${{ inputs.name }} \
+            WASMLABS_PACKAGE_VERSION=${{ steps.determineVersion.outputs.value }} \
+            make libs/${{ inputs.target-name }}/${{ inputs.target-prefix }}${{ steps.determineVersion.outputs.value }}
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,12 +42,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar.gz
+            build-output/${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}*.gz
       - name: Generate release assets digests
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar.gz; do
+          for asset in ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}*.gz; do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
@@ -59,5 +55,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}.tar.gz.sha256sum
+            ${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}*.gz.sha256sum
 

@@ -1,17 +1,21 @@
 ARG WABT_VERSION=1.0.32
-ARG WASI_SDK_VERSION=19
+ARG WASI_SDK_VERSION=19.0
+ARG WASI_SDK_RELEASE_NAME=wasi-sdk-19
+# For beta releases with specific features this goes like:
+# ARG WASI_SDK_VERSION=20.0.threads
+# ARG WASI_SDK_RELEASE_NAME=wasi-sdk-20+threads
 ARG WASI_VFS_VERSION=ddbea0e2a6a1e0e8fe0373ec3d1bdccf522178ab
 
-ARG WASI_SDK_ROOT=/wasi-sdk
-ARG WASI_SDK=wasi-sdk-${WASI_SDK_VERSION}
-ARG WASI_SDK_PATH=${WASI_SDK_ROOT}
+ARG WASI_SDK_PATH=/wasi-sdk
+ARG WASI_SDK_ASSET_NAME=wasi-sdk-${WASI_SDK_VERSION}
 ARG WABT=wabt-${WABT_VERSION}
 ARG WABT_ROOT=/wabt
 ARG WASI_VFS_ROOT=/wasi-vfs
 
 FROM ghcr.io/vmware-labs/wasmlabs/wasm-base:latest AS wasi-base
-ARG WASI_SDK
-ARG WASI_SDK_ROOT
+ARG WASI_SDK_ASSET_NAME
+ARG WASI_SDK_RELEASE_NAME
+ARG WASI_SDK_PATH
 RUN apt update && \
       DEBIAN_FRONTEND=noninteractive apt install -y \
         autoconf \
@@ -25,10 +29,10 @@ RUN apt update && \
         pkg-config \
         tcl \
         unzip
-RUN wget https://github.com/WebAssembly/wasi-sdk/releases/download/${WASI_SDK}/${WASI_SDK}.0-linux.tar.gz && \
-      mkdir ${WASI_SDK_ROOT} && \
-      tar xf ${WASI_SDK}.0-linux.tar.gz --strip-components=1 -C ${WASI_SDK_ROOT} && \
-      rm ${WASI_SDK}.0-linux.tar.gz
+RUN wget https://github.com/WebAssembly/wasi-sdk/releases/download/${WASI_SDK_RELEASE_NAME}/${WASI_SDK_ASSET_NAME}-linux.tar.gz && \
+      mkdir ${WASI_SDK_PATH} && \
+      tar xf ${WASI_SDK_ASSET_NAME}-linux.tar.gz --strip-components=1 -C ${WASI_SDK_PATH} && \
+      rm ${WASI_SDK_ASSET_NAME}-linux.tar.gz
 
 FROM docker.io/library/rust:1.67.1-slim AS builder-wasi-vfs
 ARG WASI_SDK_PATH
@@ -45,20 +49,22 @@ RUN cd wasi-vfs && \
 
 FROM wasi-base
 ARG WABT_VERSION
+ARG WASI_SDK_ASSET_NAME
+ARG WASI_SDK_PATH
 ARG WASI_SDK_VERSION
 ARG WASI_VFS_VERSION
-ARG WASI_SDK_ROOT
-ARG WASI_SDK
-ARG WASI_SDK_PATH
 ARG WABT
 ARG WABT_ROOT
 ARG WASI_VFS_ROOT
 ENV WABT_VERSION=${WABT_VERSION}
+ENV WASI_SDK_ASSET_NAME=${WASI_SDK_ASSET_NAME}
+ENV WASI_SDK_PATH=${WASI_SDK_PATH}
 ENV WASI_SDK_VERSION=${WASI_SDK_VERSION}
 ENV WASI_VFS_VERSION=${WASI_VFS_VERSION}
-ENV WASI_SDK_ROOT=${WASI_SDK_ROOT}
-ENV WASI_SDK=${WASI_SDK}
-ENV WASI_SDK_PATH=${WASI_SDK_PATH}
+
+# Keep WASI_SDK_ROOT for compatibility for a while
+ENV WASI_SDK_ROOT=${WASI_SDK_PATH}
+
 ENV WABT=${WABT}
 ENV WABT_ROOT=${WABT_ROOT}
 ENV WASI_VFS_ROOT=${WASI_VFS_ROOT}
@@ -70,7 +76,7 @@ RUN wget https://github.com/WebAssembly/wabt/releases/download/${WABT_VERSION}/$
       tar xf ${WABT}-ubuntu.tar.gz --strip-components=1 -C ${WABT_ROOT} && \
       rm ${WABT}-ubuntu.tar.gz
 RUN mkdir /wlr
-ENV PATH="$WASI_SDK_ROOT/bin:$PATH:$WASI_VFS_ROOT/bin"
+ENV PATH="$WASI_SDK_PATH/bin:$PATH:$WASI_VFS_ROOT/bin"
 # We will be mounting the source repo in /wlr, which is owned by a user different from root.
 RUN git config --global --add safe.directory /wlr
 WORKDIR /wlr

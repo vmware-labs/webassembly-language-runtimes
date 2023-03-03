@@ -6,9 +6,9 @@ then
     exit 1
 fi
 
-if [[ ! -v WASI_SDK_ROOT ]]
+if [[ ! -v WASI_SDK_PATH ]]
 then
-    echo "Please set WASI_SDK_ROOT and run again"
+    echo "Please set WASI_SDK_PATH and run again"
     exit 1
 fi
 

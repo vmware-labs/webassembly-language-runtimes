@@ -40,6 +40,8 @@ define build_in_container
 		--rm \
 		-e WASMLABS_BUILD_FLAVOR \
 		-e WASMLABS_RUNTIME \
+		-e WASMLABS_PACKAGE_NAME \
+		-e WASMLABS_PACKAGE_VERSION \
 		-v $($@_REPO_ROOT):/wlr/ \
 		-v $($@_REPO_ROOT)/scripts/wrappers/wasm-opt:/opt/priority-bin/wasm-opt \
 		$($@_IMAGE_NAME) \

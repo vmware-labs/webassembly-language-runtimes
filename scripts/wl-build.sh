@@ -6,17 +6,17 @@ then
     exit 1
 fi
 
-if [[ ! -v WASI_SDK_ROOT ]]
+if [[ ! -v WASI_SDK_PATH ]]
 then
     echo WASMLABS_ENV=${WASMLABS_ENV}
-    echo "Please set WASI_SDK_ROOT and run again"
+    echo "Please set WASI_SDK_PATH and run again"
     exit 1
 fi
 
 if [[ ! -v BINARYEN_PATH ]]
 then
     echo WASMLABS_ENV=${WASMLABS_ENV}
-    echo WASI_SDK_ROOT=${WASI_SDK_ROOT}
+    echo WASI_SDK_PATH=${WASI_SDK_PATH}
     echo "Please set BINARYEN_PATH and run again"
     exit 1
 fi
@@ -32,7 +32,7 @@ trap onExit EXIT
 if [[ ! -v WASMLABS_PROGRESS_LOG ]]
 then
     export WASMLABS_PROGRESS_LOG=${WASMLABS_OUTPUT}/wasmlabs-progress.log
-    echo "$(date --iso-8601=ns) | Using WASI_SDK_ROOT=$WASI_SDK_ROOT " | tee ${WASMLABS_PROGRESS_LOG}
+    echo "$(date --iso-8601=ns) | Using WASI_SDK_PATH=$WASI_SDK_PATH " | tee ${WASMLABS_PROGRESS_LOG}
 fi
 
 function logStatus {
@@ -45,18 +45,18 @@ for line in $(env | grep -E "WASMLABS_\w+="); do
     logStatus $line
 done
 
-logStatus WASI_SDK_ROOT=${WASI_SDK_ROOT}
+logStatus WASI_SDK_PATH=${WASI_SDK_PATH}
 logStatus BINARYEN_PATH=${BINARYEN_PATH}
 logStatus WABT_ROOT=${WABT_ROOT}
 logStatus WASI_VFS_ROOT=${WASI_VFS_ROOT}
 
-export WASI_SYSROOT="${WASI_SDK_ROOT}/share/wasi-sysroot"
-export CC=${WASI_SDK_ROOT}/bin/clang
-export LD=${WASI_SDK_ROOT}/bin/wasm-ld
-export CXX=${WASI_SDK_ROOT}/bin/clang++
-export NM=${WASI_SDK_ROOT}/bin/llvm-nm
-export AR=${WASI_SDK_ROOT}/bin/llvm-ar
-export RANLIB=${WASI_SDK_ROOT}/bin/llvm-ranlib
+export WASI_SYSROOT="${WASI_SDK_PATH}/share/wasi-sysroot"
+export CC=${WASI_SDK_PATH}/bin/clang
+export LD=${WASI_SDK_PATH}/bin/wasm-ld
+export CXX=${WASI_SDK_PATH}/bin/clang++
+export NM=${WASI_SDK_PATH}/bin/llvm-nm
+export AR=${WASI_SDK_PATH}/bin/llvm-ar
+export RANLIB=${WASI_SDK_PATH}/bin/llvm-ranlib
 
 if ! builtin type -P wasm-opt
 then
@@ -72,3 +72,6 @@ fi
 
 logStatus "Building..."
 source ${WASMLABS_ENV}/wl-build.sh
+
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wl_package.sh
+wl_package_create
