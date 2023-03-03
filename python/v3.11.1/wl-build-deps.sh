@@ -11,24 +11,8 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
     return
 fi
 
-logStatus "Building dependencies... "
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wl_dependencies.sh
 
-### uuid
-env -u WASMLABS_BUILD_FLAVOR $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}/libs/uuid/libuuid-1.0.3 || exit 1
-
-export CFLAGS_DEPENDENCIES="-I${WASMLABS_OUTPUT_BASE}/uuid/libuuid-1.0.3/include ${CFLAGS_DEPENDENCIES}"
-export LDFLAGS_DEPENDENCIES="-L${WASMLABS_OUTPUT_BASE}/uuid/libuuid-1.0.3/lib ${LDFLAGS_DEPENDENCIES}"
-
-
-### zlib
-env -u WASMLABS_BUILD_FLAVOR $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}/libs/zlib/v1.2.13 || exit 1
-
-export CFLAGS_DEPENDENCIES="-I${WASMLABS_OUTPUT_BASE}/zlib/v1.2.13/include ${CFLAGS_DEPENDENCIES}"
-export LDFLAGS_DEPENDENCIES="-L${WASMLABS_OUTPUT_BASE}/zlib/v1.2.13/lib ${LDFLAGS_DEPENDENCIES}"
-
-
-### sqlite3
-env -u WASMLABS_BUILD_FLAVOR $WASMLABS_MAKE ${WASMLABS_REPO_ROOT}/libs/sqlite/version-3.39.2 || exit 1
-
-export CFLAGS_DEPENDENCIES="-I${WASMLABS_OUTPUT_BASE}/sqlite/version-3.39.2/include ${CFLAGS_DEPENDENCIES}"
-export LDFLAGS_DEPENDENCIES="-L${WASMLABS_OUTPUT_BASE}/sqlite/version-3.39.2/lib ${LDFLAGS_DEPENDENCIES}"
+wl_dependencies_add "uuid" "libs/uuid/libuuid-1.0.3" "lib/wasm32-wasi/libuuid.a"
+wl_dependencies_add "zlib" "libs/zlib/v1.2.13" "lib/wasm32-wasi/libz.a"
+wl_dependencies_add "SQLite" "libs/sqlite/version-3.39.2" "lib/wasm32-wasi/libsqlite3.a"
