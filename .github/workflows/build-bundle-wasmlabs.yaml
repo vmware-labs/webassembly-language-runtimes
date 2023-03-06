@@ -1,4 +1,4 @@
-name: Build Lib Oniguruma
+name: Build Lib Wasmlabs Bundle
 on:
   push:
     # By specifying branches explicitly, we avoid this workflow from
