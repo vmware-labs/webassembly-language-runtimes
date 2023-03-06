@@ -1,4 +1,4 @@
-WASI_SDK_VERSION ?= 19
+WASI_SDK_VERSION ?= 19.0
 # NOTE - the default python build is failing with wasi-sdk-19
 
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
