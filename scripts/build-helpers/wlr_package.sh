@@ -10,7 +10,7 @@ if [[ ! -v WASMLABS_ENV ]]; then
     exit 1
 fi
 
-function wl_package_create {
+function wlr_package_lib {
     if [[ -v WASMLABS_PACKAGE_NAME && -v WASMLABS_PACKAGE_VERSION ]]; then
         _PACKAGE=${WASMLABS_OUTPUT_BASE}/${WASMLABS_PACKAGE_NAME}-${WASMLABS_PACKAGE_VERSION}-${WASI_SDK_ASSET_NAME}.tar
         logStatus "Packaging... ${_PACKAGE}"

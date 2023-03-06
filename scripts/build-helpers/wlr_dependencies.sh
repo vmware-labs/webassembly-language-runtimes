@@ -21,7 +21,7 @@ export PKG_CONFIG_LIBDIR=${PKG_CONFIG_SYSROOT_DIR}/lib/wasm32-wasi/pkgconfig
 export WLR_DEPS_INCLUDE=${WASMLABS_DEPS_ROOT}/build-output/include
 export WLR_DEPS_LIBDIR=${WASMLABS_DEPS_ROOT}/build-output/lib/wasm32-wasi
 
-function wl_dependencies_add {
+function wlr_dependencies_add {
     local _NAME=$1
     local _BUILD_COMMAND=$2
     local _TARGET=$3

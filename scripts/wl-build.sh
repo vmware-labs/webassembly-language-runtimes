@@ -73,5 +73,5 @@ fi
 logStatus "Building..."
 source ${WASMLABS_ENV}/wl-build.sh
 
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wl_package.sh
-wl_package_create
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_package.sh
+wlr_package_lib

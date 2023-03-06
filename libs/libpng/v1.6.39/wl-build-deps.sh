@@ -7,8 +7,8 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
     return
 fi
 
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wl_dependencies.sh
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_dependencies.sh
 
-wl_dependencies_add "zlib" "libs/zlib/v1.2.13" "lib/wasm32-wasi/libz.a" \
+wlr_dependencies_add "zlib" "libs/zlib/v1.2.13" "lib/wasm32-wasi/libz.a" \
     "https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fzlib%2F1.2.13%2B20230306-764c74d/libz-1.2.13-wasi-sdk-19.0.tar.gz"
 
