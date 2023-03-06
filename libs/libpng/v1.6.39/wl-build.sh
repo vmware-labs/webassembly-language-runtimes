@@ -12,10 +12,8 @@ export CFLAGS_CONFIG="-O0"
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT}"
 export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT}"
 
-ZLIB_INCLUDEDIR=$(pkg-config --variable=includedir zlib)
-ZLIB_LIBDIR=$(pkg-config --variable=libdir zlib)
-CFLAGS_LIBPNG="-I"${ZLIB_INCLUDEDIR} 
-LDFLAGS_LIBPNG="-L"${ZLIB_LIBDIR} 
+CFLAGS_LIBPNG="-I"${WLR_DEPS_INCLUDE}
+LDFLAGS_LIBPNG="-L"${WLR_DEPS_LIBDIR}
 
 logStatus "Using LIBPNG CFLAGS: ${CFLAGS_LIBPNG}"
 logStatus "Using LIBPNG LDFLAGS: ${LDFLAGS_LIBPNG}"
