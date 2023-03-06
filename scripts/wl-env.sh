@@ -80,12 +80,22 @@ then
     export WASMLABS_STAGING=${WASMLABS_STAGING_ROOT}/${WASMLABS_ENV_NAME}${WASMLABS_BUILD_FLAVOR:+-$WASMLABS_BUILD_FLAVOR}
     export WASMLABS_SOURCE_PATH=${WASMLABS_STAGING}/checkout
 
-else
+elif [[ -f ${PATH_TO_ENV}/wl-env-local.sh ]]
+then
+    source ${PATH_TO_ENV}/wl-env-local.sh
+
+    if [[ ! -v WASMLABS_ENV_NAME ]]
+    then
+        echo "wl-env-local.sh must set WASMLABS_ENV_NAME"
+        exit 1
+    fi
+
     # Setup source and staging for targets in this repository
-    RELATIVE_PATH_TO_ENV=$(realpath --relative-to ${WASMLABS_REPO_ROOT} ${PATH_TO_ENV})
-    export WASMLABS_ENV_NAME=${RELATIVE_PATH_TO_ENV}
     export WASMLABS_STAGING=${WASMLABS_STAGING_ROOT}/${WASMLABS_ENV_NAME}${WASMLABS_BUILD_FLAVOR:+-$WASMLABS_BUILD_FLAVOR}
     export WASMLABS_SOURCE_PATH=${WASMLABS_ENV_NAME}
+else
+    echo "Provide either wl-env-repo.sh or wl-env-local.sh scripts to build this target - '${PATH_TO_ENV}'"
+    exit 1
 fi
 
 if [[ ! -v WASMLABS_OUTPUT ]]
