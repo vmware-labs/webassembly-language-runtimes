@@ -23,6 +23,7 @@ RUN apt update && \
         build-essential \
         cmake \
         clang \
+        curl \
         git \
         libtool \
         libtool-bin \
