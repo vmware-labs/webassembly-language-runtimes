@@ -47,7 +47,7 @@ function wlr_dependencies_add {
             exit 1
         fi
     else
-        logStatus "Building ${_NAME} dependency..."
+        logStatus "Building ${_NAME} dependency locally..."
         WASMLABS_DEPS_ROOT=${WASMLABS_DEPS_ROOT} \
             WASMLABS_BUILD_TYPE=dependency \
             env -u WASMLABS_PACKAGE_NAME \
