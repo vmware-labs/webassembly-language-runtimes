@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export TARGET_NAME=zlib_cmake
+export TARGET_NAME=uuid_zlib_example
 
 function run_build {
     echo Building  ${TARGET_DIR} ...
@@ -24,9 +24,15 @@ function run_tests {
     mkdir -p ${TEST_DIR}
 
     # Test genuuid
+    # - check that genuuid returns more than 32 symbols
     [ $($PRG genuuid | wc -c) -ge 32 ] && echo genuuid OK. || echo genuuid FAIL.
 
     # Test compress-decompress
+    # - list current folder into original.txt
+    # - compress original.txt into compressed.dat
+    # - decompress compressed.dat into decompressed.txt
+    # - check that size(original.txt) > size(compressed.dat)
+    # - check that original.txt == decompressed.txt
     ls -lh > $TEST_DIR/original.txt &&
         $PRG compress $TEST_DIR/original.txt $TEST_DIR/compressed.dat &&
         $PRG decompress $TEST_DIR/compressed.dat $TEST_DIR/decompressed.txt &&
@@ -55,20 +61,26 @@ then
     exit 1
 fi
 
-function get_dependency {
-    DEP_FILE=$1
-    DEP_URL=$2
-    test -f ${DEP_FILE} || wget -T 5 ${DEP_URL} || exit 1
-    unzip -u ${DEP_FILE} || exit 1
+function get_wasm_dependency {
+    local DEP_FILE=$1
+    local DEP_URL=$2
+    mkdir -p ${TARGET_DIR}/deps 2>/dev/null
+
+    if [[ -f ${TARGET_DIR}/deps/lib/wasm32-wasi/$DEP_FILE ]]
+    then
+        echo "Nothing to download. Dependency exists at '${TARGET_DIR}/deps/$DEP_FILE'"
+        return
+    fi
+
+    echo "Getting ${TARGET_DIR}/deps/lib/wasm32-wasi/$DEP_FILE from $DEP_URL..."
+
+    curl -sL "${DEP_URL}" | tar xzv -C "${TARGET_DIR}/deps"
 }
 
 export TARGET_DIR=target/wasm32-wasi
 
-mkdir -p ${TARGET_DIR}/deps
-pushd ${TARGET_DIR}/deps
-get_dependency zlib-1.2.13.zip https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fzlib%2F1.2.13%2B20230203-3b1b27c/zlib-1.2.13.zip
-get_dependency libuuid-1.0.3.zip https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fuuid%2F1.0.3%2B20230203-236edf4/libuuid-1.0.3.zip
-popd
+get_wasm_dependency libz.a https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fzlib%2F1.2.13%2B20230306-764c74d/libz-1.2.13-wasi-sdk-19.0.tar.gz
+get_wasm_dependency libuuid.a https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fuuid%2F1.0.3%2B20230306-764c74d/libuuid-1.0.3-wasi-sdk-19.0.tar.gz
 
 export FULL_TARGET_DIR=$(realpath ${TARGET_DIR})
 

@@ -41,19 +41,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.ref_name }} \
-            build-output/${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}*.gz
+          gh release upload ${{ github.ref_name }} build-output/*.gz
+          gh release upload ${{ github.ref_name }} build-output/*.txt
       - name: Generate release assets digests
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for asset in build-output/${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}*.gz; do
+          for asset in build-output/*.gz; do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.ref_name }} \
-            build-output/${{ inputs.name }}-${{ steps.determineVersion.outputs.value }}*.gz.sha256sum
+          gh release upload ${{ github.ref_name }} build-output/*.gz.sha256sum
 

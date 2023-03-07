@@ -12,10 +12,12 @@ fi
 
 function wlr_package_lib {
     if [[ -v WASMLABS_PACKAGE_NAME && -v WASMLABS_PACKAGE_VERSION ]]; then
-        _PACKAGE=${WASMLABS_OUTPUT_BASE}/${WASMLABS_PACKAGE_NAME}-${WASMLABS_PACKAGE_VERSION}-${WASI_SDK_ASSET_NAME}.tar
+        local _PACKAGE=${WASMLABS_OUTPUT_BASE}/${WASMLABS_PACKAGE_NAME}-${WASMLABS_PACKAGE_VERSION}-${WASI_SDK_ASSET_NAME}.tar
         logStatus "Packaging... ${_PACKAGE}"
         tar -cvf ${_PACKAGE} \
             -C ${WASMLABS_OUTPUT}/ \
+            --exclude=*.la \
+            --exclude=lib/wasm32-wasi/cmake \
             include \
             lib
         gzip ${_PACKAGE}

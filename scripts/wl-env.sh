@@ -110,7 +110,7 @@ echo "Using output ${WASMLABS_OUTPUT}."
 if [ "${WASMLABS_BUILD_TYPE}" = "dependency" ]
 then
     export WASMLABS_OUTPUT=${WASMLABS_DEPS_ROOT}/build-output
-    echo "!!!!!!!!!!! Building ${WASMLABS_ENV_NAME} as a dependency"
+    echo "Building ${WASMLABS_ENV_NAME} as a dependency"
 else
     export WASMLABS_DEPS_ROOT=${WASMLABS_STAGING}/deps
 fi

@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(zlib_cmake)
+project(uuid_zlib_example)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "WASI")
     set(CMAKE_EXECUTABLE_SUFFIX ".wasm")
 endif()
 
 add_executable(
-    zlib_cmake
+    uuid_zlib_example
     main.c
 )
 
@@ -21,7 +21,7 @@ include_directories(AFTER
     ${ZLIB_INCLUDE_DIRS}
 )
 
-target_link_libraries(zlib_cmake PUBLIC
+target_link_libraries(uuid_zlib_example PUBLIC
         PkgConfig::UUID
         PkgConfig::ZLIB
 )

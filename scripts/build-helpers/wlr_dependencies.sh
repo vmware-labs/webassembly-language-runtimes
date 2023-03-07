@@ -10,7 +10,7 @@ if [[ ! -v WASMLABS_ENV ]]; then
     exit 1
 fi
 
-logStatus "Building dependencies... "
+logStatus "Getting dependencies for ${WASMLABS_ENV_NAME} ... "
 
 export PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
 export PKG_CONFIG_ALLOW_SYSTEM_LIBS=1

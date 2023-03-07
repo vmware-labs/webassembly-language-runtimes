@@ -8,7 +8,7 @@ on:
     tags:
       - libs/bundle-wasmlabs/*
 jobs:
-  release-oniguruma:
+  release-bundle-wasmlabs:
     uses: ./.github/workflows/reusable-release-lib.yaml
     with:
       name: "libbundle-wasmlabs"

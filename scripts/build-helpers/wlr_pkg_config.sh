@@ -5,8 +5,8 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
     return
 fi
 
-export PKG_CONFIG_CONFIGURE_PREFIXES="--prefix= --libdir=\${exec_prefix}/lib/wasm32-wasi"
-export PKG_CONFIG_INSTALL_PREFIXES="\
+export WLR_CONFIGURE_PREFIXES="--prefix= --libdir=\${exec_prefix}/lib/wasm32-wasi"
+export WLR_INSTALL_PREFIXES="\
     prefix=${WASMLABS_OUTPUT} \
     libdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi \
     pkgconfigdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkgconfig"

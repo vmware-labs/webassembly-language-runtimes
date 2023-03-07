@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ "${BASH_SOURCE-}" = "$0" ]; then
     echo "You must source this script to add to CFLAGS and LDFLAGS: \$ source $0" >&2

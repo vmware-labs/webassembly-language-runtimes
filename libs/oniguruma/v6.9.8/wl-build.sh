@@ -24,11 +24,11 @@ export LDFLAGS="${LDFLAGS_WASI}"
 
 cd "${WASMLABS_SOURCE_PATH}"
 
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/pkg_config_tools.sh
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
 
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
     ./autogen.sh
-    export ONIGURUMA_CONFIGURE="${PKG_CONFIG_CONFIGURE_PREFIXES} --enable-static --disable-shared"
+    export ONIGURUMA_CONFIGURE="${WLR_CONFIGURE_PREFIXES} --enable-static --disable-shared"
     logStatus "Configuring build with '${ONIGURUMA_CONFIGURE}'... "
     ./configure --config-cache --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${ONIGURUMA_CONFIGURE} || exit 1
 else
@@ -39,6 +39,8 @@ logStatus "Building..."
 make -j || exit 1
 
 logStatus "Preparing artifacts..."
-make install ${PKG_CONFIG_INSTALL_PREFIXES} || exit 1
+make install ${WLR_INSTALL_PREFIXES} || exit 1
+
+wlr_package_lib
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

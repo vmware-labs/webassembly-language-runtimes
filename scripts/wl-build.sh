@@ -70,8 +70,7 @@ then
     source ${WASMLABS_ENV}/wl-build-deps.sh
 fi
 
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_package.sh
+
 logStatus "Building..."
 source ${WASMLABS_ENV}/wl-build.sh
-
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_package.sh
-wlr_package_lib
