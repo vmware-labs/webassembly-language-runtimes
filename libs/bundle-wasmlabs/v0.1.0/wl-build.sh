@@ -10,4 +10,6 @@ logStatus "Preparing artifacts..."
 cp -TRv ${WASMLABS_DEPS_ROOT}/build-output/include ${WASMLABS_OUTPUT}/include || exit 1
 cp -TRv ${WASMLABS_DEPS_ROOT}/build-output/lib ${WASMLABS_OUTPUT}/lib || exit 1
 
+wlr_package_lib
+
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

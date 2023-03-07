@@ -42,7 +42,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} build-output/*.gz
-          gh release upload ${{ github.ref_name }} build-output/*.txt
       - name: Generate release assets digests
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
