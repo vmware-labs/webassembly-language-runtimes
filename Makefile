@@ -57,10 +57,10 @@ oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
 		-f images/python/Dockerfile \
 		.
 
-
 LIBS := \
 	bundle-wasmlabs \
 	icu \
+	libjpeg \
 	libpng \
 	libxml2 \
 	oniguruma \
