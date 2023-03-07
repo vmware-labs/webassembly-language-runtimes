@@ -17,8 +17,10 @@ export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_BUILD}"
 
 cd "${WASMLABS_SOURCE_PATH}"
 
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
+
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
-    export ZLIB_CONFIGURE="--prefix="${WASMLABS_OUTPUT}
+    export ZLIB_CONFIGURE="${WLR_CONFIGURE_PREFIXES}"
     logStatus "Configuring build with '${ZLIB_CONFIGURE}'... "
     ./configure ${ZLIB_CONFIGURE} || exit 1
 else
@@ -29,6 +31,8 @@ logStatus "Building... "
 make -j || exit 1
 
 logStatus "Preparing artifacts... "
-make install
+make install ${WLR_INSTALL_PREFIXES} || exit 1
+
+wlr_package_lib
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 logStatus "Building libs 'php/php-8.2.0-slim'"
 
 if [[ ! -v WASMLABS_ENV ]]

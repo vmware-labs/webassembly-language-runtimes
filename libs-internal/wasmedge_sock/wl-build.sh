@@ -11,8 +11,8 @@ export CFLAGS_CONFIG="-O0"
 logStatus "Configuring CMake for '${WASMLABS_SOURCE_PATH}' at '${WASMLABS_STAGING}'..."
 
 cmake -B${WASMLABS_STAGING} \
-    -DWASI_SDK_PREFIX=${WASI_SDK_ROOT} \
-    -DCMAKE_TOOLCHAIN_FILE=${WASI_SDK_ROOT}/share/cmake/wasi-sdk.cmake \
+    -DWASI_SDK_PREFIX=${WASI_SDK_PATH} \
+    -DCMAKE_TOOLCHAIN_FILE=${WASI_SDK_PATH}/share/cmake/wasi-sdk.cmake \
     ${WASMLABS_SOURCE_PATH}
 
 logStatus "Building CMake at '${WASMLABS_STAGING}'..."

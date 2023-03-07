@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ ! -v WASMLABS_ENV ]]
 then
@@ -39,6 +39,7 @@ logStatus "Building ruby..."
 make install
 
 logStatus "Preparing artifacts... "
+mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
 mv $PREFIX/bin/ruby ${WASMLABS_OUTPUT}/bin/ruby.wasm || exit 1
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

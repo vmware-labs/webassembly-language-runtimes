@@ -19,14 +19,17 @@ export LDFLAGS="${LDFLAGS_WASI}"
 
 cd "${WASMLABS_SOURCE_PATH}"
 
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
+
 if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
 
     logStatus "Generating configure"
-    ${WASMLABS_REPO_ROOT}/scripts/build-helpers/update_autoconf.sh || exit 1
+    source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_autoconf.sh
+    wlr_update_autoconf || exit 1
 
     autoreconf --verbose --install
 
-    export UUID_CONFIGURE=''
+    export UUID_CONFIGURE="${WLR_CONFIGURE_PREFIXES}"
     logStatus "Configuring build with '${UUID_CONFIGURE}'... "
     ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${UUID_CONFIGURE} || exit 1
 else
@@ -37,9 +40,10 @@ logStatus "Building... "
 make || exit 1
 
 logStatus "Preparing artifacts... "
-make install \
-    prefix=${WASMLABS_OUTPUT} \
-    libdir=${WASMLABS_OUTPUT}/lib \
-    pkgconfigdir=${WASMLABS_OUTPUT}/lib/pkgconfig
+make install ${WLR_INSTALL_PREFIXES} || exit 1
+
+add_pkg_config_Libs ${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkgconfig/uuid.pc ${LDFLAGS_WASI}
+
+wlr_package_lib
 
 logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"

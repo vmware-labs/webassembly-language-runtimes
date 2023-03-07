@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 logStatus "Building libs 'php/master'"
 
 if [[ ! -v WASMLABS_ENV ]]

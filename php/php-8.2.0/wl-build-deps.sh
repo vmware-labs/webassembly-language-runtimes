@@ -1,72 +1,26 @@
-#!/bin/bash
-
-logStatus "Building dependencies for PHP 8.2.0..."
-
-if [[ ! -v WASMLABS_ENV ]]
-then
-    echo "Wasmlabs environment is not set"
-    exit 1
-fi
+#!/usr/bin/env bash
 
 if [ "${BASH_SOURCE-}" = "$0" ]; then
     echo "You must source this script to add to CFLAGS and LDFLAGS: \$ source $0" >&2
     return
 fi
 
+source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_dependencies.sh
 
-### zlib
-export PKG_CONFIG_PATH="${WASMLABS_OUTPUT_BASE}/zlib/v1.2.13/lib/pkgconfig:"${PKG_CONFIG_PATH}
+wlr_dependencies_add "zlib" "libs/zlib/v1.2.13" "lib/wasm32-wasi/libz.a" \
+    "https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fzlib%2F1.2.13%2B20230306-764c74d/libz-1.2.13-wasi-sdk-19.0.tar.gz"
 
-if [[ ! -e "${WASMLABS_OUTPUT_BASE}/zlib/v1.2.13/lib/libz.a" ]]; then
-    logStatus "Building zlib dependency..."
-    $WASMLABS_MAKE "${WASMLABS_REPO_ROOT}/libs/zlib/v1.2.13" || exit 1
-else
-     logStatus "Skipping building zlib dependency!"
-fi
+wlr_dependencies_add "libpng" "libs/libpng/v1.6.39" "lib/wasm32-wasi/libpng16.a" \
+    "https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Flibpng%2F1.6.39%2B20230306-fba4bba/libpng-1.6.39-wasi-sdk-19.0.tar.gz"
 
+wlr_dependencies_add "libxml2" "libs/libxml2/v2.10.3" "lib/wasm32-wasi/libxml2.a" \
+    "https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Flibxml2%2F2.10.3%2B20230306-764c74d/libxml2-2.10.3-wasi-sdk-19.0.tar.gz"
 
-### libpng
-export PKG_CONFIG_PATH="${WASMLABS_OUTPUT_BASE}/libpng/v1.6.39/lib/pkgconfig:${PKG_CONFIG_PATH}"
+wlr_dependencies_add "oniguruma" "libs/oniguruma/v6.9.8" "lib/wasm32-wasi/libonig.a" \
+    "https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Foniguruma%2F6.9.8%2B20230306-fba4bba/libonig-6.9.8-wasi-sdk-19.0.tar.gz"
 
-if [[ ! -e ${WASMLABS_OUTPUT_BASE}"/libpng/v1.6.39/lib/libpng16.a" ]]; then
-    logStatus "Building libpng dependency..."
-    $WASMLABS_MAKE "${WASMLABS_REPO_ROOT}/libs/libpng/v1.6.39" || exit 1
-else
-     logStatus "Skipping building libpng dependency!"
-fi
-
-
-### libxml2
-export PKG_CONFIG_PATH=${WASMLABS_OUTPUT_BASE}"/libxml2/v2.10.3/lib/pkgconfig:"${PKG_CONFIG_PATH}
-
-if [[ ! -e "${WASMLABS_OUTPUT_BASE}/libxml2/v2.10.3/lib/libxml2.a" ]]; then
-    logStatus "Building LibXML dependency..."
-    $WASMLABS_MAKE "${WASMLABS_REPO_ROOT}/libs/libxml2/v2.10.3" || exit 1
-else
-     logStatus "Skipping building LibXML dependency!"
-fi
-
-
-### oniguruma
-export PKG_CONFIG_PATH="${WASMLABS_OUTPUT_BASE}/oniguruma/v6.9.8/lib/pkgconfig:${PKG_CONFIG_PATH}"
-
-if [[ ! -e ${WASMLABS_OUTPUT_BASE}"/oniguruma/v6.9.8/lib/libonig.a" ]]; then
-    logStatus "Building Oniguruma dependency..."
-    $WASMLABS_MAKE "${WASMLABS_REPO_ROOT}/libs/oniguruma/v6.9.8" || exit 1
-else
-     logStatus "Skipping building Oniguruma dependency!"
-fi
-
-
-### sqlite3
-export PKG_CONFIG_PATH="${WASMLABS_OUTPUT_BASE}/sqlite/version-3.39.2/lib/pkgconfig:${PKG_CONFIG_PATH}"
-
-if [[ ! -e "${WASMLABS_OUTPUT_BASE}/sqlite/version-3.39.2/lib/libsqlite3.a" ]]; then
-    logStatus "Building SQLite dependency..."
-    $WASMLABS_MAKE "${WASMLABS_REPO_ROOT}/libs/sqlite/version-3.39.2" || exit 1
-else
-    logStatus "Skipping building SQLite dependency!"
-fi
+wlr_dependencies_add "SQLite" "libs/sqlite/version-3.39.2" "lib/wasm32-wasi/libsqlite3.a" \
+    "https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fsqlite%2F3.39.2%2B20230306-764c74d/libsqlite-3.39.2-wasi-sdk-19.0.tar.gz"
 
 logStatus "Completed building dependencies for PHP 8.2.0!"
 logStatus " -> Exported PKG_CONFIG_PATH=${PKG_CONFIG_PATH}"

@@ -1,0 +1,17 @@
+# Note that for this workflow to be triggered, the tag needs to be
+# created of the form `libs/oniguruma/<version>+<buildinfo>`, where <buildinfo>
+# by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
+# with `git rev-parse --short HEAD`).
+name: Release Lib bundle-wasmlabs
+on:
+  push:
+    tags:
+      - libs/bundle-wasmlabs/*
+jobs:
+  release-bundle-wasmlabs:
+    uses: ./.github/workflows/reusable-release-lib.yaml
+    with:
+      name: "libbundle-wasmlabs"
+      target-name: "bundle-wasmlabs"
+      target-prefix: "v"
+      trigger: ${{ github.event.ref }}

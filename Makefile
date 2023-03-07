@@ -1,5 +1,7 @@
 # This Makefile contains the main targets for all supported language runtimes
 
+include Makefile.helpers
+
 .PHONY: php/php-*
 php/php-*:
 	make -C php $(subst php/php-,php-,$@)
@@ -55,13 +57,18 @@ oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
 		-f images/python/Dockerfile \
 		.
 
-.PHONY: libs/uuid/*
-libs/uuid/*:
-	make -C libs/uuid $(subst libs/uuid/,,$@)
 
-.PHONY: libs/zlib/*
-libs/zlib/*:
-	make -C libs/zlib $(subst libs/zlib/,,$@)
+LIBS := \
+	bundle-wasmlabs \
+	icu \
+	libpng \
+	libxml2 \
+	oniguruma \
+	sqlite \
+	uuid \
+	zlib
+
+$(foreach _,${LIBS},$(eval $(call create_lib_sub_targets,$_)))
 
 .PHONY: clean
 clean:

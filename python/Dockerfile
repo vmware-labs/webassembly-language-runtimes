@@ -15,13 +15,12 @@ RUN make -j4 && make install
 
 FROM ghcr.io/vmware-labs/wasmlabs/wasi-builder:${WASI_SDK_VERSION}
 ARG PY_SHORT_VERSION
-# If more capabilities are required from the build-erpython, consult this
+# If more capabilities are required from the python-builder, consult this
 # github workflow configuration for a list of possible dependencies -
 # https://github.com/python/cpython/blob/main/.github/workflows/posix-deps-apt.sh
 RUN DEBIAN_FRONTEND=noninteractive apt install -y \
-      tcl \
-      libtool \
-      libtool-bin
+      tcl
+
 COPY --from=build-host-python /opt/python${PY_SHORT_VERSION}/ /opt/python${PY_SHORT_VERSION}/
 RUN update-alternatives --install /usr/bin/python3 python3 /opt/python${PY_SHORT_VERSION}/bin/python${PY_SHORT_VERSION} 110
 RUN update-alternatives --install /usr/bin/python${PY_SHORT_VERSION} python${PY_SHORT_VERSION} /opt/python${PY_SHORT_VERSION}/bin/python${PY_SHORT_VERSION} 110
