@@ -17,3 +17,10 @@ function add_pkg_config_Libs {
 
     sed -i "s/\(^Libs:.*$\)/\1 ${EXTRA_LIBS}/g" ${TARGET_FILE}
 }
+
+function wlr_pkg_config_reset_pc_prefix {
+    TARGET_FILE="$1"
+
+    sed -i "s/\(^prefix=\).*$/\1/g" ${TARGET_FILE}
+    sed -i "s|${WASMLABS_OUTPUT}|\$\{prefix\}|g" ${TARGET_FILE}
+}
