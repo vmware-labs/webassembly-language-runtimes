@@ -1,7 +1,7 @@
-From 6e123de32e76dc3e1f91cbf46fae3bc9f302c3a2 Mon Sep 17 00:00:00 2001
+From 646d14fd38c90a4577c127328e45605bdaade69c Mon Sep 17 00:00:00 2001
 From: Asen Alexandrov <alexandrov@vmware.com>
 Date: Tue, 8 Nov 2022 16:07:48 +0200
-Subject: [PATCH 1/5] Initial port of the php 7.4.32 patch for php 8.2.11
+Subject: [PATCH 1/9] Initial port of the php 7.4.32 patch for php 8.2.11
 
   19.8% Zend/
   16.0% ext/posix/
@@ -16,8 +16,15 @@ Subject: [PATCH 1/5] Initial port of the php 7.4.32 patch for php 8.2.11
   14.1% main/streams/
   16.9% main/
    5.4% sapi/cgi/
+
+  19.4% Zend/
+  15.7% ext/posix/
+  25.4% ext/standard/
+  14.1% main/streams/
+  16.9% main/
+   5.4% sapi/cgi/
 diff --git a/Zend/zend.c b/Zend/zend.c
-index c6a5f7f91c..60818b6ede 100644
+index c6a5f7f9..60818b6e 100644
 --- a/Zend/zend.c
 +++ b/Zend/zend.c
 @@ -780,7 +780,9 @@ static void executor_globals_ctor(zend_executor_globals *executor_globals) /* {{
@@ -47,7 +54,7 @@ index c6a5f7f91c..60818b6ede 100644
  /* }}} */
  
 diff --git a/Zend/zend.h b/Zend/zend.h
-index fd7d33f46f..f2b161d352 100644
+index fd7d33f4..f2b161d3 100644
 --- a/Zend/zend.h
 +++ b/Zend/zend.h
 @@ -254,6 +254,7 @@ typedef size_t (*zend_write_func_t)(const char *str, size_t str_length);
@@ -79,7 +86,7 @@ index fd7d33f46f..f2b161d352 100644
  void zend_startup(zend_utility_functions *utility_functions);
  void zend_shutdown(void);
 diff --git a/Zend/zend_alloc.c b/Zend/zend_alloc.c
-index d0e28dca0d..5e67345c76 100644
+index d0e28dca..5e67345c 100644
 --- a/Zend/zend_alloc.c
 +++ b/Zend/zend_alloc.c
 @@ -80,7 +80,7 @@
@@ -150,7 +157,7 @@ index d0e28dca0d..5e67345c76 100644
  	REAL_PAGE_SIZE = sysconf(_SC_PAGESIZE);
  #  elif defined(_SC_PAGE_SIZE)
 diff --git a/Zend/zend_fibers.c b/Zend/zend_fibers.c
-index 0bb45d1c3d..0bc4e0c676 100644
+index 0bb45d1c..0bc4e0c6 100644
 --- a/Zend/zend_fibers.c
 +++ b/Zend/zend_fibers.c
 @@ -37,7 +37,7 @@
@@ -211,7 +218,7 @@ index 0bb45d1c3d..0bc4e0c676 100644
  	munmap(pointer, stack->size + ZEND_FIBER_GUARD_PAGES * page_size);
  #endif
 diff --git a/Zend/zend_globals.h b/Zend/zend_globals.h
-index 17469fab0c..27868fb512 100644
+index 17469fab..27868fb5 100644
 --- a/Zend/zend_globals.h
 +++ b/Zend/zend_globals.h
 @@ -21,7 +21,9 @@
@@ -235,7 +242,7 @@ index 17469fab0c..27868fb512 100644
  	int error_reporting;
  	int exit_status;
 diff --git a/Zend/zend_types.h b/Zend/zend_types.h
-index df64541749..4059003720 100644
+index df645417..40590037 100644
 --- a/Zend/zend_types.h
 +++ b/Zend/zend_types.h
 @@ -1446,5 +1446,15 @@ static zend_always_inline uint32_t zval_delref_p(zval* pz) {
@@ -255,7 +262,7 @@ index df64541749..4059003720 100644
  
  #endif /* ZEND_TYPES_H */
 diff --git a/Zend/zend_virtual_cwd.c b/Zend/zend_virtual_cwd.c
-index 64fc165174..2a3c5c7d42 100644
+index 64fc1651..2a3c5c7d 100644
 --- a/Zend/zend_virtual_cwd.c
 +++ b/Zend/zend_virtual_cwd.c
 @@ -1400,6 +1400,8 @@ CWD_API int virtual_chmod(const char *filename, mode_t mode) /* {{{ */
@@ -293,7 +300,7 @@ index 64fc165174..2a3c5c7d42 100644
  	return retval;
  }
 diff --git a/ext/fileinfo/libmagic/compress.c b/ext/fileinfo/libmagic/compress.c
-index 85d0b2938e..0129c20341 100644
+index 85d0b293..0129c203 100644
 --- a/ext/fileinfo/libmagic/compress.c
 +++ b/ext/fileinfo/libmagic/compress.c
 @@ -453,7 +453,7 @@ file_pipe2file(struct magic_set *ms, int fd, const void *startbuf,
@@ -306,7 +313,7 @@ index 85d0b2938e..0129c20341 100644
  		char *ptr = mktemp(buf);
  		tfd = open(ptr, O_RDWR|O_TRUNC|O_EXCL|O_CREAT, 0600);
 diff --git a/ext/fileinfo/libmagic/fsmagic.c b/ext/fileinfo/libmagic/fsmagic.c
-index a1b18d479f..ff43d7bebc 100644
+index a1b18d47..ff43d7be 100644
 --- a/ext/fileinfo/libmagic/fsmagic.c
 +++ b/ext/fileinfo/libmagic/fsmagic.c
 @@ -167,6 +167,7 @@ file_fsmagic(struct magic_set *ms, const char *fn, zend_stat_t *sb)
@@ -326,7 +333,7 @@ index a1b18d479f..ff43d7bebc 100644
  	case S_IFDOOR:
  		if (mime) {
 diff --git a/ext/pdo_sqlite/sqlite_statement.c b/ext/pdo_sqlite/sqlite_statement.c
-index 90de059a3b..2e83f01af6 100644
+index 90de059a..2e83f01a 100644
 --- a/ext/pdo_sqlite/sqlite_statement.c
 +++ b/ext/pdo_sqlite/sqlite_statement.c
 @@ -32,7 +32,9 @@ static int pdo_sqlite_stmt_dtor(pdo_stmt_t *stmt)
@@ -340,7 +347,7 @@ index 90de059a3b..2e83f01af6 100644
  	}
  	efree(S);
 diff --git a/ext/posix/posix.c b/ext/posix/posix.c
-index ed7a93c540..49806f2cb4 100644
+index ed7a93c5..49806f2c 100644
 --- a/ext/posix/posix.c
 +++ b/ext/posix/posix.c
 @@ -37,8 +37,10 @@
@@ -646,7 +653,7 @@ index ed7a93c540..49806f2cb4 100644
  /* }}} */
  
 diff --git a/ext/session/mod_files.c b/ext/session/mod_files.c
-index a320756961..aa23f6cb86 100644
+index a3207569..aa23f6cb 100644
 --- a/ext/session/mod_files.c
 +++ b/ext/session/mod_files.c
 @@ -189,6 +189,7 @@ static void ps_files_open(ps_files *data, /* const */ zend_string *key)
@@ -666,7 +673,7 @@ index a320756961..aa23f6cb86 100644
  #ifdef F_SETFD
  # ifndef FD_CLOEXEC
 diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
-index 00713766fd..e3e443b48b 100755
+index 00713766..e3e443b4 100755
 --- a/ext/standard/basic_functions.c
 +++ b/ext/standard/basic_functions.c
 @@ -64,11 +64,13 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
@@ -712,7 +719,7 @@ index 00713766fd..e3e443b48b 100755
  		VCWD_UNLINK(path);
  		successful = 1;
 diff --git a/ext/standard/dns.c b/ext/standard/dns.c
-index d229b998a4..104f847ab4 100644
+index d229b998..104f847a 100644
 --- a/ext/standard/dns.c
 +++ b/ext/standard/dns.c
 @@ -34,7 +34,9 @@
@@ -779,7 +786,7 @@ index d229b998a4..104f847ab4 100644
  /* }}} */
  
 diff --git a/ext/standard/exec.c b/ext/standard/exec.c
-index 1b1b0ab9e9..83d26d93ed 100644
+index 1b1b0ab9..83d26d93 100644
 --- a/ext/standard/exec.c
 +++ b/ext/standard/exec.c
 @@ -113,6 +113,7 @@ static size_t handle_line(int type, zval *array, char *buf, size_t bufl) {
@@ -823,7 +830,7 @@ index 1b1b0ab9e9..83d26d93ed 100644
  
  #ifdef HAVE_NICE
 diff --git a/ext/standard/file.c b/ext/standard/file.c
-index 1f3b6b2cf5..03407bbdb3 100644
+index 1f3b6b2c..03407bbd 100644
 --- a/ext/standard/file.c
 +++ b/ext/standard/file.c
 @@ -55,7 +55,9 @@
@@ -874,7 +881,7 @@ index 1f3b6b2cf5..03407bbdb3 100644
  /* }}} */
  
 diff --git a/ext/standard/filestat.c b/ext/standard/filestat.c
-index aaf7e730d0..2fdb9d765c 100644
+index aaf7e730..2fdb9d76 100644
 --- a/ext/standard/filestat.c
 +++ b/ext/standard/filestat.c
 @@ -326,12 +326,16 @@ PHPAPI int php_get_gid_by_name(const char *name, gid_t *gid)
@@ -988,7 +995,7 @@ index aaf7e730d0..2fdb9d765c 100644
  		case S_IFDIR: RETURN_STRING("dir");
  		case S_IFBLK: RETURN_STRING("block");
 diff --git a/ext/standard/flock_compat.c b/ext/standard/flock_compat.c
-index 8622ec1aec..7aae46c392 100644
+index 8622ec1a..7aae46c3 100644
 --- a/ext/standard/flock_compat.c
 +++ b/ext/standard/flock_compat.c
 @@ -26,7 +26,12 @@ PHPAPI int flock(int fd, int operation)
@@ -1006,7 +1013,7 @@ index 8622ec1aec..7aae46c392 100644
  	struct flock flck;
  	int ret;
 diff --git a/ext/standard/ftp_fopen_wrapper.c b/ext/standard/ftp_fopen_wrapper.c
-index 0be729a59f..31180f329c 100644
+index 0be729a5..31180f32 100644
 --- a/ext/standard/ftp_fopen_wrapper.c
 +++ b/ext/standard/ftp_fopen_wrapper.c
 @@ -48,8 +48,10 @@
@@ -1022,7 +1029,7 @@ index 0be729a59f..31180f329c 100644
  #endif
  #endif
 diff --git a/ext/standard/http_fopen_wrapper.c b/ext/standard/http_fopen_wrapper.c
-index be0ee30b7d..2432220bcc 100644
+index be0ee30b..2432220b 100644
 --- a/ext/standard/http_fopen_wrapper.c
 +++ b/ext/standard/http_fopen_wrapper.c
 @@ -51,8 +51,10 @@
@@ -1038,7 +1045,7 @@ index be0ee30b7d..2432220bcc 100644
  #endif
  #endif
 diff --git a/ext/standard/mail.c b/ext/standard/mail.c
-index 55790e6100..90fad42650 100644
+index 55790e61..90fad426 100644
 --- a/ext/standard/mail.c
 +++ b/ext/standard/mail.c
 @@ -372,6 +372,7 @@ static int php_mail_detect_multiple_crlf(const char *hdr) {
@@ -1060,7 +1067,7 @@ index 55790e6100..90fad42650 100644
  /* }}} */
  
 diff --git a/ext/standard/microtime.c b/ext/standard/microtime.c
-index ca8643eb51..f39e90fdc0 100644
+index ca8643eb..f39e90fd 100644
 --- a/ext/standard/microtime.c
 +++ b/ext/standard/microtime.c
 @@ -126,6 +126,7 @@ PHP_FUNCTION(getrusage)
@@ -1080,7 +1087,7 @@ index ca8643eb51..f39e90fdc0 100644
  	PHP_RUSAGE_PARA(ru_utime.tv_usec);
  	PHP_RUSAGE_PARA(ru_utime.tv_sec);
 diff --git a/ext/standard/net.c b/ext/standard/net.c
-index b22f304c8e..e385b5de6b 100644
+index b22f304c..e385b5de 100644
 --- a/ext/standard/net.c
 +++ b/ext/standard/net.c
 @@ -43,7 +43,7 @@
@@ -1111,7 +1118,7 @@ index b22f304c8e..e385b5de6b 100644
  	}
  
 diff --git a/ext/standard/pageinfo.c b/ext/standard/pageinfo.c
-index f24659a95e..472f7e4a56 100644
+index f24659a9..472f7e4a 100644
 --- a/ext/standard/pageinfo.c
 +++ b/ext/standard/pageinfo.c
 @@ -61,8 +61,10 @@ PHPAPI void php_statpage(void)
@@ -1166,7 +1173,7 @@ index f24659a95e..472f7e4a56 100644
  /* }}} */
  
 diff --git a/ext/standard/php_fopen_wrapper.c b/ext/standard/php_fopen_wrapper.c
-index 8926485025..be3fc6fd7b 100644
+index 89264850..be3fc6fd 100644
 --- a/ext/standard/php_fopen_wrapper.c
 +++ b/ext/standard/php_fopen_wrapper.c
 @@ -246,13 +246,17 @@ php_stream * php_stream_url_wrap_php(php_stream_wrapper *wrapper, const char *pa
@@ -1251,7 +1258,7 @@ index 8926485025..be3fc6fd7b 100644
  		/* Save time/memory when chain isn't specified */
  		if (strchr(mode, 'r') || strchr(mode, '+')) {
 diff --git a/main/fastcgi.c b/main/fastcgi.c
-index a77491f1bf..ec29595e70 100644
+index a77491f1..ec29595e 100644
 --- a/main/fastcgi.c
 +++ b/main/fastcgi.c
 @@ -69,7 +69,9 @@ static int is_impersonate = 0;
@@ -1326,7 +1333,7 @@ index a77491f1bf..ec29595e70 100644
  						continue;
  					}
 diff --git a/main/fopen_wrappers.c b/main/fopen_wrappers.c
-index f6ce26e104..3d7c67b2de 100644
+index f6ce26e1..3d7c67b2 100644
 --- a/main/fopen_wrappers.c
 +++ b/main/fopen_wrappers.c
 @@ -52,7 +52,9 @@
@@ -1340,7 +1347,7 @@ index f6ce26e104..3d7c67b2de 100644
  #include <arpa/inet.h>
  #endif
 diff --git a/main/main.c b/main/main.c
-index 8be52d316a..8417a40ae5 100644
+index 8be52d31..8417a40a 100644
 --- a/main/main.c
 +++ b/main/main.c
 @@ -1409,6 +1409,7 @@ static ZEND_COLD void php_error_cb(int orig_type, zend_string *error_filename, c
@@ -1362,7 +1369,7 @@ index 8be52d316a..8417a40ae5 100644
  /* }}} */
  
 diff --git a/main/network.c b/main/network.c
-index a189714aaf..6fb97865cb 100644
+index a189714a..6fb97865 100644
 --- a/main/network.c
 +++ b/main/network.c
 @@ -54,7 +54,9 @@
@@ -1579,7 +1586,7 @@ index a189714aaf..6fb97865cb 100644
 +#endif // WASM_WASI
  }
 diff --git a/main/php_open_temporary_file.c b/main/php_open_temporary_file.c
-index dcea783584..57bd337835 100644
+index dcea7835..57bd3378 100644
 --- a/main/php_open_temporary_file.c
 +++ b/main/php_open_temporary_file.c
 @@ -30,7 +30,9 @@
@@ -1611,7 +1618,7 @@ index dcea783584..57bd337835 100644
  	if (mktemp(opened_path)) {
  		fd = VCWD_OPEN(opened_path, open_flags);
 diff --git a/main/php_syslog.c b/main/php_syslog.c
-index fa71a86313..68c7aac707 100644
+index fa71a863..68c7aac7 100644
 --- a/main/php_syslog.c
 +++ b/main/php_syslog.c
 @@ -105,6 +105,7 @@ PHPAPI void php_syslog(int priority, const char *format, ...) /* {{{ */
@@ -1631,7 +1638,7 @@ index fa71a86313..68c7aac707 100644
  /* }}} */
  #endif
 diff --git a/main/streams/plain_wrapper.c b/main/streams/plain_wrapper.c
-index e9a30f3334..f72825e153 100644
+index e9a30f33..f72825e1 100644
 --- a/main/streams/plain_wrapper.c
 +++ b/main/streams/plain_wrapper.c
 @@ -493,7 +493,9 @@ static int php_stdiop_close(php_stream *stream, int close_handle)
@@ -1719,7 +1726,7 @@ index e9a30f3334..f72825e153 100644
  		default:
  			zend_value_error("Unknown option %d for stream_metadata", option);
 diff --git a/main/streams/xp_socket.c b/main/streams/xp_socket.c
-index be41d3dde7..b9d9f077cb 100644
+index be41d3dd..b9d9f077 100644
 --- a/main/streams/xp_socket.c
 +++ b/main/streams/xp_socket.c
 @@ -219,7 +219,9 @@ static int php_sockop_close(php_stream *stream, int close_handle)
@@ -1872,7 +1879,7 @@ index be41d3dde7..b9d9f077cb 100644
  				xparam->want_errortext ? &xparam->outputs.error_text : NULL,
  				&err);
 diff --git a/sapi/cgi/cgi_main.c b/sapi/cgi/cgi_main.c
-index b45468031f..7d5ddf0880 100644
+index b4546803..7d5ddf08 100644
 --- a/sapi/cgi/cgi_main.c
 +++ b/sapi/cgi/cgi_main.c
 @@ -44,7 +44,9 @@
@@ -2010,7 +2017,7 @@ index b45468031f..7d5ddf0880 100644
  					if (exit_signal) {
  #if 0
 diff --git a/sapi/fpm/fpm/fpm_unix.c b/sapi/fpm/fpm/fpm_unix.c
-index 333265b07b..cdee0e7eba 100644
+index 333265b0..cdee0e7e 100644
 --- a/sapi/fpm/fpm/fpm_unix.c
 +++ b/sapi/fpm/fpm/fpm_unix.c
 @@ -9,7 +9,9 @@
@@ -2024,7 +2031,7 @@ index 333265b07b..cdee0e7eba 100644
  #ifdef HAVE_PRCTL
  #include <sys/prctl.h>
 diff --git a/sapi/litespeed/lsapilib.c b/sapi/litespeed/lsapilib.c
-index 2208bbd47b..26d0d307b1 100644
+index 2208bbd4..26d0d307 100644
 --- a/sapi/litespeed/lsapilib.c
 +++ b/sapi/litespeed/lsapilib.c
 @@ -65,7 +65,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

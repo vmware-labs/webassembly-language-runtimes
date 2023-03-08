@@ -1,13 +1,15 @@
-From 60d1ba4112181cc071ac3317424da057290d74eb Mon Sep 17 00:00:00 2001
+From e7685dec7b5f3f1abff3c524cc71f0703959a7d9 Mon Sep 17 00:00:00 2001
 From: Asen Alexandrov <alexandrov@vmware.com>
 Date: Tue, 3 Jan 2023 17:02:38 +0200
-Subject: [PATCH 2/5] feat: Incapacitate fibers when compiling for WASI
+Subject: [PATCH 2/9] feat: Incapacitate fibers when compiling for WASI
+
+  26.2% Zend/
 
   26.2% Zend/
 
   26.2% Zend/
 diff --git a/Zend/zend_fibers.c b/Zend/zend_fibers.c
-index 0bc4e0c676..772d379dd8 100644
+index 0bc4e0c6..772d379d 100644
 --- a/Zend/zend_fibers.c
 +++ b/Zend/zend_fibers.c
 @@ -347,12 +347,14 @@ ZEND_API bool zend_fiber_init_context(zend_fiber_context *context, void *kind, z
@@ -48,7 +50,7 @@ index 0bc4e0c676..772d379dd8 100644
  	to->handle = data.handle;
  #endif
 diff --git a/configure.ac b/configure.ac
-index 009e8f88e9..f8088c3a94 100644
+index 009e8f88..f8088c3a 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -197,6 +197,9 @@ label2:

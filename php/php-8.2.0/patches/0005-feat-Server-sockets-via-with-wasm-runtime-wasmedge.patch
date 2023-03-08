@@ -1,13 +1,15 @@
-From 79e10bdf096b6a73d4ab730e41c958a70265867b Mon Sep 17 00:00:00 2001
-From: "no-reply@wasmlabs.dev" <Wasm Labs Team>
+From 7c3e04f4c6f4bc4652adcc711c015e6539f44cde Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <no-reply@wasmlabs.dev>
 Date: Fri, 6 Jan 2023 12:38:11 +0200
-Subject: [PATCH 5/5] feat: Server sockets via --with-wasm-runtime=wasmedge
+Subject: [PATCH 5/9] feat: Server sockets via --with-wasm-runtime=wasmedge
 
+   8.3% sapi/cli/
+  88.4% wasmedge_stubs/
 
    8.3% sapi/cli/
   88.4% wasmedge_stubs/
 diff --git a/configure.ac b/configure.ac
-index f8088c3a94..56e95d01c3 100644
+index f8088c3a..56e95d01 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -787,6 +787,28 @@ fi
@@ -40,7 +42,7 @@ index f8088c3a94..56e95d01c3 100644
  dnl ----------------------------------------------------------------------------
  PHP_CONFIGURE_PART(General settings)
 diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
-index d367dd8e42..3c241d0115 100755
+index d367dd8e..3c241d01 100755
 --- a/ext/standard/basic_functions.c
 +++ b/ext/standard/basic_functions.c
 @@ -70,8 +70,8 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
@@ -55,7 +57,7 @@ index d367dd8e42..3c241d0115 100755
  
  #ifdef HAVE_ARPA_INET_H
 diff --git a/main/php_network.h b/main/php_network.h
-index a3b7ba7ab3..8ca945f978 100644
+index a3b7ba7a..8ca945f9 100644
 --- a/main/php_network.h
 +++ b/main/php_network.h
 @@ -230,7 +230,7 @@ static inline bool _php_check_fd_setsize(php_socket_t *max_fd, int setsize)
@@ -68,7 +70,7 @@ index a3b7ba7ab3..8ca945f978 100644
   * descriptors that go beyond the default FD_SETSIZE */
  # define PHP_SAFE_FD_SET(fd, set)	FD_SET(fd, set)
 diff --git a/sapi/cli/php_cli_server.c b/sapi/cli/php_cli_server.c
-index ce3ff5de6c..ffbe2f7185 100644
+index ce3ff5de..ffbe2f71 100644
 --- a/sapi/cli/php_cli_server.c
 +++ b/sapi/cli/php_cli_server.c
 @@ -97,6 +97,19 @@
@@ -257,7 +259,7 @@ index ce3ff5de6c..ffbe2f7185 100644
  			closesocket(retval);
 diff --git a/wasmedge_stubs/netdb.h b/wasmedge_stubs/netdb.h
 new file mode 100644
-index 0000000000..c1136150b7
+index 00000000..c1136150
 --- /dev/null
 +++ b/wasmedge_stubs/netdb.h
 @@ -0,0 +1,73 @@
@@ -337,7 +339,7 @@ index 0000000000..c1136150b7
 \ No newline at end of file
 diff --git a/wasmedge_stubs/wasi_socket_ext.c b/wasmedge_stubs/wasi_socket_ext.c
 new file mode 100644
-index 0000000000..0c74c75a5e
+index 00000000..0c74c75a
 --- /dev/null
 +++ b/wasmedge_stubs/wasi_socket_ext.c
 @@ -0,0 +1,406 @@
@@ -750,7 +752,7 @@ index 0000000000..0c74c75a5e
 \ No newline at end of file
 diff --git a/wasmedge_stubs/wasi_socket_ext.h b/wasmedge_stubs/wasi_socket_ext.h
 new file mode 100644
-index 0000000000..ee4dc75b43
+index 00000000..ee4dc75b
 --- /dev/null
 +++ b/wasmedge_stubs/wasi_socket_ext.h
 @@ -0,0 +1,331 @@

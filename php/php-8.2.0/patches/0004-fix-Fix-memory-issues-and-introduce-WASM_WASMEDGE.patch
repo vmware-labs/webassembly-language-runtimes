@@ -1,14 +1,17 @@
-From c11343977c9e0cdc72d48e7f20c2f76801a80d2e Mon Sep 17 00:00:00 2001
-From: "no-reply@wasmlabs.dev" <Wasm Labs Team>
+From 71de1e422175e7819d7f2c5dac76879b4e6f549c Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <no-reply@wasmlabs.dev>
 Date: Fri, 6 Jan 2023 11:21:03 +0200
-Subject: [PATCH 4/5] fix: Fix memory issues and introduce WASM_WASMEDGE.
+Subject: [PATCH 4/9] fix: Fix memory issues and introduce WASM_WASMEDGE.
 
+  76.4% Zend/
+  11.4% ext/posix/
+  12.1% ext/standard/
 
   76.4% Zend/
   11.4% ext/posix/
   12.1% ext/standard/
 diff --git a/Zend/zend_alloc.c b/Zend/zend_alloc.c
-index 5e67345c76..258766a5d0 100644
+index 5e67345c..258766a5 100644
 --- a/Zend/zend_alloc.c
 +++ b/Zend/zend_alloc.c
 @@ -465,8 +465,8 @@ static void *zend_mm_mmap(size_t size)
@@ -34,7 +37,7 @@ index 5e67345c76..258766a5d0 100644
  #else
  	void *ptr = zend_mm_mmap(size);
 diff --git a/ext/posix/posix.c b/ext/posix/posix.c
-index 49806f2cb4..c5e5c4a06e 100644
+index 49806f2c..c5e5c4a0 100644
 --- a/ext/posix/posix.c
 +++ b/ext/posix/posix.c
 @@ -536,8 +536,12 @@ PHP_FUNCTION(posix_ttyname)
@@ -51,7 +54,7 @@ index 49806f2cb4..c5e5c4a06e 100644
  /* }}} */
  
 diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
-index e3e443b48b..d367dd8e42 100755
+index e3e443b4..d367dd8e 100755
 --- a/ext/standard/basic_functions.c
 +++ b/ext/standard/basic_functions.c
 @@ -70,6 +70,8 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;

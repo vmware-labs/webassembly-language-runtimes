@@ -1,13 +1,15 @@
-From 4110cce86c84bc5df75d23675d6a2398a4baea0a Mon Sep 17 00:00:00 2001
-From: "no-reply@wasmlabs.dev" <Wasm Labs Team>
+From 9ac2dea9a31b2a0a2f10a778c28b9a0b0a058b15 Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <no-reply@wasmlabs.dev>
 Date: Fri, 6 Jan 2023 11:04:53 +0200
-Subject: [PATCH 3/5] fix: Add more ifdefs for php-8.2.0
+Subject: [PATCH 3/9] fix: Add more ifdefs for php-8.2.0
 
+  43.3% ext/standard/
+  56.6% main/
 
   43.3% ext/standard/
   56.6% main/
 diff --git a/ext/standard/basic_functions_arginfo.h b/ext/standard/basic_functions_arginfo.h
-index a5b7b9a0dc..adacedd9f8 100644
+index a5b7b9a0..adacedd9 100644
 --- a/ext/standard/basic_functions_arginfo.h
 +++ b/ext/standard/basic_functions_arginfo.h
 @@ -3634,6 +3634,7 @@ static void register_basic_functions_symbols(int module_number)
@@ -27,7 +29,7 @@ index a5b7b9a0dc..adacedd9f8 100644
  	REGISTER_LONG_CONSTANT("STR_PAD_RIGHT", PHP_STR_PAD_RIGHT, CONST_PERSISTENT);
  	REGISTER_LONG_CONSTANT("STR_PAD_BOTH", PHP_STR_PAD_BOTH, CONST_PERSISTENT);
 diff --git a/main/network.c b/main/network.c
-index 6fb97865cb..683e11d03d 100644
+index 6fb97865..683e11d0 100644
 --- a/main/network.c
 +++ b/main/network.c
 @@ -929,7 +929,9 @@ php_socket_t php_network_connect_socket_to_host(const char *host, unsigned short
