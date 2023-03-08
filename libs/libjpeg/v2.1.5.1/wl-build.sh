@@ -9,22 +9,7 @@ fi
 # export CFLAGS_CONFIG="-O3 -g"
 export CFLAGS_CONFIG="-O0"
 
-# export CFLAGS_WASI="--sysroot=${WASI_SYSROOT}"
-# export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT}"
-
-# CFLAGS_LIBPNG="-I${WLR_DEPS_INCLUDE}"
-# LDFLAGS_LIBPNG="-L${WLR_DEPS_LIBDIR}"
-
-# logStatus "Using LIBPNG CFLAGS: ${CFLAGS_LIBPNG}"
-# logStatus "Using LIBPNG LDFLAGS: ${LDFLAGS_LIBPNG}"
-
-# Enabling private user build information from pngusr.h (see scripts/pnglibconf.dfa)
-export CPPFLAGS='-DPNG_USER_CONFIG'
-export CFLAGS_BUILD=''
-
-# We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
-export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_LIBPNG} ${CFLAGS_BUILD} ${LDFLAGS_WASI}"
-export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_LIBPNG}"
+export CFLAGS="${CFLAGS_CONFIG}"
 
 cd "${WASMLABS_SOURCE_PATH}"
 
