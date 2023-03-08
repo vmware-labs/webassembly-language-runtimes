@@ -13,6 +13,11 @@ then
     exit 1
 fi
 
+if [[ ! -v WASI_SDK_ASSET_NAME ]]; then
+    echo "Please set WASI_SDK_ASSET_NAME (e.g. wasi-sdk-18.0) in order to create packages."
+    exit 1
+fi
+
 if [[ ! -v BINARYEN_PATH ]]
 then
     echo WASMLABS_ENV=${WASMLABS_ENV}
