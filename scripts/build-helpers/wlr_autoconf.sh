@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [ "${BASH_SOURCE-}" = "$0" ]; then
+    echo "You must source this script: \$ source $0" >&2
+    return
+fi
 logStatus "Downloading latest config.guess and config.sub ... "
 
 function wlr_update_autoconf {

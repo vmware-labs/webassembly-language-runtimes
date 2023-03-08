@@ -1,0 +1,34 @@
+From 04142da98d41af8fca66d2447939e4e2be0f3f71 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jesu=CC=81s=20Gonza=CC=81lez?= <jesusgm@vmware.com>
+Date: Tue, 14 Feb 2023 19:09:34 +0100
+Subject: [PATCH 6/9] fix: Avoid `#include <syslog.h>` since it is not part of
+ wasi-libc
+
+
+ 100.0% ext/gd/libgd/
+diff --git a/ext/gd/libgd/gd_errors.h b/ext/gd/libgd/gd_errors.h
+index 8a28bf60..e84cef45 100644
+--- a/ext/gd/libgd/gd_errors.h
++++ b/ext/gd/libgd/gd_errors.h
+@@ -1,11 +1,13 @@
+ #ifndef GD_ERRORS_H
+ #define GD_ERRORS_H
+ 
+-#ifndef _WIN32
+-# include <syslog.h>
+-#else
+-# include "win32/syslog.h"
+-#endif
++#ifndef __wasi__
++    #ifndef _WIN32
++    # include <syslog.h>
++    #else
++    # include "win32/syslog.h"
++    #endif
++#endif /* __wasi__ */
+ 
+ /*
+ LOG_EMERG      system is unusable
+-- 
+2.38.1
+

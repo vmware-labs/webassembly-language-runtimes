@@ -1,0 +1,32 @@
+From ee153bf8366c87f7c1ebf03c8c96277cc3cab55a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jesu=CC=81s=20Gonza=CC=81lez?= <jesusgm@vmware.com>
+Date: Tue, 14 Feb 2023 22:01:33 +0100
+Subject: [PATCH 8/9] fix: Avoid tmpfile() in `gd_bmp`
+
+
+ 100.0% ext/gd/libgd/
+diff --git a/ext/gd/libgd/gd_bmp.c b/ext/gd/libgd/gd_bmp.c
+index 00903d5f..b7a9121d 100644
+--- a/ext/gd/libgd/gd_bmp.c
++++ b/ext/gd/libgd/gd_bmp.c
+@@ -102,9 +102,15 @@ void gdImageBmpCtx(gdImagePtr im, gdIOCtxPtr out, int compression)
+ 		compression = 0;
+ 	}
+ 
+-	if (compression == 1 && !out->seek) {
++	if (compression == 1 && !out->seek) {		
+ 		/* Try to create a temp file where we can seek */
+-		if ((tmpfile_for_compression = tmpfile()) == NULL) {
++		if ((tmpfile_for_compression =
++#ifdef __wasi__		
++		NULL
++#else 
++	   tmpfile()
++#endif /* __wasi__ */
++			) == NULL) {
+ 			compression = 0;
+ 		} else {
+ 			out_original = out;
+-- 
+2.38.1
+
