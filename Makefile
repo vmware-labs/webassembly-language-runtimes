@@ -57,8 +57,7 @@ oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
 		-f images/python/Dockerfile \
 		.
 
-LIBS := \
-	bundle-wasmlabs \
+EXTERNAL_LIBS := \
 	icu \
 	libjpeg \
 	libpng \
@@ -68,7 +67,13 @@ LIBS := \
 	uuid \
 	zlib
 
-$(foreach _,${LIBS},$(eval $(call create_lib_sub_targets,$_)))
+$(foreach _,${EXTERNAL_LIBS},$(eval $(call create_external_lib_sub_targets,$_)))
+
+LOCAL_LIBS := \
+	wasmedge_sock \
+	bundle_wlr
+
+$(foreach _,${LOCAL_LIBS},$(eval $(call create_local_lib_sub_targets,$_)))
 
 .PHONY: clean
 clean:

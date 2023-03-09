@@ -8,6 +8,6 @@ then
     return
 fi
 
-export WASMLABS_ENV_NAME=bundle-wasmlabs/v0.1.0
-export WASMLABS_PACKAGE_NAME=libbundle-wasmlabs
+export WASMLABS_ENV_NAME=bundle_wlr/0.1.0
+export WASMLABS_PACKAGE_NAME=libbundle_wlr
 export WASMLABS_PACKAGE_VERSION=0.1.0

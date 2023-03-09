@@ -50,15 +50,15 @@ endef
 
 
 ##########
-# Creates lib subtargets targets for lib without extra builder container.
+# Creates lib subtargets targets for libs that are built from external repo.
 #
 # USAGE:
 #  - At root level (not as part of a target)
 #  - Within the $(REPO_ROOT)/Makefile
-#  - $(eval $(call create_lib_sub_targets,zlib))
-#  - $(eval $(call create_lib_sub_targets,uuid))
+#  - $(eval $(call create_external_lib_sub_targets,zlib))
+#  - $(eval $(call create_external_lib_sub_targets,uuid))
 
-define create_lib_sub_targets
+define create_external_lib_sub_targets
 # $1 - LIB_NAME
 
 .PHONY: libs/$(1)/*
@@ -69,15 +69,34 @@ endef
 
 
 ##########
+# Creates lib subtargets targets for libs that are built from this repo.
+#
+# USAGE:
+#  - At root level (not as part of a target)
+#  - Within the $(REPO_ROOT)/Makefile
+#  - $(eval $(call create_local_lib_sub_targets,zlib))
+#  - $(eval $(call create_local_lib_sub_targets,uuid))
+
+define create_local_lib_sub_targets
+# $1 - LIB_NAME
+
+.PHONY: libs/$(1)
+libs/$(1):
+	make -C libs/$(1)
+
+endef
+
+
+##########
 # Creates default targets for lib without extra builder container.
 #
 # USAGE:
 #  - At Makefile root level (not as part of a target)
 #  - Within the lib/LIBNAME/Makefile
-#  - $(eval $(call create_default_lib_targets,$(REPO_ROOT),zlib,v,$(WASI_SDK_VERSION)))
-#  - $(eval $(call create_default_lib_targets,$(REPO_ROOT),uuid,libuuid-,$(WASI_SDK_VERSION)))
+#  - $(eval $(call create_default_external_lib_targets,$(REPO_ROOT),zlib,v,$(WASI_SDK_VERSION)))
+#  - $(eval $(call create_default_external_lib_targets,$(REPO_ROOT),uuid,libuuid-,$(WASI_SDK_VERSION)))
 #
-define create_default_lib_targets
+define create_default_external_lib_targets
 # $1 - REPO_ROOT
 # $2 - LIB_NAME
 # $3 - TARGET_PREFIX
@@ -88,6 +107,36 @@ $(eval $(2)_BUILDER = ghcr.io/vmware-labs/wasmlabs/wasi-builder:$(4))
 .PHONY: $(3)*
 $(3)*:
 	@$(call build_in_container,$($(2)_BUILDER),$(1),libs/$(2)/$$$$@)
+
+# The four $$-s are there because we have two passes in which we escape $ by a double $.
+# We need the $@ variable only when the target is actually built
+
+.PHONY: clean
+clean:
+	rm -rf $(1)/build-output/$(2) $(1)/build-staging/$(2)
+
+endef
+
+
+
+##########
+# Creates default targets for local lib without extra builder container.
+#
+# USAGE:
+#  - At Makefile root level (not as part of a target)
+#  - Within the lib/LIBNAME/Makefile
+#  - $(eval $(call create_default_local_lib_targets,$(REPO_ROOT),bundle_wlr,$(WASI_SDK_VERSION)))
+#
+define create_default_local_lib_targets
+# $1 - REPO_ROOT
+# $2 - LIB_NAME
+# $3 - WASI_SDK_VERSION
+
+$(eval $(2)_BUILDER = ghcr.io/vmware-labs/wasmlabs/wasi-builder:$(3))
+
+.PHONY: all
+all:
+	@$(call build_in_container,$($(2)_BUILDER),$(1),libs/$(2))
 
 # The four $$-s are there because we have two passes in which we escape $ by a double $.
 # We need the $@ variable only when the target is actually built

@@ -118,7 +118,7 @@ function _determine_wlr_source_path {
         export WASMLABS_SOURCE_PATH=${_STAGING}/checkout
     elif [ "${_SOURCE_TYPE}" = "local" ]
     then
-        export WASMLABS_SOURCE_PATH=${WASMLABS_ENV_NAME}
+        export WASMLABS_SOURCE_PATH=${PATH_TO_ENV}
     else
         echo "Bad source type - '${_SOURCE_TYPE}'"
         exit 1
