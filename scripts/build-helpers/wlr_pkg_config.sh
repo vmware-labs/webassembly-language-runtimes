@@ -12,15 +12,37 @@ export WLR_INSTALL_PREFIXES="\
     pkgconfigdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkgconfig"
 
 function add_pkg_config_Libs {
-    TARGET_FILE="$1"
-    EXTRA_LIBS="$2"
+    local TARGET_FILE="$1"
+    local EXTRA_LIBS="$2"
 
     sed -i "s/\(^Libs:.*$\)/\1 ${EXTRA_LIBS}/g" ${TARGET_FILE}
 }
 
 function wlr_pkg_config_reset_pc_prefix {
-    TARGET_FILE="$1"
+    local TARGET_FILE="$1"
 
     sed -i "s/\(^prefix=\).*$/\1/g" ${TARGET_FILE}
     sed -i "s|${WASMLABS_OUTPUT}|\$\{prefix\}|g" ${TARGET_FILE}
+}
+
+function wlr_pkg_config_create_pc_file {
+    local TARGET_LIBRARY="$1"
+    local DESCRIPTION="$2"
+    local TARGET_LIBS="$3"
+
+    local TARGET_FILE=${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkg-config/${TARGET_LIBRARY}.pc
+
+    mkdir -p ${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkg-config 2>/dev/null
+    cat >$TARGET_FILE <<EOF
+prefix=
+exec_prefix=\${prefix}
+libdir=\${prefix}/lib/wasm32-wasi
+includedir=\${prefix}/include
+
+Name: ${TARGET_LIBRARY}
+Description: ${DESCRIPTION}
+Version: 2.1.5.1
+Libs: -L\${libdir} ${TARGET_LIBS}
+Cflags: -I\${includedir}
+EOF
 }
