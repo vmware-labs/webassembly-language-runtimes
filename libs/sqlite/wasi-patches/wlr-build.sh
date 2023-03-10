@@ -2,14 +2,14 @@
 
 if [[ ! -v WLR_ENV ]]
 then
-    echo "Wasmlabs environment is not set"
+    echo "WLR build environment is not set"
     exit 1
 fi
 
 # export CFLAGS_CONFIG="-O3 -g"
 export CFLAGS_CONFIG="-O2"
 
-export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -I./wasmlabs-stubs -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
+export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -I./wlr-stubs -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
 export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-mman -lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
 
 export CFLAGS_SQLITE=''

@@ -130,7 +130,7 @@ build-output/
         │   └── man
         │       └── man3
         │           └── zlib.3
-        └── wasmlabs-progress.log
+        └── wlr-build-progress.log
 
 9 directories, 7 files
 

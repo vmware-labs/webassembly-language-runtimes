@@ -2,7 +2,7 @@
 
 if [[ ! -v WLR_ENV ]]
 then
-    echo "Wasmlabs environment is not set"
+    echo "WLR build environment is not set"
     exit 1
 fi
 
@@ -29,14 +29,14 @@ fi
 function onExit {
     echo "=============================================================="
     echo "Build progress logs for ${WLR_ENV}:"
-    cat $WLR_OUTPUT/wasmlabs-progress.log
+    cat $WLR_OUTPUT/wlr-build-progress.log
     unset -f logStatus
 }
 trap onExit EXIT
 
 if [[ ! -v WLR_PROGRESS_LOG ]]
 then
-    export WLR_PROGRESS_LOG=${WLR_OUTPUT}/wasmlabs-progress.log
+    export WLR_PROGRESS_LOG=${WLR_OUTPUT}/wlr-build-progress.log
     echo "$(date --iso-8601=ns) | Using WASI_SDK_PATH=$WASI_SDK_PATH " | tee ${WLR_PROGRESS_LOG}
 fi
 

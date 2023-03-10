@@ -5,7 +5,7 @@ Subject: [PATCH 1/2] Patch to build sqlite-3.39.2 for wasm32-wasi
 
 
   50.2% src/
-  46.9% wasmlabs-stubs/
+  46.9% wlr-stubs/
 diff --git a/.gitignore b/.gitignore
 new file mode 100644
 index 0000000..e6c1dcf
@@ -56,11 +56,11 @@ index b933de3..79005a8 100644
  #else
      UNIXVFS("unix",          posixIoFinder ),
  #endif
-diff --git a/wasmlabs-stubs/fcntl.h b/wasmlabs-stubs/fcntl.h
+diff --git a/wlr-stubs/fcntl.h b/wlr-stubs/fcntl.h
 new file mode 100644
 index 0000000..c0f8abb
 --- /dev/null
-+++ b/wasmlabs-stubs/fcntl.h
++++ b/wlr-stubs/fcntl.h
 @@ -0,0 +1,20 @@
 +#pragma once
 +

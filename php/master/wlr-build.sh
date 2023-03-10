@@ -3,7 +3,7 @@ logStatus "Building libs 'php/master'"
 
 if [[ ! -v WLR_ENV ]]
 then
-    echo "Wasmlabs environment is not set"
+    echo "WLR build environment is not set"
     exit 1
 fi
 

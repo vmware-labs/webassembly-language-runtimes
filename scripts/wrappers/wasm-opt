@@ -7,7 +7,7 @@
 
 function logStatus {
     if [[ -n "${WLR_OUTPUT}" ]]; then
-        echo "$(date --iso-8601=ns) | $@" >>  $WLR_OUTPUT/wasmlabs-progress.log
+        echo "$(date --iso-8601=ns) | $@" >>  $WLR_OUTPUT/wlr-build-progress.log
     else
         echo "$(date --iso-8601=ns) | $@"
     fi

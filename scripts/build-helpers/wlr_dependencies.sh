@@ -6,7 +6,7 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
 fi
 
 if [[ ! -v WLR_ENV ]]; then
-    echo "Wasmlabs environment is not set"
+    echo "WLR build environment is not set"
     exit 1
 fi
 
