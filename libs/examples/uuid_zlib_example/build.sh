@@ -79,8 +79,8 @@ function get_wasm_dependency {
 
 export TARGET_DIR=target/wasm32-wasi
 
-get_wasm_dependency libz.a https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fzlib%2F1.2.13%2B20230306-764c74d/libz-1.2.13-wasi-sdk-19.0.tar.gz
-get_wasm_dependency libuuid.a https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fuuid%2F1.0.3%2B20230306-764c74d/libuuid-1.0.3-wasi-sdk-19.0.tar.gz
+get_wasm_dependency libz.a https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fzlib%2F1.2.13%2B20230310-c46e363/libz-1.2.13-wasi-sdk-19.0.tar.gz
+get_wasm_dependency libuuid.a https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Flibuuid%2F1.0.3%2B20230310-c46e363/libuuid-1.0.3-wasi-sdk-19.0.tar.gz
 
 export FULL_TARGET_DIR=$(realpath ${TARGET_DIR})
 

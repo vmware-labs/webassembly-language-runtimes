@@ -16,7 +16,7 @@ All assets are published as GitHub releases for the current repository.
 
 ## Release names
 
-Here is a [sample release of libjpeg](https://github.com/assambar/webassembly-language-runtimes/releases/tag/libs%2Flibjpeg%2F2.1.5.1%2B20230308-9c87db9).
+Here is a [sample release of libjpeg](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Flibjpeg%2F2.1.5.1%2B20230310-c46e363).
 
 The release names for the libraries follow the convention `libs/${PROJECT_NAME}-${LIBRARY_VERSION}+${RELEASE_DATE}-${TAGGED_WLR_COMMIT}` where
 
@@ -35,7 +35,7 @@ This is why we need the `RELEASE_DATE` and `TAGGED_WLR_COMMIT`. Even if we issue
 
 ## Release assets
 
-Take a look at the `libjpeg` assets from the [mentioned release](https://github.com/assambar/webassembly-language-runtimes/releases/tag/libs%2Flibjpeg%2F2.1.5.1%2B20230308-9c87db9).
+Take a look at the `libjpeg` assets from the [mentioned release](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Flibjpeg%2F2.1.5.1%2B20230310-c46e363).
 
 The asset name follows the convention `${LIBRARY_NAME}[-bin]-${LIBRARY_VERSION}-wasi-sdk-${WASI_SDK_VERSION}.tar.gz`
 
