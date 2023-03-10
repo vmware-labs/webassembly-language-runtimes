@@ -1,4 +1,4 @@
-name: Build Lib Oniguruma
+name: Build libs-oniguruma
 on:
   push:
     # By specifying branches explicitly, we avoid this workflow from
@@ -15,7 +15,7 @@ on:
        - "*.sh"
   pull_request:
 jobs:
-  build-oniguruma:
+  build-libs-oniguruma:
     strategy:
       fail-fast: false
       matrix:
@@ -23,7 +23,4 @@ jobs:
           - version: 6.9.8
     uses: ./.github/workflows/reusable-build-lib.yaml
     with:
-      name: "libonig"
-      version: ${{ matrix.version }}
-      target-name: "oniguruma"
-      target-prefix: "v"
+      target: oniguruma/v${{ matrix.version }}

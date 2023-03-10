@@ -2,13 +2,7 @@ name: Release a library
 on:
   workflow_call:
     inputs:
-      name:
-        required: true
-        type: string
       target-name:
-        required: true
-        type: string
-      target-prefix:
         required: true
         type: string
       trigger:
@@ -27,15 +21,15 @@ jobs:
           echo "value=${VERSION}" >> $GITHUB_OUTPUT
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Build ${{ inputs.name }}
+      - name: Build ${{ inputs.target-name }}
         run: |
-          make libs/${{ inputs.target-name }}/${{ inputs.target-prefix }}${{ steps.determineVersion.outputs.value }}
+          make libs/${{ inputs.target-name }}/v${{ steps.determineVersion.outputs.value }}
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create --generate-notes ${{ github.ref_name }} || true
-      - name: Append ${{ inputs.name }} release assets
+      - name: Append ${{ inputs.target-name }} release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

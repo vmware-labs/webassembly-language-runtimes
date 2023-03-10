@@ -2,16 +2,14 @@
 # created of the form `libs/sqlite/<version>+<buildinfo>`, where <buildinfo>
 # by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
 # with `git rev-parse --short HEAD`).
-name: Release Lib SQLite
+name: Release libs-sqlite
 on:
   push:
     tags:
       - libs/sqlite/*
 jobs:
-  release-libxml2:
-    uses: ./.github/workflows/reusable-release-lib.yaml
+  release-libs-sqlite:
+    uses: ./.github/workflows/reusable-release-external-lib.yaml
     with:
-      name: "libsqlite"
       target-name: "sqlite"
-      target-prefix: "version-"
       trigger: ${{ github.event.ref }}

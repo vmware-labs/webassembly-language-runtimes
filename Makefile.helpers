@@ -42,6 +42,8 @@ define build_in_container
 		-e WASMLABS_RUNTIME \
 		-e WASMLABS_SKIP_CONFIGURE \
 		-e WLR_DEPS_FORCE_LOCAL \
+		-e WASMLABS_PACKAGE_NAME \
+		-e WASMLABS_PACKAGE_VERSION \
 		-v $($@_REPO_ROOT):/wlr/ \
 		-v $($@_REPO_ROOT)/scripts/wrappers/wasm-opt:/opt/priority-bin/wasm-opt \
 		$($@_IMAGE_NAME) \
@@ -93,19 +95,18 @@ endef
 # USAGE:
 #  - At Makefile root level (not as part of a target)
 #  - Within the lib/LIBNAME/Makefile
-#  - $(eval $(call create_default_external_lib_targets,$(REPO_ROOT),zlib,v,$(WASI_SDK_VERSION)))
-#  - $(eval $(call create_default_external_lib_targets,$(REPO_ROOT),uuid,libuuid-,$(WASI_SDK_VERSION)))
+#  - $(eval $(call create_default_external_lib_targets,$(REPO_ROOT),zlib,$(WASI_SDK_VERSION)))
+#  - $(eval $(call create_default_external_lib_targets,$(REPO_ROOT),uuid,$(WASI_SDK_VERSION)))
 #
 define create_default_external_lib_targets
 # $1 - REPO_ROOT
 # $2 - LIB_NAME
-# $3 - TARGET_PREFIX
-# $4 - WASI_SDK_VERSION
+# $3 - WASI_SDK_VERSION
 
-$(eval $(2)_BUILDER = ghcr.io/vmware-labs/wasmlabs/wasi-builder:$(4))
+$(eval $(2)_BUILDER = ghcr.io/vmware-labs/wasmlabs/wasi-builder:$(3))
 
-.PHONY: $(3)*
-$(3)*:
+.PHONY: v*
+v*:
 	@$(call build_in_container,$($(2)_BUILDER),$(1),libs/$(2)/$$$$@)
 
 # The four $$-s are there because we have two passes in which we escape $ by a double $.

@@ -1,4 +1,4 @@
-name: Build LibSQLite
+name: Build libs-libjpeg
 on:
   push:
     # By specifying branches explicitly, we avoid this workflow from
@@ -8,22 +8,19 @@ on:
       - main
     paths:
        - ".github/**"
-       - "libs/sqlite/**"
+       - "libs/libjpeg/**"
        - "libs/*"
        - "scripts/**"
        - "Makefile*"
        - "*.sh"
   pull_request:
 jobs:
-  build-sqlite:
+  build-libs-libjpeg:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - version: 3.39.2
+          - version: 2.1.5.1
     uses: ./.github/workflows/reusable-build-lib.yaml
     with:
-      name: "libsqlite"
-      version: ${{ matrix.version }}
-      target-name: "sqlite"
-      target-prefix: "version-"
+      target: libjpeg/v${{ matrix.version }}

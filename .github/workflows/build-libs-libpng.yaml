@@ -1,4 +1,4 @@
-name: Build Lib Wasmlabs Bundle
+name: Build libs-libpng
 on:
   push:
     # By specifying branches explicitly, we avoid this workflow from
@@ -8,22 +8,19 @@ on:
       - main
     paths:
        - ".github/**"
-       - "libs/bundle-wasmlabs/**"
+       - "libs/libpng/**"
        - "libs/*"
        - "scripts/**"
        - "Makefile*"
        - "*.sh"
   pull_request:
 jobs:
-  build-oniguruma:
+  build-libs-libpng:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - version: 0.1.0
+          - version: 1.6.39
     uses: ./.github/workflows/reusable-build-lib.yaml
     with:
-      name: "libbundle-wasmlabs"
-      version: ${{ matrix.version }}
-      target-name: "bundle-wasmlabs"
-      target-prefix: "v"
+      target: libpng/v${{ matrix.version }}

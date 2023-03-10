@@ -1,4 +1,4 @@
-name: Build LibXML2
+name: Build libs-libxml2
 on:
   push:
     # By specifying branches explicitly, we avoid this workflow from
@@ -15,7 +15,7 @@ on:
        - "*.sh"
   pull_request:
 jobs:
-  build-libxml2:
+  build-libs-libxml2:
     strategy:
       fail-fast: false
       matrix:
@@ -23,7 +23,4 @@ jobs:
           - version: 2.10.3
     uses: ./.github/workflows/reusable-build-lib.yaml
     with:
-      name: "libxml2"
-      version: ${{ matrix.version }}
-      target-name: "libxml2"
-      target-prefix: "v"
+      target: libxml2/v${{ matrix.version }}

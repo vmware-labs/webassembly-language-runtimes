@@ -1,19 +1,15 @@
 # Note that for this workflow to be triggered, the tag needs to be
 # created of the form `libs/zlib/<version>+<buildinfo>`, where <buildinfo>
 # by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
-# with `git rev-parse --short HEAD`). An example of a tag following
-# the convention that triggers automation would be
-# `libs/zlib/1.2.13+20230131-8dfe8b9`.
-name: Release Zlib
+# with `git rev-parse --short HEAD`).
+name: Release libs-zlib
 on:
   push:
     tags:
       - libs/zlib/*
 jobs:
-  release-zlib:
-    uses: ./.github/workflows/reusable-release-lib.yaml
+  release-libs-zlib:
+    uses: ./.github/workflows/reusable-release-external-lib.yaml
     with:
-      name: "libz"
       target-name: "zlib"
-      target-prefix: "v"
       trigger: ${{ github.event.ref }}

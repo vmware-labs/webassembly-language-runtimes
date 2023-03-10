@@ -62,9 +62,9 @@ EXTERNAL_LIBS := \
 	libjpeg \
 	libpng \
 	libxml2 \
+	libuuid \
 	oniguruma \
 	sqlite \
-	uuid \
 	zlib
 
 $(foreach _,${EXTERNAL_LIBS},$(eval $(call create_external_lib_sub_targets,$_)))

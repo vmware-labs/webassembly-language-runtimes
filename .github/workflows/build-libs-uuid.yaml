@@ -1,4 +1,4 @@
-name: Build LibUuid
+name: Build build-libs-uuid
 on:
   push:
     # By specifying branches explicitly, we avoid this workflow from
@@ -15,7 +15,7 @@ on:
        - "*.sh"
   pull_request:
 jobs:
-  build-uuid:
+  build-libs-uuid:
     strategy:
       fail-fast: false
       matrix:
@@ -23,7 +23,4 @@ jobs:
           - version: 1.0.3
     uses: ./.github/workflows/reusable-build-lib.yaml
     with:
-      name: "libuuid"
-      version: ${{ matrix.version }}
-      target-name: "uuid"
-      target-prefix: "libuuid-"
+      target: libuuid/v${{ matrix.version }}

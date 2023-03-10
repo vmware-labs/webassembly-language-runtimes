@@ -27,8 +27,6 @@ function wlr_package_bin {
     logStatus "Packaging... ${_PACKAGE}"
     tar -cvf ${_PACKAGE} \
         -C ${WASMLABS_OUTPUT}/ \
-        --exclude=*.la \
-        --exclude=lib/wasm32-wasi/cmake \
         bin
     gzip -f ${_PACKAGE}
 }

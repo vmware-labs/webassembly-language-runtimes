@@ -1,4 +1,4 @@
-name: Build LibPng
+name: Build libs-bundle_wlr
 on:
   push:
     # By specifying branches explicitly, we avoid this workflow from
@@ -8,22 +8,16 @@ on:
       - main
     paths:
        - ".github/**"
-       - "libs/libpng/**"
+       - "libs/bundle_wlr/**"
        - "libs/*"
        - "scripts/**"
        - "Makefile*"
        - "*.sh"
   pull_request:
 jobs:
-  build-libpng:
+  build-libs-bundle_wlr:
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - version: 1.6.39
     uses: ./.github/workflows/reusable-build-lib.yaml
     with:
-      name: "libpng"
-      version: ${{ matrix.version }}
-      target-name: "libpng"
-      target-prefix: "v"
+      target: bundle_wlr

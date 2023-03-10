@@ -5,4 +5,4 @@ REPO_ROOT := $(ROOT_DIR)../..
 
 include $(REPO_ROOT)/Makefile.helpers
 
-$(eval $(call create_default_external_lib_targets,$(REPO_ROOT),libxml2,v,$(WASI_SDK_VERSION)))
+$(eval $(call create_default_external_lib_targets,$(REPO_ROOT),libxml2,$(WASI_SDK_VERSION)))

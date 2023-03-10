@@ -2,16 +2,7 @@ name: Build a library
 on:
   workflow_call:
     inputs:
-      name:
-        required: true
-        type: string
-      version:
-        required: true
-        type: string
-      target-name:
-        required: true
-        type: string
-      target-prefix:
+      target:
         required: true
         type: string
 jobs:
@@ -22,18 +13,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Build ${{ inputs.name }}
-        run: make libs/${{ inputs.target-name }}/${{ inputs.target-prefix }}${{ inputs.version }}
-      - name: Package ${{ inputs.name }}-${{ inputs.version }}.tar.gz
-        run: |
-          tar -cvf ${{ inputs.name }}-${{ inputs.version }}.tar \
-            -C build-output/${{ inputs.target-name }}/${{ inputs.target-prefix }}${{ inputs.version }}/ \
-            include \
-            lib
-          gzip ${{ inputs.name }}-${{ inputs.version }}.tar
-      - name: Upload the ${{ inputs.name }}-${{ inputs.version }} artifact
+      - name: Build ${{ inputs.target }}
+        run: make libs/${{ inputs.target }}
+      - name: Upload the ${{ inputs.target }} artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.name }}-${{ inputs.version }}
-          path: ${{ inputs.name }}-${{ inputs.version }}.tar.gz
+          name: ${{ inputs.target }}
+          path: build-output/*.gz
           if-no-files-found: error
