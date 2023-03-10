@@ -5,19 +5,19 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
     return
 fi
 
-function wl-env-unset() {
+function wlr-env-unset() {
     if [[ ! -v WLR_ENV ]]
     then
         echo "Nothing to unset"
         return
     fi
 
-    if [[ -f ${_PATH_TO_ENV}/wl-env-repo.sh ]]
+    if [[ -f ${_PATH_TO_ENV}/wlr-env-repo.sh ]]
     then
-        source ${WLR_ENV}/../wl-env-repo.sh --unset
-    elif [[ -f ${_PATH_TO_ENV}/wl-env-local.sh ]]
+        source ${WLR_ENV}/../wlr-env-repo.sh --unset
+    elif [[ -f ${_PATH_TO_ENV}/wlr-env-local.sh ]]
     then
-        source ${WLR_ENV}/../wl-env-local.sh --unset
+        source ${WLR_ENV}/../wlr-env-local.sh --unset
     fi
 
     unset WLR_SOURCE_PATH
@@ -35,7 +35,7 @@ function wl-env-unset() {
         unset WLR_OLD_PS1
     fi
 
-    unset -f wl-env-unset
+    unset -f wlr-env-unset
     unset WLR_ENV
 
     if (env | grep WLR_ -q)
@@ -46,7 +46,7 @@ function wl-env-unset() {
 
     return
 }
-export -f wl-env-unset
+export -f wlr-env-unset
 
 function _check_vars {
     for _VARNAME in $@
@@ -61,24 +61,24 @@ function _check_vars {
 
 function _load_env_file {
     local _PATH_TO_ENV=$1
-    if [[ -f ${_PATH_TO_ENV}/wl-env-repo.sh ]]
+    if [[ -f ${_PATH_TO_ENV}/wlr-env-repo.sh ]]
     then
-        if [[ -f ${_PATH_TO_ENV}/wl-env-local.sh ]]
+        if [[ -f ${_PATH_TO_ENV}/wlr-env-local.sh ]]
         then
-            echo "Both wl-env-repo and wl-env-local defined for ${_PATH_TO_ENV}"
+            echo "Both wlr-env-repo and wlr-env-local defined for ${_PATH_TO_ENV}"
             exit 1
         fi
 
         export WLR_ENV_SOURCE_TYPE=repo
-        source ${_PATH_TO_ENV}/wl-env-repo.sh
+        source ${_PATH_TO_ENV}/wlr-env-repo.sh
         _check_vars WLR_REPO WLR_REPO_BRANCH
 
-    elif [[ -f ${_PATH_TO_ENV}/wl-env-local.sh ]]
+    elif [[ -f ${_PATH_TO_ENV}/wlr-env-local.sh ]]
     then
         export WLR_ENV_SOURCE_TYPE=local
-        source ${_PATH_TO_ENV}/wl-env-local.sh
+        source ${_PATH_TO_ENV}/wlr-env-local.sh
     else
-        echo "No wl-env-repo or wl-env-local defined for ${_PATH_TO_ENV}"
+        echo "No wlr-env-repo or wlr-env-local defined for ${_PATH_TO_ENV}"
         exit 1
     fi
     _check_vars WLR_ENV_NAME WLR_PACKAGE_VERSION WLR_PACKAGE_NAME
@@ -133,7 +133,7 @@ function _determine_wlr_deps_root {
     then
         if [[ -v WLR_DEPS_ROOT ]]
         then
-            echo "Error in wl-env.sh. WLR_DEPS_ROOT is already set to ${WLR_DEPS_ROOT} when building a main target at ${PATH_TO_ENV}."
+            echo "Error in wlr-env.sh. WLR_DEPS_ROOT is already set to ${WLR_DEPS_ROOT} when building a main target at ${PATH_TO_ENV}."
             exit 1
         fi
         # This is the main target, so set the env variable to use for its dependencies
@@ -142,22 +142,22 @@ function _determine_wlr_deps_root {
 }
 
 function _load_local_conf {
-    if [[ -f ${WLR_REPO_ROOT}/.wl-local-conf.sh && ! -v WASI_SDK_PATH && ! -v WASI_SDK_ASSET_NAME && ! -v BINARYEN_PATH && ! -v WABT_ROOT && ! -v WASI_VFS_ROOT ]]
+    if [[ -f ${WLR_REPO_ROOT}/.wlr-local-conf.sh && ! -v WASI_SDK_PATH && ! -v WASI_SDK_ASSET_NAME && ! -v BINARYEN_PATH && ! -v WABT_ROOT && ! -v WASI_VFS_ROOT ]]
     then
-        echo "!! Using build tools as configured in '${WLR_REPO_ROOT}/.wl-local-conf.sh'"
-        source ${WLR_REPO_ROOT}/.wl-local-conf.sh
+        echo "!! Using build tools as configured in '${WLR_REPO_ROOT}/.wlr-local-conf.sh'"
+        source ${WLR_REPO_ROOT}/.wlr-local-conf.sh
 
-    elif [[ -f ${HOME}/.wl-local-conf.sh && ! -v WASI_SDK_PATH && ! -v WASI_SDK_ASSET_NAME && ! -v BINARYEN_PATH && ! -v WABT_ROOT && ! -v WASI_VFS_ROOT ]]
+    elif [[ -f ${HOME}/.wlr-local-conf.sh && ! -v WASI_SDK_PATH && ! -v WASI_SDK_ASSET_NAME && ! -v BINARYEN_PATH && ! -v WABT_ROOT && ! -v WASI_VFS_ROOT ]]
     then
-        echo "!! Using build tools as configured in '${HOME}/.wl-local-conf.sh'"
-        source ${HOME}/.wl-local-conf.sh
+        echo "!! Using build tools as configured in '${HOME}/.wlr-local-conf.sh'"
+        source ${HOME}/.wlr-local-conf.sh
     fi
 }
 
 # Expect path to root folder for build environment
 PATH_TO_ENV="$( cd "$1" && pwd )"
 
-if [[ ! -d ${PATH_TO_ENV} || ! -f ${PATH_TO_ENV}/wl-build.sh ]]
+if [[ ! -d ${PATH_TO_ENV} || ! -f ${PATH_TO_ENV}/wlr-build.sh ]]
 then
     echo "Bad environment location: '${PATH_TO_ENV}'"
     return
@@ -171,7 +171,7 @@ then
 fi
 
 export WLR_REPO_ROOT="$(git rev-parse --show-toplevel)"
-export WLR_MAKE=${WLR_REPO_ROOT}/wl-make.sh
+export WLR_MAKE=${WLR_REPO_ROOT}/wlr-make.sh
 
 _load_env_file ${PATH_TO_ENV}
 

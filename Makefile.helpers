@@ -26,7 +26,7 @@ endef
 
 
 ##########
-# Builds a wl-make target inside a container.
+# Builds a wlr-make target inside a container.
 # USAGE:
 #  - Inside a GNU make target
 #  - @$(call build_in_container,ghcr.io/vmware-labs/wasmlabs/wasi-builder:19,$(REPO_ROOT),libs/zlib/v1.2.13)
@@ -47,7 +47,7 @@ define build_in_container
 		-v $($@_REPO_ROOT):/wlr/ \
 		-v $($@_REPO_ROOT)/scripts/wrappers/wasm-opt:/opt/priority-bin/wasm-opt \
 		$($@_IMAGE_NAME) \
-		./wl-make.sh $($@_WL_MAKE_TARGET)
+		./wlr-make.sh $($@_WL_MAKE_TARGET)
 endef
 
 

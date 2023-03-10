@@ -37,9 +37,9 @@ then
     exit 1
 fi
 
-if [ -f ${WLR_ENV}/wl-test.sh ]
+if [ -f ${WLR_ENV}/wlr-test.sh ]
 then
-    source ${WLR_ENV}/wl-test.sh
+    source ${WLR_ENV}/wlr-test.sh
 else
     echo "No tests for '${WLR_ENV}'"
 fi

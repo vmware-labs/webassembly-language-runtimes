@@ -18,12 +18,12 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-if [ ! -f $1/wl-tag.sh ]; then
-    echo "cannot tag $1; missing $1/wl-tag.sh"
+if [ ! -f $1/wlr-tag.sh ]; then
+    echo "cannot tag $1; missing $1/wlr-tag.sh"
     exit 1
 fi
 
-source $1/wl-tag.sh
+source $1/wlr-tag.sh
 WLR_FINAL_TAG="${WLR_TAG}+${TAG_DATE}-${SHORT_SHA}"
 
 git tag -s $WLR_FINAL_TAG -m "Release $WLR_TAG"

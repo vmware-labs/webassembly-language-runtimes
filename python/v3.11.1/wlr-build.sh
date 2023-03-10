@@ -10,8 +10,8 @@ cd "${WLR_SOURCE_PATH}"
 
 if [[ "${WLR_BUILD_FLAVOR}" == *"aio"* ]]
 then
-    source ${WLR_REPO_ROOT}/scripts/build-helpers/wasi_vfs.sh
-    wasi_vfs_setup_dependencies || exit 1
+    source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_wasi_vfs.sh
+    wlr_wasi_vfs_setup_dependencies || exit 1
 fi
 
 export CFLAGS_CONFIG="-O0"
@@ -65,7 +65,7 @@ unset WLR_SKIP_WASM_OPT
 if [[ "${WLR_BUILD_FLAVOR}" == *"aio"* ]]
 then
     logStatus "Packing with wasi-vfs"
-    wasi_vfs_cli pack python.wasm --mapdir /usr::$PWD/usr -o python.wasm || exit 1
+    wlr_wasi_vfs_cli pack python.wasm --mapdir /usr::$PWD/usr -o python.wasm || exit 1
 fi
 
 logStatus "Optimizing python binary..."

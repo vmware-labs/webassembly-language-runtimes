@@ -14,13 +14,13 @@ then
     exit 1
 fi
 
-function wasi_vfs_setup_dependencies {
+function wlr_wasi_vfs_setup_dependencies {
     export LDFLAGS_DEPENDENCIES="${LDFLAGS_DEPENDENCIES} -L${WASI_VFS_ROOT}/lib -lwasi_vfs "
 }
 
-function wasi_vfs_cli {
+function wlr_wasi_vfs_cli {
     ${WASI_VFS_ROOT}/bin/wasi-vfs $@
 }
 
-export -f wasi_vfs_setup_dependencies
-export -f wasi_vfs_cli
+export -f wlr_wasi_vfs_setup_dependencies
+export -f wlr_wasi_vfs_cli

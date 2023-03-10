@@ -70,12 +70,12 @@ then
 fi
 
 logStatus "Checking dependencies..."
-if [[ -f ${WLR_ENV}/wl-build-deps.sh ]]
+if [[ -f ${WLR_ENV}/wlr-build-deps.sh ]]
 then
-    source ${WLR_ENV}/wl-build-deps.sh
+    source ${WLR_ENV}/wlr-build-deps.sh
 fi
 
 source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_package.sh
 
 logStatus "Building..."
-source ${WLR_ENV}/wl-build.sh
+source ${WLR_ENV}/wlr-build.sh

@@ -6,4 +6,4 @@ target
 *.log
 # Except this file
 !.gitignore
-.wl-local-conf.sh
+.wlr-local-conf.sh
