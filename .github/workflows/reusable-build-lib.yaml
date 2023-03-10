@@ -18,6 +18,5 @@ jobs:
       - name: Upload the ${{ inputs.target }} artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.target }}
           path: build-output/*.gz
           if-no-files-found: error
