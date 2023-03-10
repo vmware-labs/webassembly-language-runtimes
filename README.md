@@ -24,7 +24,7 @@ If you are interested in knowing more about the build system and how it produces
 
 ### Code Organization
 
-All build orchestration scripts are written in bash in this initial version. They start with a `wlr-` prefix (short for Webassemble Language Runtimes). Review the [build orchestration scripts](#build-orchestration-scripts) section for more info.
+All build orchestration scripts are written in bash in this initial version. They start with a `wlr-` prefix (short for WebAssembly Language Runtimes). Review the [build orchestration scripts](#build-orchestration-scripts) section for more info.
 
 All intermediary source code checkouts and build objects get created within the `build-staging` folder. The final output gets written to the `build-output` folder.
 

@@ -6,7 +6,6 @@ then
     exit 1
 fi
 
-# export CFLAGS_CONFIG="-O3 -g"
 export CFLAGS_CONFIG="-O0"
 
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID"

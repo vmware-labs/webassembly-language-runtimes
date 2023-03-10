@@ -8,9 +8,6 @@ fi
 
 export CFLAGS_CONFIG="-O0"
 
-# export CFLAGS_CONFIG="-O3 -g"
-export CFLAGS_CONFIG="-O0"
-
 export CFLAGS="${CFLAGS_CONFIG}"
 
 cd "${WLR_SOURCE_PATH}"
@@ -32,7 +29,6 @@ wlr_cmake_build || exit 1
 
 logStatus "Preparing artifacts..."
 
-# wlr_cmake_install || exit 1
 cp -TRv ${WLR_SOURCE_PATH}/include ${WLR_OUTPUT}/include || exit 1
 mkdir ${WLR_OUTPUT}/lib/ 2>/dev/null
 cp -v ${WLR_CMAKE_TARGET_DIR}/libwasmedge_sock.a ${WLR_OUTPUT}/lib/ || exit 1

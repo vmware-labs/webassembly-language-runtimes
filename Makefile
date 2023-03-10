@@ -57,7 +57,7 @@ oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
 		-f images/python/Dockerfile \
 		.
 
-EXTERNAL_LIBS := \
+LIBS := \
 	icu \
 	libjpeg \
 	libpng \
@@ -67,7 +67,7 @@ EXTERNAL_LIBS := \
 	sqlite \
 	zlib
 
-$(foreach _,${EXTERNAL_LIBS},$(eval $(call create_external_lib_sub_targets,$_)))
+$(foreach _,${LIBS},$(eval $(call create_external_lib_sub_targets,$_)))
 
 LOCAL_LIBS := \
 	wasmedge_sock \

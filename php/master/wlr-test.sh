@@ -32,6 +32,3 @@ php -f run-tests.php -- -p ${WLR_TEST_RUNTIME_WRAPPER} -j6 \
     tests/output \
     tests/strings \
     Zend/tests/fibers
-
-# tests/ \
-# ext/standard/tests \

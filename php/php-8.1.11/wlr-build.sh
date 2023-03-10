@@ -6,7 +6,6 @@ then
     exit 1
 fi
 
-# export CFLAGS_CONFIG="-O3 -g"
 export CFLAGS_CONFIG="-O2"
 
 ########## Setup the wasi related flags #############

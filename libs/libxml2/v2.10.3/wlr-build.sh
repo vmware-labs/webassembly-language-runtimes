@@ -2,11 +2,10 @@
 
 if [[ ! -v WLR_ENV ]]
 then
-    echo "WLR build environment is not set"
+    echo "Wasmlabs environment is not set"
     exit 1
 fi
 
-# export CFLAGS_CONFIG="-O3 -g"
 export CFLAGS_CONFIG="-O0"
 
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT}"

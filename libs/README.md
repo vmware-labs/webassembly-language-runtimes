@@ -1,6 +1,6 @@
 # About
 
-This folder contains projects with build scripts and patches that allow us to build versions of common open-source libraries to wasm32-wasi.
+This folder contains projects with build scripts and patches that allow building a specific version of common open-source libraries to wasm32-wasi.
 
 All projects for external libraries are checked out from their respective repositories and patched during the build process. No submodules are used.
 
@@ -80,11 +80,11 @@ To see how to use the released libraries with an end-to-end demo, take a look at
 
 In short, you have two basic options:
 
-1. Download and extract inside a `${WASI_SDK_PATH}/share/wasi-sysroot` folder. In this way you shouldn't need to setup include or link paths. This is most useful when you use a download a fresh wasi-sdk setup as part of your build process, but might get tricky if you overwrite those in your local development wasi-sdk environment.
+1. Download and extract inside the `${WASI_SDK_PATH}/share/wasi-sysroot` folder. In this way you shouldn't need to setup include or link paths. This is most useful when you use a fresh wasi-sdk setup as part of your build process, but might get tricky if you overwrite those in your local development wasi-sdk environment.
 
 2. Download and extract the files in some folder (e.g. `${SOME_TEMP_BUILD_FOLDER}/dependencies`) then add respectively the `include` and `lib/wasm32-wasi` folders to include dirs and library dirs. (e.g. `export CFLAGS="${CFLAGS} -I${SOME_TEMP_BUILD_FOLDER}/dependencies/include"` and `export CFLAGS="${CFLAGS} -L${SOME_TEMP_BUILD_FOLDER}/dependencies/lib/wasm32-wasi"`)
 
- If your build relies on `pkg-config`, to avoid it picking up headers and versions from your build machine, you could set it up for cross-compilation like this:
+If your build relies on `pkg-config`, to avoid picking up headers and versions from your build machine, you could configure `pkg-config` for cross-compilation like this:
 
 ```bash
 export PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1

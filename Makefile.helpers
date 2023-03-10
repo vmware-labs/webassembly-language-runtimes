@@ -52,7 +52,7 @@ endef
 
 
 ##########
-# Creates lib subtargets targets for libs that are built from external repo.
+# Creates lib subtargets for libs that are built from external repo.
 #
 # USAGE:
 #  - At root level (not as part of a target)
@@ -71,7 +71,7 @@ endef
 
 
 ##########
-# Creates lib subtargets targets for libs that are built from this repo.
+# Creates lib subtargets for libs that are built from this repo.
 #
 # USAGE:
 #  - At root level (not as part of a target)
@@ -90,7 +90,7 @@ endef
 
 
 ##########
-# Creates default targets for lib without extra builder container.
+# Creates default targets for libs that are built from external repo.
 #
 # USAGE:
 #  - At Makefile root level (not as part of a target)
@@ -121,7 +121,7 @@ endef
 
 
 ##########
-# Creates default targets for local lib without extra builder container.
+# Creates default targets for libs that are built from this repo.
 #
 # USAGE:
 #  - At Makefile root level (not as part of a target)
