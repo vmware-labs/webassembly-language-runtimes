@@ -1,1 +1,1 @@
-export WLR_TAG="libs/uuid/1.0.3"
+export WLR_TAG="libs/libuuid/1.0.3"

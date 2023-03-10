@@ -1,15 +1,15 @@
 # Note that for this workflow to be triggered, the tag needs to be
-# created of the form `libs/uuid/<version>+<buildinfo>`, where <buildinfo>
+# created of the form `libs/libuuid/<version>+<buildinfo>`, where <buildinfo>
 # by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
 # with `git rev-parse --short HEAD`).
-name: Release libs-uuid
+name: Release libs-libuuid
 on:
   push:
     tags:
-      - libs/uuid/*
+      - libs/libuuid/*
 jobs:
-  release-libs-uuid:
+  release-libs-libuuid:
     uses: ./.github/workflows/reusable-release-external-lib.yaml
     with:
-      target-name: "uuid"
+      target-name: "libuuid"
       trigger: ${{ github.event.ref }}

@@ -1,4 +1,4 @@
-name: Build build-libs-uuid
+name: Build libs-libuuid
 on:
   push:
     # By specifying branches explicitly, we avoid this workflow from
@@ -8,14 +8,14 @@ on:
       - main
     paths:
        - ".github/**"
-       - "libs/uuid/**"
+       - "libs/libuuid/**"
        - "libs/*"
        - "scripts/**"
        - "Makefile*"
        - "*.sh"
   pull_request:
 jobs:
-  build-libs-uuid:
+  build-libs-libuuid:
     strategy:
       fail-fast: false
       matrix:
