@@ -15,3 +15,4 @@ export WLR_REPO_BRANCH=v3_2_0
 export WLR_ENV_NAME=ruby/v3_2_0
 export WLR_PACKAGE_VERSION=3.2.0
 export WLR_PACKAGE_NAME=ruby
+export WLR_BUILD_FLAVOR=${WLR_BUILD_FLAVOR:+-}slim

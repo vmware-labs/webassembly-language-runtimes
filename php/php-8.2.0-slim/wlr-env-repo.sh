@@ -15,3 +15,4 @@ export WLR_REPO_BRANCH=php-8.2.0
 export WLR_ENV_NAME=php/php-8.2.0
 export WLR_PACKAGE_VERSION=8.2.0
 export WLR_PACKAGE_NAME=php
+export WLR_BUILD_FLAVOR=${WLR_BUILD_FLAVOR:+-}slim
