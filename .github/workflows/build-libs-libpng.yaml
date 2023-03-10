@@ -1,0 +1,26 @@
+name: Build libs-libpng
+on:
+  push:
+    # By specifying branches explicitly, we avoid this workflow from
+    # running on tag push. We have a dedicated workflow to be ran when
+    # a tag is pushed.
+    branches:
+      - main
+    paths:
+       - ".github/**"
+       - "libs/libpng/**"
+       - "libs/*"
+       - "scripts/**"
+       - "Makefile*"
+       - "*.sh"
+  pull_request:
+jobs:
+  build-libs-libpng:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: 1.6.39
+    uses: ./.github/workflows/reusable-build-lib.yaml
+    with:
+      target: libpng/v${{ matrix.version }}

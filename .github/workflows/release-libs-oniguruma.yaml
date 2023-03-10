@@ -1,0 +1,15 @@
+# Note that for this workflow to be triggered, the tag needs to be
+# created of the form `libs/oniguruma/<version>+<buildinfo>`, where <buildinfo>
+# by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
+# with `git rev-parse --short HEAD`).
+name: Release libs-oniguruma
+on:
+  push:
+    tags:
+      - libs/oniguruma/*
+jobs:
+  release-libs-oniguruma:
+    uses: ./.github/workflows/reusable-release-external-lib.yaml
+    with:
+      target-name: "oniguruma"
+      trigger: ${{ github.event.ref }}

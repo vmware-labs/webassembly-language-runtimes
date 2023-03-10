@@ -1,0 +1,23 @@
+name: Build libs-bundle_wlr
+on:
+  push:
+    # By specifying branches explicitly, we avoid this workflow from
+    # running on tag push. We have a dedicated workflow to be ran when
+    # a tag is pushed.
+    branches:
+      - main
+    paths:
+       - ".github/**"
+       - "libs/bundle_wlr/**"
+       - "libs/*"
+       - "scripts/**"
+       - "Makefile*"
+       - "*.sh"
+  pull_request:
+jobs:
+  build-libs-bundle_wlr:
+    strategy:
+      fail-fast: false
+    uses: ./.github/workflows/reusable-build-lib.yaml
+    with:
+      target: bundle_wlr

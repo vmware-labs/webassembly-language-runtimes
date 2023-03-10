@@ -1,0 +1,26 @@
+name: Build libs-sqlite
+on:
+  push:
+    # By specifying branches explicitly, we avoid this workflow from
+    # running on tag push. We have a dedicated workflow to be ran when
+    # a tag is pushed.
+    branches:
+      - main
+    paths:
+       - ".github/**"
+       - "libs/sqlite/**"
+       - "libs/*"
+       - "scripts/**"
+       - "Makefile*"
+       - "*.sh"
+  pull_request:
+jobs:
+  build-libs-sqlite:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: 3.39.2
+    uses: ./.github/workflows/reusable-build-lib.yaml
+    with:
+      target: sqlite/v${{ matrix.version }}

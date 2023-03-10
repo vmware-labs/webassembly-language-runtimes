@@ -20,17 +20,17 @@ python/v*:
 
 .PHONY: python/wasmedge-v3.11.1
 python/wasmedge-v3.11.1:
-	WASMLABS_BUILD_FLAVOR=wasmedge \
+	WLR_BUILD_FLAVOR=wasmedge \
 	make -C python $(subst python/wasmedge-,,$@)
 
 .PHONY: python/aio-v3.11.1
 python/aio-v3.11.1:
-	WASMLABS_BUILD_FLAVOR=aio \
+	WLR_BUILD_FLAVOR=aio \
 	make -C python $(subst python/aio-,,$@)
 
 .PHONY: python/aio-wasmedge-v3.11.1
 python/aio-wasmedge-v3.11.1:
-	WASMLABS_BUILD_FLAVOR=aio-wasmedge \
+	WLR_BUILD_FLAVOR=aio-wasmedge \
 	make -C python $(subst python/aio-wasmedge-,,$@)
 
 .PHONY: oci-python-3.11.1
@@ -58,17 +58,22 @@ oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
 		.
 
 LIBS := \
-	bundle-wasmlabs \
 	icu \
 	libjpeg \
 	libpng \
 	libxml2 \
+	libuuid \
 	oniguruma \
 	sqlite \
-	uuid \
 	zlib
 
-$(foreach _,${LIBS},$(eval $(call create_lib_sub_targets,$_)))
+$(foreach _,${LIBS},$(eval $(call create_external_lib_sub_targets,$_)))
+
+LOCAL_LIBS := \
+	wasmedge_sock \
+	bundle_wlr
+
+$(foreach _,${LOCAL_LIBS},$(eval $(call create_local_lib_sub_targets,$_)))
 
 .PHONY: clean
 clean:

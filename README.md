@@ -24,11 +24,11 @@ If you are interested in knowing more about the build system and how it produces
 
 ### Code Organization
 
-All build orchestration scripts are written in bash in this initial version. They start with a `wl-` prefix (short for WasmLabs). Review the [build orchestration scripts](#build-orchestration-scripts) section for more info.
+All build orchestration scripts are written in bash in this initial version. They start with a `wlr-` prefix (short for WebAssembly Language Runtimes). Review the [build orchestration scripts](#build-orchestration-scripts) section for more info.
 
 All intermediary source code checkouts and build objects get created within the `build-staging` folder. The final output gets written to the `build-output` folder.
 
-The patches and scripts to build different language runtimes are organized in a folder hierarchy that follows the tagged versions from the respective source code repositories. Several `wl-` scripts are added around that to facilitate setup of a local clone of the repository, application of respective patches and building with respective build configuration options.
+The patches and scripts to build different language runtimes are organized in a folder hierarchy that follows the tagged versions from the respective source code repositories. Several `wlr-` scripts are added around that to facilitate setup of a local clone of the repository, application of respective patches and building with respective build configuration options.
 
 For language runtimes we have something like this.
 
@@ -41,9 +41,9 @@ ${LANGUAGE_RUNTIME_NAME} (e.g. 'php')
 │   │   ├── (e.g. '0001-Initial-port-of-7.3.33-patch-to-7.4.32.patch')
 │   │   ├── (e.g. '0002-Fix-mmap-issues.-Add-readme.patch')
 │   │   └── Etc...
-│   ├── wl-build-deps.sh (script that builds dependencies)
-│   └── wl-build.sh (script that builds for this tag)
-└── wl-env-repo.sh (script that sets up the source code repository for given langauge and tag)
+│   ├── wlr-build-deps.sh (script that builds dependencies)
+│   └── wlr-build.sh (script that builds for this tag)
+└── wlr-env-repo.sh (script that sets up the source code repository for given langauge and tag)
 ```
 
 For common shared libraries we have something limilar.
@@ -56,21 +56,21 @@ libs (common libraries, needed by different modules)
     │   │   ├── (e.g. '0001-Patch-to-build-sqlite-3.39.2-for-wasm32-wasi.patch')
     │   │   ├── (e.g. '0002-Remove-build-script-from-patched-repo.patch')
     │   │   └── Etc...
-    │   └── wl-build.sh (script that builds for this tag)
-    └── wl-env-repo.sh (script that sets up the source code repository for given langauge and tag)
+    │   └── wlr-build.sh (script that builds for this tag)
+    └── wlr-env-repo.sh (script that sets up the source code repository for given langauge and tag)
 ```
 
 ### Build orchestration scripts
 
-1. The main script used to build something is `wl-make.sh` in the root folder. It gets called with a path to the folder for a respective tag of what we want to build.
+1. The main script used to build something is `wlr-make.sh` in the root folder. It gets called with a path to the folder for a respective tag of what we want to build.
 
-2. It will first __source__ the `scripts/wl-env.sh` script. This one sets all environment variables necessary to checkout and build the desired target. It gets the same path from `wl-make.sh` and is useful when you try to build locally.
+2. It will first __source__ the `scripts/wlr-env.sh` script. This one sets all environment variables necessary to checkout and build the desired target. It gets the same path from `wlr-make.sh` and is useful when you try to build locally.
 
-3. Then `wl-make.sh` will call `scripts/wl-setup-repo.sh` to create a shallow clone of the necessary repository only for the specific tag that we want to build. On top of that it applies any relevant patches from the `patches` subfolder of the tagged version folder.
+3. Then `wlr-make.sh` will call `scripts/wlr-setup-repo.sh` to create a shallow clone of the necessary repository only for the specific tag that we want to build. On top of that it applies any relevant patches from the `patches` subfolder of the tagged version folder.
 
-4. As a final step `wl-make.sh` will call `scripts/wl-build.sh` which will build from the code in the respective repository.
+4. As a final step `wlr-make.sh` will call `scripts/wlr-build.sh` which will build from the code in the respective repository.
 
-5. Before building this will call a `$LANG/$TAG/wl-build-deps.sh` if there is any to build required dependencies and setup CFLAGS or LDFLAGS for their artifacts. Then it will call the `$LANG/$TAG/wl-build.sh` script to build the actual target itself.
+5. Before building this will call a `$LANG/$TAG/wlr-build-deps.sh` if there is any to build required dependencies and setup CFLAGS or LDFLAGS for their artifacts. Then it will call the `$LANG/$TAG/wlr-build.sh` script to build the actual target itself.
 
 ### Adding a new build target
 
@@ -82,23 +82,23 @@ To add a build setup for a new version of something that is already configured:
 mkdir php/php-7.3.33
 ```
 
-2. Create a `wl-build.sh` script in the target folder, like this:
+2. Create a `wlr-build.sh` script in the target folder, like this:
 
 ```console
-touch php/php-7.3.33/wl-build.sh
+touch php/php-7.3.33/wlr-build.sh
 ```
 
-3. Setup your build environment via `scripts/wl-env.sh` with the target path then query the respective environment variables, like this:
+3. Setup your build environment via `scripts/wlr-env.sh` with the target path then query the respective environment variables, like this:
 
 ```console
-source scripts/wl-env.sh php/php-7.3.33
-export | grep WASMLABS_
+source scripts/wlr-env.sh php/php-7.3.33
+export | grep WLR_
 ```
 
 4. Create a local clone of the respective tag in build-staging, like this:
 
 ```console
-scripts/wl-setup-repo.sh
+scripts/wlr-setup-repo.sh
 ```
 
 5. Open your favorite IDE in the said clone to iterate building from the tag until it works, like this:
@@ -107,29 +107,29 @@ scripts/wl-setup-repo.sh
 code build-staging/php/php-7.3.33/checkout
 ```
 
-6. Patch the checked out code where necessary. Add flags and build commands to the `wl-build.sh` script in the target folder and each time rebuild like this:
+6. Patch the checked out code where necessary. Add flags and build commands to the `wlr-build.sh` script in the target folder and each time rebuild like this:
 
 ```console
-scripts/wl-build.sh
+scripts/wlr-build.sh
 ```
 
-7. After you manage to get a working build, add proper lines at the end of your `wl-build.sh` script to copy from the `build-staging` folder to the respective `build-output` location, like this:
+7. After you manage to get a working build, add proper lines at the end of your `wlr-build.sh` script to copy from the `build-staging` folder to the respective `build-output` location, like this:
 
 ```bash
 ...
 logStatus "Preparing artifacts... "
-mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
+mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
-cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/ || exit 1
+cp sapi/cgi/php-cgi ${WLR_OUTPUT}/bin/ || exit 1
 
-logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
+logStatus "DONE. Artifacts in ${WLR_OUTPUT}"
 
 ```
 
 8. Commit the patch changes from 6. into the local shallow clone. If necessary, split them into commits. Then export them to the target folder (e.g. `php/php-7.3.33/patches`) like this:
 
 ```console
-scripts/wl-update-patches.sh
+scripts/wlr-update-patches.sh
 ```
 
 9. Now add and commit the new target description folder containing the build script and respective patches to the current repository, like this:
@@ -141,11 +141,11 @@ git commit -m "Add support to build php version 7.3.33"
 
 ## Releasing
 
-In order to release a new version, you first have to tag the project you want to release. You can create a tag by using the `scripts/wl-tag.sh` script.
+In order to release a new version, you first have to tag the project you want to release. You can create a tag by using the `scripts/wlr-tag.sh` script.
 
 This script accepts the path to be released, and will create a local tag of the form `<project>/<version>+YYYYMMDD-<short-sha>`. All parameters will be automatically filled by the script, so in order to create a valid tag for PHP 7.3.33, for example, you only have to execute:
 
-- `scripts/wl-tag.sh php/php-7.3.33`
+- `scripts/wlr-tag.sh php/php-7.3.33`
 
 This will create a tag like the following in your local repository: `php/7.3.33+20221123-d3d8901`.
 

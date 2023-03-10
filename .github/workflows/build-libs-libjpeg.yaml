@@ -1,0 +1,26 @@
+name: Build libs-libjpeg
+on:
+  push:
+    # By specifying branches explicitly, we avoid this workflow from
+    # running on tag push. We have a dedicated workflow to be ran when
+    # a tag is pushed.
+    branches:
+      - main
+    paths:
+       - ".github/**"
+       - "libs/libjpeg/**"
+       - "libs/*"
+       - "scripts/**"
+       - "Makefile*"
+       - "*.sh"
+  pull_request:
+jobs:
+  build-libs-libjpeg:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: 2.1.5.1
+    uses: ./.github/workflows/reusable-build-lib.yaml
+    with:
+      target: libjpeg/v${{ matrix.version }}
