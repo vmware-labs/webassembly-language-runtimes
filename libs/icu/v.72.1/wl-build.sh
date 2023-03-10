@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 logStatus "Building libs 'icu/release-72-1'"
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
@@ -23,9 +23,9 @@ export CFLAGS_BUILD=''
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_ICU} ${CFLAGS_BUILD} ${LDFLAGS_WASI}"
 export LDFLAGS="${LDFLAGS_WASI}"
 
-cd "${WASMLABS_SOURCE_PATH}"/icu4c/source
+cd "${WLR_SOURCE_PATH}"/icu4c/source
 
-if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
     export ICU_CONFIGURE='--enable-static --disable-shared'
     logStatus "Configuring build with '${ICU_CONFIGURE}'... "
     # ICU headers are enough for some builds (e.g.: PHP).
@@ -41,7 +41,7 @@ fi
 # make -j || exit 1
 
 logStatus "Preparing artifacts... "
-mkdir -p ${WASMLABS_OUTPUT}/include/unicode
-cp -v common/unicode/*.h ${WASMLABS_OUTPUT}/include/unicode || exit 1
+mkdir -p ${WLR_OUTPUT}/include/unicode
+cp -v common/unicode/*.h ${WLR_OUTPUT}/include/unicode || exit 1
 
-logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
+logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

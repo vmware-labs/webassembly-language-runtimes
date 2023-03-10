@@ -6,7 +6,7 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
 fi
 
 function wl-env-unset() {
-    if [[ ! -v WASMLABS_ENV ]]
+    if [[ ! -v WLR_ENV ]]
     then
         echo "Nothing to unset"
         return
@@ -14,35 +14,34 @@ function wl-env-unset() {
 
     if [[ -f ${_PATH_TO_ENV}/wl-env-repo.sh ]]
     then
-        source ${WASMLABS_ENV}/../wl-env-repo.sh --unset
+        source ${WLR_ENV}/../wl-env-repo.sh --unset
     elif [[ -f ${_PATH_TO_ENV}/wl-env-local.sh ]]
     then
-        source ${WASMLABS_ENV}/../wl-env-local.sh --unset
+        source ${WLR_ENV}/../wl-env-local.sh --unset
     fi
 
-    unset WASMLABS_SOURCE_PATH
-    unset WASMLABS_TAG
+    unset WLR_SOURCE_PATH
 
-    unset WASMLABS_MAKE
-    unset WASMLABS_ENV_NAME
-    unset WASMLABS_STAGING
-    unset WASMLABS_OUTPUT_BASE
-    unset WASMLABS_OUTPUT
-    unset WASMLABS_REPO_ROOT
+    unset WLR_MAKE
+    unset WLR_ENV_NAME
+    unset WLR_STAGING
+    unset WLR_OUTPUT_BASE
+    unset WLR_OUTPUT
+    unset WLR_REPO_ROOT
 
-    if [[ -v WASMLABS_OLD_PS1 ]]
+    if [[ -v WLR_OLD_PS1 ]]
     then
-        export PS1="${WASMLABS_OLD_PS1}"
-        unset WASMLABS_OLD_PS1
+        export PS1="${WLR_OLD_PS1}"
+        unset WLR_OLD_PS1
     fi
 
     unset -f wl-env-unset
-    unset WASMLABS_ENV
+    unset WLR_ENV
 
-    if (env | grep WASMLABS_ -q)
+    if (env | grep WLR_ -q)
     then
         echo "Leaked env variables were not cleared:"
-        env | grep WASMLABS_
+        env | grep WLR_
     fi
 
     return
@@ -72,7 +71,7 @@ function _load_env_file {
 
         export WLR_ENV_SOURCE_TYPE=repo
         source ${_PATH_TO_ENV}/wl-env-repo.sh
-        _check_vars WASMLABS_REPO WASMLABS_REPO_BRANCH
+        _check_vars WLR_REPO WLR_REPO_BRANCH
 
     elif [[ -f ${_PATH_TO_ENV}/wl-env-local.sh ]]
     then
@@ -82,32 +81,32 @@ function _load_env_file {
         echo "No wl-env-repo or wl-env-local defined for ${_PATH_TO_ENV}"
         exit 1
     fi
-    _check_vars WASMLABS_ENV_NAME WASMLABS_PACKAGE_VERSION WASMLABS_PACKAGE_NAME
+    _check_vars WLR_ENV_NAME WLR_PACKAGE_VERSION WLR_PACKAGE_NAME
 }
 
 function _determine_wlr_output {
     local _BUILD_TYPE=$1
     if [ "${_BUILD_TYPE}" = "dependency" ]
     then
-        export WASMLABS_OUTPUT_BASE=${WASMLABS_DEPS_ROOT}/build-output
-        export WASMLABS_OUTPUT=${WASMLABS_DEPS_ROOT}/build-output
+        export WLR_OUTPUT_BASE=${WLR_DEPS_ROOT}/build-output
+        export WLR_OUTPUT=${WLR_DEPS_ROOT}/build-output
     else
-        export WASMLABS_OUTPUT_BASE=${WASMLABS_REPO_ROOT}/build-output
-        export WASMLABS_OUTPUT=${WASMLABS_OUTPUT_BASE}/${WASMLABS_ENV_NAME}${WASMLABS_BUILD_FLAVOR:+-$WASMLABS_BUILD_FLAVOR}
+        export WLR_OUTPUT_BASE=${WLR_REPO_ROOT}/build-output
+        export WLR_OUTPUT=${WLR_OUTPUT_BASE}/${WLR_ENV_NAME}${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}
     fi
-    _check_vars WASMLABS_OUTPUT_BASE WASMLABS_OUTPUT
+    _check_vars WLR_OUTPUT_BASE WLR_OUTPUT
 }
 
 function _determine_wlr_staging {
     local _BUILD_TYPE=$1
     if [ "${_BUILD_TYPE}" = "dependency" ]
     then
-        local _WASMLABS_STAGING_ROOT=${WASMLABS_DEPS_ROOT}/build-staging
+        local _WLR_STAGING_ROOT=${WLR_DEPS_ROOT}/build-staging
     else
-        local _WASMLABS_STAGING_ROOT=${WASMLABS_REPO_ROOT}/build-staging
+        local _WLR_STAGING_ROOT=${WLR_REPO_ROOT}/build-staging
     fi
-    export WASMLABS_STAGING=${_WASMLABS_STAGING_ROOT}/${WASMLABS_ENV_NAME}${WASMLABS_BUILD_FLAVOR:+-$WASMLABS_BUILD_FLAVOR}
-    _check_vars WASMLABS_STAGING
+    export WLR_STAGING=${_WLR_STAGING_ROOT}/${WLR_ENV_NAME}${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}
+    _check_vars WLR_STAGING
 }
 
 function _determine_wlr_source_path {
@@ -115,15 +114,15 @@ function _determine_wlr_source_path {
     local _SOURCE_TYPE=$2
     if [ "${_SOURCE_TYPE}" = "repo" ]
     then
-        export WASMLABS_SOURCE_PATH=${_STAGING}/checkout
+        export WLR_SOURCE_PATH=${_STAGING}/checkout
     elif [ "${_SOURCE_TYPE}" = "local" ]
     then
-        export WASMLABS_SOURCE_PATH=${PATH_TO_ENV}
+        export WLR_SOURCE_PATH=${PATH_TO_ENV}
     else
         echo "Bad source type - '${_SOURCE_TYPE}'"
         exit 1
     fi
-    _check_vars WASMLABS_SOURCE_PATH
+    _check_vars WLR_SOURCE_PATH
 }
 
 function _determine_wlr_deps_root {
@@ -132,21 +131,21 @@ function _determine_wlr_deps_root {
 
     if [ "${_BUILD_TYPE}" != "dependency" ]
     then
-        if [[ -v WASMLABS_DEPS_ROOT ]]
+        if [[ -v WLR_DEPS_ROOT ]]
         then
-            echo "Error in wl-env.sh. WASMLABS_DEPS_ROOT is already set to ${WASMLABS_DEPS_ROOT} when building a main target at ${PATH_TO_ENV}."
+            echo "Error in wl-env.sh. WLR_DEPS_ROOT is already set to ${WLR_DEPS_ROOT} when building a main target at ${PATH_TO_ENV}."
             exit 1
         fi
         # This is the main target, so set the env variable to use for its dependencies
-        export WASMLABS_DEPS_ROOT=${_STAGING}/deps
+        export WLR_DEPS_ROOT=${_STAGING}/deps
     fi
 }
 
 function _load_local_conf {
-    if [[ -f ${WASMLABS_REPO_ROOT}/.wl-local-conf.sh && ! -v WASI_SDK_PATH && ! -v WASI_SDK_ASSET_NAME && ! -v BINARYEN_PATH && ! -v WABT_ROOT && ! -v WASI_VFS_ROOT ]]
+    if [[ -f ${WLR_REPO_ROOT}/.wl-local-conf.sh && ! -v WASI_SDK_PATH && ! -v WASI_SDK_ASSET_NAME && ! -v BINARYEN_PATH && ! -v WABT_ROOT && ! -v WASI_VFS_ROOT ]]
     then
-        echo "!! Using build tools as configured in '${WASMLABS_REPO_ROOT}/.wl-local-conf.sh'"
-        source ${WASMLABS_REPO_ROOT}/.wl-local-conf.sh
+        echo "!! Using build tools as configured in '${WLR_REPO_ROOT}/.wl-local-conf.sh'"
+        source ${WLR_REPO_ROOT}/.wl-local-conf.sh
 
     elif [[ -f ${HOME}/.wl-local-conf.sh && ! -v WASI_SDK_PATH && ! -v WASI_SDK_ASSET_NAME && ! -v BINARYEN_PATH && ! -v WABT_ROOT && ! -v WASI_VFS_ROOT ]]
     then
@@ -165,31 +164,31 @@ then
 fi
 
 # Noop if environment is already set
-if [[ -v WASMLABS_ENV ]]
+if [[ -v WLR_ENV ]]
 then
     echo "Environment is already set"
     return
 fi
 
-export WASMLABS_REPO_ROOT="$(git rev-parse --show-toplevel)"
-export WASMLABS_MAKE=${WASMLABS_REPO_ROOT}/wl-make.sh
+export WLR_REPO_ROOT="$(git rev-parse --show-toplevel)"
+export WLR_MAKE=${WLR_REPO_ROOT}/wl-make.sh
 
 _load_env_file ${PATH_TO_ENV}
 
-_determine_wlr_output ${WASMLABS_BUILD_TYPE}
-mkdir -p ${WASMLABS_OUTPUT}
+_determine_wlr_output ${WLR_BUILD_TYPE}
+mkdir -p ${WLR_OUTPUT}
 
-_determine_wlr_staging ${WASMLABS_BUILD_TYPE}
-mkdir -p ${WASMLABS_STAGING}
+_determine_wlr_staging ${WLR_BUILD_TYPE}
+mkdir -p ${WLR_STAGING}
 
-_determine_wlr_source_path ${WASMLABS_STAGING} ${WLR_ENV_SOURCE_TYPE}
+_determine_wlr_source_path ${WLR_STAGING} ${WLR_ENV_SOURCE_TYPE}
 
-_determine_wlr_deps_root ${WASMLABS_STAGING} ${WASMLABS_BUILD_TYPE}
-mkdir -p ${WASMLABS_DEPS_ROOT}
+_determine_wlr_deps_root ${WLR_STAGING} ${WLR_BUILD_TYPE}
+mkdir -p ${WLR_DEPS_ROOT}
 
-export WASMLABS_OLD_PS1="${PS1-}"
-export PS1="(${WASMLABS_ENV_NAME}) ${PS1-}"
+export WLR_OLD_PS1="${PS1-}"
+export PS1="(${WLR_ENV_NAME}) ${PS1-}"
 
-export WASMLABS_ENV=${PATH_TO_ENV}
+export WLR_ENV=${PATH_TO_ENV}
 
 _load_local_conf

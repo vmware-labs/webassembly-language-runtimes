@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
@@ -11,12 +11,12 @@ export CFLAGS_CONFIG="-O0"
 
 export CFLAGS="${CFLAGS_CONFIG}"
 
-cd "${WASMLABS_SOURCE_PATH}"
+cd "${WLR_SOURCE_PATH}"
 
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_cmake.sh
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
+source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_cmake.sh
+source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
 
-if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
 
     export LIBJPEG_CONFIGURE="-DENABLE_SHARED=0 -DWITH_TURBOJPEG=0"
     logStatus "Configuring with cmake with '${LIBJPEG_CONFIGURE}' ..."
@@ -36,4 +36,4 @@ wlr_cmake_install || exit 1
 wlr_package_lib || exit 1
 wlr_package_bin || exit 1
 
-logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
+logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

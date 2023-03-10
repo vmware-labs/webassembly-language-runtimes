@@ -7,9 +7,9 @@ fi
 
 export WLR_CONFIGURE_PREFIXES="--prefix= --libdir=\${exec_prefix}/lib/wasm32-wasi"
 export WLR_INSTALL_PREFIXES="\
-    prefix=${WASMLABS_OUTPUT} \
-    libdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi \
-    pkgconfigdir=${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkgconfig"
+    prefix=${WLR_OUTPUT} \
+    libdir=${WLR_OUTPUT}/lib/wasm32-wasi \
+    pkgconfigdir=${WLR_OUTPUT}/lib/wasm32-wasi/pkgconfig"
 
 function add_pkg_config_Libs {
     local TARGET_FILE="$1"
@@ -22,7 +22,7 @@ function wlr_pkg_config_reset_pc_prefix {
     local TARGET_FILE="$1"
 
     sed -i "s/\(^prefix=\).*$/\1/g" ${TARGET_FILE}
-    sed -i "s|${WASMLABS_OUTPUT}|\$\{prefix\}|g" ${TARGET_FILE}
+    sed -i "s|${WLR_OUTPUT}|\$\{prefix\}|g" ${TARGET_FILE}
 }
 
 function wlr_pkg_config_create_pc_file {
@@ -30,9 +30,9 @@ function wlr_pkg_config_create_pc_file {
     local DESCRIPTION="$2"
     local TARGET_LIBS="$3"
 
-    local TARGET_FILE=${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkg-config/${TARGET_LIBRARY}.pc
+    local TARGET_FILE=${WLR_OUTPUT}/lib/wasm32-wasi/pkg-config/${TARGET_LIBRARY}.pc
 
-    mkdir -p ${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkg-config 2>/dev/null
+    mkdir -p ${WLR_OUTPUT}/lib/wasm32-wasi/pkg-config 2>/dev/null
     cat >$TARGET_FILE <<EOF
 prefix=
 exec_prefix=\${prefix}

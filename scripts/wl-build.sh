@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
@@ -8,7 +8,7 @@ fi
 
 if [[ ! -v WASI_SDK_PATH ]]
 then
-    echo WASMLABS_ENV=${WASMLABS_ENV}
+    echo WLR_ENV=${WLR_ENV}
     echo "Please set WASI_SDK_PATH and run again"
     exit 1
 fi
@@ -20,7 +20,7 @@ fi
 
 if [[ ! -v BINARYEN_PATH ]]
 then
-    echo WASMLABS_ENV=${WASMLABS_ENV}
+    echo WLR_ENV=${WLR_ENV}
     echo WASI_SDK_PATH=${WASI_SDK_PATH}
     echo "Please set BINARYEN_PATH and run again"
     exit 1
@@ -28,25 +28,25 @@ fi
 
 function onExit {
     echo "=============================================================="
-    echo "Build progress logs for ${WASMLABS_ENV}:"
-    cat $WASMLABS_OUTPUT/wasmlabs-progress.log
+    echo "Build progress logs for ${WLR_ENV}:"
+    cat $WLR_OUTPUT/wasmlabs-progress.log
     unset -f logStatus
 }
 trap onExit EXIT
 
-if [[ ! -v WASMLABS_PROGRESS_LOG ]]
+if [[ ! -v WLR_PROGRESS_LOG ]]
 then
-    export WASMLABS_PROGRESS_LOG=${WASMLABS_OUTPUT}/wasmlabs-progress.log
-    echo "$(date --iso-8601=ns) | Using WASI_SDK_PATH=$WASI_SDK_PATH " | tee ${WASMLABS_PROGRESS_LOG}
+    export WLR_PROGRESS_LOG=${WLR_OUTPUT}/wasmlabs-progress.log
+    echo "$(date --iso-8601=ns) | Using WASI_SDK_PATH=$WASI_SDK_PATH " | tee ${WLR_PROGRESS_LOG}
 fi
 
 function logStatus {
-    echo "$(date --iso-8601=ns) | ${WASMLABS_ENV_NAME} | $@" | tee -a ${WASMLABS_PROGRESS_LOG}
+    echo "$(date --iso-8601=ns) | ${WLR_ENV_NAME} | $@" | tee -a ${WLR_PROGRESS_LOG}
 }
 
 export -f logStatus
 
-for line in $(env | grep -E "WASMLABS_\w+="); do
+for line in $(env | grep -E "WLR_\w+="); do
     logStatus $line
 done
 
@@ -65,17 +65,17 @@ export RANLIB=${WASI_SDK_PATH}/bin/llvm-ranlib
 
 if ! builtin type -P wasm-opt
 then
-    logStatus "Using wasm-opt wrapper from ${WASMLABS_REPO_ROOT}/scripts/wrappers"
-    export PATH="${WASMLABS_REPO_ROOT}/scripts/wrappers:$PATH"
+    logStatus "Using wasm-opt wrapper from ${WLR_REPO_ROOT}/scripts/wrappers"
+    export PATH="${WLR_REPO_ROOT}/scripts/wrappers:$PATH"
 fi
 
 logStatus "Checking dependencies..."
-if [[ -f ${WASMLABS_ENV}/wl-build-deps.sh ]]
+if [[ -f ${WLR_ENV}/wl-build-deps.sh ]]
 then
-    source ${WASMLABS_ENV}/wl-build-deps.sh
+    source ${WLR_ENV}/wl-build-deps.sh
 fi
 
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_package.sh
+source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_package.sh
 
 logStatus "Building..."
-source ${WASMLABS_ENV}/wl-build.sh
+source ${WLR_ENV}/wl-build.sh

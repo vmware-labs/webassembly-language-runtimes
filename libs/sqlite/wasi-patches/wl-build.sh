@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
@@ -24,7 +24,7 @@ export CFLAGS_BUILD=''
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_SQLITE} ${CFLAGS_BUILD} ${LDFLAGS_WASI}"
 export LDFLAGS="${LDFLAGS_WASI}"
 
-cd "${WASMLABS_SOURCE_PATH}"
+cd "${WLR_SOURCE_PATH}"
 
 logStatus "Configuring build with '${SQLITE_CONFIGURE}'... "
 ./configure --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE} || exit 1
@@ -33,7 +33,7 @@ logStatus "Building... "
 make -j libsqlite3.la || exit 1
 
 logStatus "Preparing artifacts... "
-cp sqlite3.h sqlite3ext.h sqlite3session.h ${WASMLABS_OUTPUT}/include/ || exit 1
-cp .libs/libsqlite3.a ${WASMLABS_OUTPUT}/lib/ || exit 1
+cp sqlite3.h sqlite3ext.h sqlite3session.h ${WLR_OUTPUT}/include/ || exit 1
+cp .libs/libsqlite3.a ${WLR_OUTPUT}/lib/ || exit 1
 
-logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
+logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

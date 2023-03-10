@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
@@ -12,22 +12,22 @@ then
     exit 1
 fi
 
-if [ -f "${WASMLABS_OUTPUT}/bin/php${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}" ]
+if [ -f "${WLR_OUTPUT}/bin/php${WLR_RUNTIME:+-$WLR_RUNTIME}" ]
 then
-    export WASMLABS_TESTED_MODULE="${WASMLABS_OUTPUT}/bin/php${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}"
+    export WLR_TESTED_MODULE="${WLR_OUTPUT}/bin/php${WLR_RUNTIME:+-$WLR_RUNTIME}"
 else
-    export WASMLABS_TESTED_MODULE="${WASMLABS_OUTPUT}/bin/php-cgi${WASMLABS_RUNTIME:+-$WASMLABS_RUNTIME}"
+    export WLR_TESTED_MODULE="${WLR_OUTPUT}/bin/php-cgi${WLR_RUNTIME:+-$WLR_RUNTIME}"
 fi
 
-if ! [ -x "${WASMLABS_TESTED_MODULE}" ]
+if ! [ -x "${WLR_TESTED_MODULE}" ]
 then
-    echo "WASM module not found at '${WASMLABS_TESTED_MODULE}'"
+    echo "WASM module not found at '${WLR_TESTED_MODULE}'"
     exit 1
 fi
 
-cd "${WASMLABS_SOURCE_PATH}"
-echo "Calling 'WASMLABS_TESTED_MODULE=${WASMLABS_TESTED_MODULE} php -f run-tests.php -- -p ${WASMLABS_TEST_RUNTIME_WRAPPER} -j6' to run tests..."
-php -f run-tests.php -- -p ${WASMLABS_TEST_RUNTIME_WRAPPER} -j6 \
+cd "${WLR_SOURCE_PATH}"
+echo "Calling 'WLR_TESTED_MODULE=${WLR_TESTED_MODULE} php -f run-tests.php -- -p ${WLR_TEST_RUNTIME_WRAPPER} -j6' to run tests..."
+php -f run-tests.php -- -p ${WLR_TEST_RUNTIME_WRAPPER} -j6 \
     tests/lang \
     tests/output \
     tests/strings \

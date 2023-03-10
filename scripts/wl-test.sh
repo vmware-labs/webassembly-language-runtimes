@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
@@ -9,37 +9,37 @@ fi
 set_available_runtime() {
     if [ -x "$(command -v $1)" ]
     then
-        export WASMLABS_TEST_RUNTIME=$1
+        export WLR_TEST_RUNTIME=$1
         return 0
     fi
     return 1
 }
 
-if [[ -v WASMLABS_RUNTIME ]]
+if [[ -v WLR_RUNTIME ]]
 then
-    set_available_runtime $WASMLABS_RUNTIME
+    set_available_runtime $WLR_RUNTIME
 else
     # Checking first for wasmtime as the reference implementation
     set_available_runtime wasmtime || \
     set_available_runtime wasmedge
 fi
 
-if ! [[ -v WASMLABS_TEST_RUNTIME ]]
+if ! [[ -v WLR_TEST_RUNTIME ]]
 then
     echo "No wasm runtime in PATH."
 fi
 
-export WASMLABS_TEST_RUNTIME_WRAPPER=${WASMLABS_REPO_ROOT}/scripts/wrappers/${WASMLABS_TEST_RUNTIME}.sh
+export WLR_TEST_RUNTIME_WRAPPER=${WLR_REPO_ROOT}/scripts/wrappers/${WLR_TEST_RUNTIME}.sh
 
-if ! [ -x ${WASMLABS_TEST_RUNTIME_WRAPPER} ]
+if ! [ -x ${WLR_TEST_RUNTIME_WRAPPER} ]
 then
-    echo "Missing test runtime wrapper in '${WASMLABS_TEST_RUNTIME_WRAPPER}'"
+    echo "Missing test runtime wrapper in '${WLR_TEST_RUNTIME_WRAPPER}'"
     exit 1
 fi
 
-if [ -f ${WASMLABS_ENV}/wl-test.sh ]
+if [ -f ${WLR_ENV}/wl-test.sh ]
 then
-    source ${WASMLABS_ENV}/wl-test.sh
+    source ${WLR_ENV}/wl-test.sh
 else
-    echo "No tests for '${WASMLABS_ENV}'"
+    echo "No tests for '${WLR_ENV}'"
 fi

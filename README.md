@@ -92,7 +92,7 @@ touch php/php-7.3.33/wl-build.sh
 
 ```console
 source scripts/wl-env.sh php/php-7.3.33
-export | grep WASMLABS_
+export | grep WLR_
 ```
 
 4. Create a local clone of the respective tag in build-staging, like this:
@@ -118,11 +118,11 @@ scripts/wl-build.sh
 ```bash
 ...
 logStatus "Preparing artifacts... "
-mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
+mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
-cp sapi/cgi/php-cgi ${WASMLABS_OUTPUT}/bin/ || exit 1
+cp sapi/cgi/php-cgi ${WLR_OUTPUT}/bin/ || exit 1
 
-logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
+logStatus "DONE. Artifacts in ${WLR_OUTPUT}"
 
 ```
 

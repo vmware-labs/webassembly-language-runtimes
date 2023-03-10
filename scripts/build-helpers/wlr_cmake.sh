@@ -10,11 +10,11 @@ if [[ -v WLR_CMAKE_TARGET_DIR ]]; then
     return 1
 fi
 
-export WLR_CMAKE_TARGET_DIR=${WASMLABS_STAGING}/target
+export WLR_CMAKE_TARGET_DIR=${WLR_STAGING}/target
 
 function wlr_cmake_configure {
     local CMAKE_WASI_ARGS="-DWASI_SDK_PREFIX=${WASI_SDK_PATH} -DCMAKE_TOOLCHAIN_FILE=${WASI_SDK_PATH}/share/cmake/wasi-sdk.cmake"
-    local CMAKE_WLR_ARGS="-DCMAKE_INSTALL_PREFIX=${WASMLABS_OUTPUT} -DCMAKE_INSTALL_LIBDIR=${WASMLABS_OUTPUT}/lib/wasm32-wasi"
+    local CMAKE_WLR_ARGS="-DCMAKE_INSTALL_PREFIX=${WLR_OUTPUT} -DCMAKE_INSTALL_LIBDIR=${WLR_OUTPUT}/lib/wasm32-wasi"
     if [[ ! -d $WLR_CMAKE_TARGET_DIR ]]; then
         mkdir -p $WLR_CMAKE_TARGET_DIR
     fi

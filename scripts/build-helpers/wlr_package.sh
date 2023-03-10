@@ -5,16 +5,16 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
     return
 fi
 
-if [[ ! -v WASMLABS_ENV ]]; then
+if [[ ! -v WLR_ENV ]]; then
     echo "Wasmlabs environment is not set"
     exit 1
 fi
 
 function wlr_package_lib {
-    local _PACKAGE=${WASMLABS_OUTPUT_BASE}/${WASMLABS_PACKAGE_NAME}-${WASMLABS_PACKAGE_VERSION}-${WASI_SDK_ASSET_NAME}.tar
+    local _PACKAGE=${WLR_OUTPUT_BASE}/${WLR_PACKAGE_NAME}-${WLR_PACKAGE_VERSION}-${WASI_SDK_ASSET_NAME}.tar
     logStatus "Packaging... ${_PACKAGE}"
     tar -cvf ${_PACKAGE} \
-        -C ${WASMLABS_OUTPUT}/ \
+        -C ${WLR_OUTPUT}/ \
         --exclude=*.la \
         --exclude=lib/wasm32-wasi/cmake \
         include \
@@ -23,10 +23,10 @@ function wlr_package_lib {
 }
 
 function wlr_package_bin {
-    local _PACKAGE=${WASMLABS_OUTPUT_BASE}/${WASMLABS_PACKAGE_NAME}-bin-${WASMLABS_PACKAGE_VERSION}-${WASI_SDK_ASSET_NAME}.tar
+    local _PACKAGE=${WLR_OUTPUT_BASE}/${WLR_PACKAGE_NAME}-bin-${WLR_PACKAGE_VERSION}-${WASI_SDK_ASSET_NAME}.tar
     logStatus "Packaging... ${_PACKAGE}"
     tar -cvf ${_PACKAGE} \
-        -C ${WASMLABS_OUTPUT}/ \
+        -C ${WLR_OUTPUT}/ \
         bin
     gzip -f ${_PACKAGE}
 }

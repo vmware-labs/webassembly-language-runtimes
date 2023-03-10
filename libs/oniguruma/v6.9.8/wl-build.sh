@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
@@ -22,11 +22,11 @@ export CFLAGS_BUILD=''
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_ONIGURUMA} ${CFLAGS_BUILD} ${LDFLAGS_WASI}"
 export LDFLAGS="${LDFLAGS_WASI}"
 
-cd "${WASMLABS_SOURCE_PATH}"
+cd "${WLR_SOURCE_PATH}"
 
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
+source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
 
-if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
     ./autogen.sh
     export ONIGURUMA_CONFIGURE="${WLR_CONFIGURE_PREFIXES} --enable-static --disable-shared"
     logStatus "Configuring build with '${ONIGURUMA_CONFIGURE}'... "
@@ -43,4 +43,4 @@ make install ${WLR_INSTALL_PREFIXES} || exit 1
 
 wlr_package_lib
 
-logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
+logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

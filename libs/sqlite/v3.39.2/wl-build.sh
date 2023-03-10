@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
@@ -22,11 +22,11 @@ export CFLAGS_BUILD='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_SQLITE} ${CFLAGS_BUILD} ${LDFLAGS_WASI}"
 export LDFLAGS="${LDFLAGS_WASI}"
 
-cd "${WASMLABS_SOURCE_PATH}"
+cd "${WLR_SOURCE_PATH}"
 
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
+source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
 
-if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
     export SQLITE_CONFIGURE="${WLR_CONFIGURE_PREFIXES} --disable-threadsafe --enable-tempstore=yes"
     logStatus "Configuring build with '${SQLITE_CONFIGURE}'..."
     ./configure --config-cache --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${SQLITE_CONFIGURE} || exit 1
@@ -42,4 +42,4 @@ make lib_install ${WLR_INSTALL_PREFIXES} || exit 1
 
 wlr_package_lib
 
-logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
+logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

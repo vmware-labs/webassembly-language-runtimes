@@ -5,7 +5,7 @@ if [ "${BASH_SOURCE-}" = "$0" ]; then
     return
 fi
 
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_dependencies.sh
+source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_dependencies.sh
 
 wlr_dependencies_add "uuid" "libs/uuid/libuuid-1.0.3" "lib/wasm32-wasi/libuuid.a" \
     "https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fuuid%2F1.0.3%2B20230306-764c74d/libuuid-1.0.3-wasi-sdk-19.0.tar.gz"

@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
 fi
 
-cd "${WASMLABS_SOURCE_PATH}"
+cd "${WLR_SOURCE_PATH}"
 
 export PREFIX=/wlr-rubies
 export XLDFLAGS="/wasi-vfs/lib/libwasi_vfs.a $XLDFLAGS"
 
-if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
     logStatus "Downloading autotools data... "
     ruby tool/downloader.rb -d tool -e gnu config.guess config.sub
 
@@ -40,9 +40,9 @@ logStatus "Building ruby..."
 make install
 
 logStatus "Preparing artifacts... "
-mkdir -p ${WASMLABS_OUTPUT}/bin 2>/dev/null || exit 1
+mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 mv $PREFIX/bin/ruby ruby
 rm -rf $PREFIX/bin
-wasi-vfs pack ruby --mapdir $PREFIX::$PREFIX -o ${WASMLABS_OUTPUT}/bin/ruby.wasm || exit 1
+wasi-vfs pack ruby --mapdir $PREFIX::$PREFIX -o ${WLR_OUTPUT}/bin/ruby.wasm || exit 1
 
-logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
+logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

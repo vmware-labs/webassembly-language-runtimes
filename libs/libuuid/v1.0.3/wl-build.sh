@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WASMLABS_ENV ]]
+if [[ ! -v WLR_ENV ]]
 then
     echo "Wasmlabs environment is not set"
     exit 1
@@ -17,14 +17,14 @@ export CFLAGS_BUILD='-Werror -Wno-error=format'
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_BUILD}"
 export LDFLAGS="${LDFLAGS_WASI}"
 
-cd "${WASMLABS_SOURCE_PATH}"
+cd "${WLR_SOURCE_PATH}"
 
-source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
+source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
 
-if [[ -z "$WASMLABS_SKIP_CONFIGURE" ]]; then
+if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
 
     logStatus "Generating configure"
-    source ${WASMLABS_REPO_ROOT}/scripts/build-helpers/wlr_autoconf.sh
+    source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_autoconf.sh
     wlr_update_autoconf || exit 1
 
     autoreconf --verbose --install
@@ -42,8 +42,8 @@ make || exit 1
 logStatus "Preparing artifacts... "
 make install ${WLR_INSTALL_PREFIXES} || exit 1
 
-add_pkg_config_Libs ${WASMLABS_OUTPUT}/lib/wasm32-wasi/pkgconfig/uuid.pc ${LDFLAGS_WASI}
+add_pkg_config_Libs ${WLR_OUTPUT}/lib/wasm32-wasi/pkgconfig/uuid.pc ${LDFLAGS_WASI}
 
 wlr_package_lib
 
-logStatus "DONE. Artifacts in ${WASMLABS_OUTPUT}"
+logStatus "DONE. Artifacts in ${WLR_OUTPUT}"
