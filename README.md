@@ -31,6 +31,7 @@ Here is a reference to the latest releases of all built projects.
 ## For developers
 
 The rest of this document will help you if you want to build some of the assets on your own, or contribute with a patch, or add support for new release targets.
+
 ### Getting started
 
 All you need in order to run these builds is to have `docker` or `podman` available in your system. You can execute the following `Makefile` targets:
