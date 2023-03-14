@@ -21,7 +21,10 @@ export INCLUDE_DIRS="$(realpath ${TARGET_DIR}/deps/include/python3.11)"
 
 export LIBS_DIRS="-L/$(realpath ${TARGET_DIR}/deps/lib/wasm32-wasi)"
 export WASI_LIBS="-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
-export LINK_FLAGS="${LIBS_DIRS} -lpython3.11 ${WASI_LIBS}"
+## For more info - https://github.com/llvm/llvm-project-release-prs/blob/0604154e006e88e9e7f82d8ee5fd076bda206613/lld/wasm/Writer.cpp#L226
+export WASM_LINKER_FLAGS="-Wl,-z,stack-size=524288 -Wl,--initial-memory=10485760 -Wl,--stack-first"
+
+export LINK_FLAGS="${WASM_LINKER_FLAGS} ${LIBS_DIRS} -lpython3.11 ${WASI_LIBS}"
 
 export CMAKE_EXTRA_ARGS="-DWASI_SDK_PREFIX=${WASI_SDK_PATH} -DCMAKE_TOOLCHAIN_FILE=${WASI_SDK_PATH}/share/cmake/wasi-sdk.cmake"
 

@@ -70,7 +70,7 @@ const importObject = {
 
     log('Started wasm module');
 
-    const strBuf = memMgr.bufFromString('Hello there');
+    const strBuf = memMgr.bufFromString("It can't bite it's own tail. I'm done laughing.");
 
     const ident = 12345;
     log(`Calling wasmModule.run_e(${strBuf.getPtr()}, ${strBuf.getSize()}, ${ident})...`);
