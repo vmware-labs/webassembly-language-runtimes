@@ -2,9 +2,37 @@
 
 ## Overview
 
-This repository contains patches provided for language runtimes to be compiled for the wasm32-wasi target.
+This repository contains build scripts and patches that are used to compile language runtimes and common open source libraries for the wasm32-wasi target.
 
-## Getting started
+## Releases
+
+Here is a reference to the latest releases of all built projects.
+
+| Language runtime          | Latest release            |
+|---                        |---                        |
+| [php](./php/)             | [8.2.0](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/php%2F8.2.0%2B20230217-0ce5fde)             |
+| [python](./python/)       | [3.11.1](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/python%2F3.11.1%2B20230217-15dfbed)        |
+| [ruby](./ruby/)           | [3.2.0](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/ruby%2F3.2.0%2B20230215-1349da9)            |
+
+
+
+| Library                                   | Latest release            |
+|---                                        |---                        |
+| [libs/bundle_wlr](./libs/bundle_wlr)      | [0.1.0](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Fbundle_wlr%2F0.1.0%2B20230310-ddace6c)   |
+| [libs/libjpeg](./libs/libjpeg)            | [2.1.5.1](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Flibjpeg%2F2.1.5.1%2B20230310-c46e363)  |
+| [libs/libpng](./libs/libpng)              | [1.6.39](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Flibpng%2F1.6.39%2B20230310-13a5f2e)  |
+| [libs/libuuid](./libs/libuuid)            | [1.0.3](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Flibuuid%2F1.0.3%2B20230310-c46e363)  |
+| [libs/libxml2](./libs/libxml2)            | [2.10.3](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Flibxml2%2F2.10.3%2B20230310-c46e363)   |
+| [libs/oniguruma](./libs/oniguruma)        | [6.9.8](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Foniguruma%2F6.9.8%2B20230310-c46e363)   |
+| [libs/sqlite](./libs/sqlite)              | [3.39.2](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Fsqlite%2F3.39.2%2B20230310-c46e363)  |
+| [libs/zlib](./libs/zlib)                  | [1.2.13](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Fzlib%2F1.2.13%2B20230310-c46e363)   |
+
+
+## For developers
+
+The rest of this document will help you if you want to build some of the assets on your own, or contribute with a patch, or add support for new release targets.
+
+### Getting started
 
 All you need in order to run these builds is to have `docker` or `podman` available in your system. You can execute the following `Makefile` targets:
 
@@ -18,11 +46,11 @@ All you need in order to run these builds is to have `docker` or `podman` availa
 - `ruby/v3_2_0`
     - Resulting binaries are placed in `build-output/ruby`.
 
-## Build strategy
+### Build strategy
 
 If you are interested in knowing more about the build system and how it produces the final binaries, keep reading.
 
-### Code Organization
+#### Code Organization
 
 All build orchestration scripts are written in bash in this initial version. They start with a `wlr-` prefix (short for WebAssembly Language Runtimes). Review the [build orchestration scripts](#build-orchestration-scripts) section for more info.
 
@@ -60,7 +88,7 @@ libs (common libraries, needed by different modules)
     └── wlr-env-repo.sh (script that sets up the source code repository for given langauge and tag)
 ```
 
-### Build orchestration scripts
+#### Build orchestration scripts
 
 1. The main script used to build something is `wlr-make.sh` in the root folder. It gets called with a path to the folder for a respective tag of what we want to build.
 
@@ -72,7 +100,7 @@ libs (common libraries, needed by different modules)
 
 5. Before building this will call a `$LANG/$TAG/wlr-build-deps.sh` if there is any to build required dependencies and setup CFLAGS or LDFLAGS for their artifacts. Then it will call the `$LANG/$TAG/wlr-build.sh` script to build the actual target itself.
 
-### Adding a new build target
+#### Adding a new build target
 
 To add a build setup for a new version of something that is already configured:
 
@@ -139,7 +167,7 @@ git add php/php-7.3.33
 git commit -m "Add support to build php version 7.3.33"
 ```
 
-## Releasing
+### Releasing
 
 In order to release a new version, you first have to tag the project you want to release. You can create a tag by using the `scripts/wlr-tag.sh` script.
 
