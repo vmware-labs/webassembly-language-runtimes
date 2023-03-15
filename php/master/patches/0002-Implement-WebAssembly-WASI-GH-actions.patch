@@ -1,0 +1,246 @@
+From 4584dc2c7e1be03a434906c345d317d4106328a1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Rafael=20Fern=C3=A1ndez=20L=C3=B3pez?=
+ <rfernandezl@vmware.com>
+Date: Wed, 1 Feb 2023 17:42:41 +0100
+Subject: [PATCH 2/2] Implement WebAssembly + WASI GH actions
+
+WebAssembly + WASI GH actions have specific tasks for the following
+steps:
+
+- apt: an existing PHP installation will be used as the test runner,
+as opposed to the binary being built. It also installs other
+dependencies used by later stages, such as Wasmtime (WebAssembly
+runtime), and Binaryen (contains `wasm-opt`, to be used on the
+optimization phase.)
+- configure-wasi: specific configure values.
+- optimize-wasi (new action): performs binaryen optimization passes on
+the resulting binary.
+- test-wasi: requires a wrapper that will use `wasmtime` to run the
+`php` CLI compiled to WebAssembly.
+---
+ .github/actions/apt-wasi/action.yml       | 48 +++++++++++++++++++++++
+ .github/actions/configure-wasi/action.yml | 39 ++++++++++++++++++
+ .github/actions/optimize-wasi/action.yml  | 14 +++++++
+ .github/actions/test-wasi/action.yml      | 46 ++++++++++++++++++++++
+ .github/workflows/push.yml                | 33 ++++++++++++++++
+ 5 files changed, 180 insertions(+)
+ create mode 100644 .github/actions/apt-wasi/action.yml
+ create mode 100644 .github/actions/configure-wasi/action.yml
+ create mode 100644 .github/actions/optimize-wasi/action.yml
+ create mode 100644 .github/actions/test-wasi/action.yml
+
+diff --git a/.github/actions/apt-wasi/action.yml b/.github/actions/apt-wasi/action.yml
+new file mode 100644
+index 0000000000..1e664d6cfd
+--- /dev/null
++++ b/.github/actions/apt-wasi/action.yml
+@@ -0,0 +1,48 @@
++name: apt
++inputs:
++  wasi_sdk_version:
++    default: 19
++  wasmtime_version:
++    default: 5.0.0
++  binaryen_version:
++    default: 111
++runs:
++  using: composite
++  steps:
++    - shell: bash
++      run: |
++        set -x
++
++        sudo apt-get update
++        sudo apt-get install \
++          php \
++          libtool-bin \
++          bison \
++          re2c \
++          tcl
++    - shell: bash
++      run: |
++        set -x
++
++        wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${{ inputs.wasi_sdk_version }}/wasi-sdk_${{ inputs.wasi_sdk_version }}.0_amd64.deb
++        sudo dpkg -i wasi-sdk_${{ inputs.wasi_sdk_version }}.0_amd64.deb
++    - shell: bash
++      run: |
++        echo /opt/wasi-sdk/bin >> $GITHUB_PATH
++    - shell: bash
++      run: |
++        set -x
++
++        mkdir -p /opt/bin
++
++        wget https://github.com/bytecodealliance/wasmtime/releases/download/v${{ inputs.wasmtime_version }}/wasmtime-v${{ inputs.wasmtime_version }}-x86_64-linux.tar.xz
++        tar -xvf wasmtime-v${{ inputs.wasmtime_version }}-x86_64-linux.tar.xz
++        mv wasmtime-v${{ inputs.wasmtime_version }}-x86_64-linux/wasmtime /opt/bin/
++    - shell: bash
++      run: |
++        set -x
++
++        mkdir -p /opt/bin
++
++        wget https://github.com/WebAssembly/binaryen/releases/download/version_${{ inputs.binaryen_version }}/binaryen-version_${{ inputs.binaryen_version }}-x86_64-linux.tar.gz
++        tar -xvf binaryen-version_${{ inputs.binaryen_version }}-x86_64-linux.tar.gz --strip-components=2 -C /opt/bin binaryen-version_${{ inputs.binaryen_version }}/bin/wasm-opt
+diff --git a/.github/actions/configure-wasi/action.yml b/.github/actions/configure-wasi/action.yml
+new file mode 100644
+index 0000000000..a1deb30551
+--- /dev/null
++++ b/.github/actions/configure-wasi/action.yml
+@@ -0,0 +1,39 @@
++name: ./configure
++inputs:
++  configurationParameters:
++    default: ''
++    required: false
++runs:
++  using: composite
++  steps:
++    - shell: bash
++      run: |
++        set -x
++
++        ./buildconf --force
++        ./configure \
++          --host=wasm32-wasi \
++          --target=wasm32-wasi \
++          --without-libxml \
++          --disable-dom \
++          --without-iconv \
++          --without-openssl \
++          --disable-simplexml \
++          --disable-xml \
++          --disable-xmlreader \
++          --disable-xmlwriter \
++          --without-pear \
++          --disable-phar \
++          --disable-opcache \
++          --disable-zend-signals \
++          --without-pcre-jit \
++          --without-sqlite3 \
++          --disable-pdo \
++          --disable-fiber-asm \
++          --disable-posix \
++          --disable-sockets \
++          --disable-fileinfo \
++          --disable-session \
++          CFLAGS="-D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS" \
++          LDFLAGS="-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks" \
++          ${{ inputs.configurationParameters }}
+diff --git a/.github/actions/optimize-wasi/action.yml b/.github/actions/optimize-wasi/action.yml
+new file mode 100644
+index 0000000000..30e7ad2ac2
+--- /dev/null
++++ b/.github/actions/optimize-wasi/action.yml
+@@ -0,0 +1,14 @@
++name: Optimize
++runs:
++  using: composite
++  steps:
++    - shell: bash
++      run: |
++        set -x
++
++        /opt/bin/wasm-opt -O sapi/cli/php -o sapi/cli/php.optimized
++    - shell: bash
++      run: |
++        set -x
++
++        /opt/bin/wasm-opt -O sapi/cgi/php-cgi -o sapi/cgi/php-cgi.optimized
+diff --git a/.github/actions/test-wasi/action.yml b/.github/actions/test-wasi/action.yml
+new file mode 100644
+index 0000000000..7882feccea
+--- /dev/null
++++ b/.github/actions/test-wasi/action.yml
+@@ -0,0 +1,46 @@
++name: Test
++inputs:
++  testArtifacts:
++    default: null
++    required: false
++  runTestsParameters:
++    default: ''
++    required: false
++runs:
++  using: composite
++  steps:
++    - shell: bash
++      run: |
++        cat <<-'EOF' > /opt/bin/wasmtime-run-cli.sh
++        	#!/bin/bash
++        	WASMTIME_BACKTRACE_DETAILS=1 /opt/bin/wasmtime run --mapdir /::/ "$PWD/sapi/cli/php.optimized" 2> /dev/null -- "$@"
++        EOF
++        chmod +x /opt/bin/wasmtime-run-cli.sh
++        cat <<-'EOF' > /opt/bin/wasmtime-run-cgi.sh
++        	#!/bin/bash
++        	WASMTIME_BACKTRACE_DETAILS=1 /opt/bin/wasmtime run --mapdir /::/ "$PWD/sapi/cgi/php-cgi.optimized" 2> /dev/null -- "$@"
++        EOF
++        chmod +x /opt/bin/wasmtime-run-cgi.sh
++    - shell: bash
++      run: |
++        set -x
++        export SKIP_IO_CAPTURE_TESTS=1
++        export TEST_PHP_JUNIT=junit.out.xml
++        export STACK_LIMIT_DEFAULTS_CHECK=1
++        export TEST_PHP_EXECUTABLE=/opt/bin/wasmtime-run-cli.sh
++        export TEST_PHP_CGI_EXECUTABLE=/opt/bin/wasmtime-run-cgi.sh
++        export TEST_PHPDBG_EXECUTABLE=""
++        php run-tests.php -q ${{ inputs.runTestsParameters }} \
++          -j$(/usr/bin/nproc) \
++          -g FAIL,BORK,LEAK,XLEAK \
++          --no-progress \
++          --offline \
++          --show-diff \
++          --show-slow 1000 \
++          --set-timeout 120
++    - uses: actions/upload-artifact@v3
++      if: always() && inputs.testArtifacts != null
++      with:
++        name: ${{ github.job }}_${{ inputs.testArtifacts }}
++        path: ${{ github.workspace }}/junit.out.xml
++        retention-days: 5
+diff --git a/.github/workflows/push.yml b/.github/workflows/push.yml
+index 309205404d..385ab7d136 100644
+--- a/.github/workflows/push.yml
++++ b/.github/workflows/push.yml
+@@ -205,3 +205,36 @@ jobs:
+         run: .github/scripts/windows/build.bat
+       - name: Test
+         run: .github/scripts/windows/test.bat
++  WASM32_WASI:
++    name: "WASM32_WASI_${{ matrix.debug && 'DEBUG' || 'RELEASE' }}_${{ matrix.zts && 'ZTS' || 'NTS' }}"
++    runs-on: ubuntu-20.04
++    env:
++      CC: clang
++      CXX: clang++
++      LD: wasm-ld
++      AR: llvm-ar
++      RANLIB: llvm-ranlib
++    steps:
++      - name: git checkout
++        uses: actions/checkout@v3
++      - name: apt
++        uses: ./.github/actions/apt-wasi
++      - name: ./configure
++        uses: ./.github/actions/configure-wasi
++        with:
++          configurationParameters: >-
++            --${{ matrix.debug && 'enable' || 'disable' }}-debug
++            --${{ matrix.zts && 'enable' || 'disable' }}-zts
++      - name: make
++        env:
++          CFLAGS: "-D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
++          LDFLAGS: "-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
++        run: make -j$(/usr/bin/nproc) cgi cli
++      - name: Optimize
++        uses: ./.github/actions/optimize-wasi
++      - name: Test
++        uses: ./.github/actions/test-wasi
++        with:
++          testArtifacts: ${{ matrix.debug && 'DEBUG' || 'RELEASE' }}_${{ matrix.zts && 'ZTS' || 'NTS' }}
++      - name: Verify generated files are up to date
++        uses: ./.github/actions/verify-generated-files
+-- 
+2.38.4
+
