@@ -12,7 +12,7 @@ We also build a `bundle_wlr` project that packs all libraries into an all-in-one
 
 The libraries are offered as static library archives (`.a` files) and can be linked to, when building your wasm32-wasi application. This will be augmented once we have a stable [component-model](https://github.com/WebAssembly/component-model) for WebAssembly.
 
-All assets are published as GitHub releases for the current repository.
+All assets are published as GitHub releases for the current repository. While a list of the latest released versions is available on the [home page](https://github.com/vmware-labs/webassembly-language-runtimes#releases) of this repository.
 
 ## Release names
 
@@ -148,6 +148,6 @@ drwxr-xr-x root/root         0 2023-03-09 11:30 lib/wasm32-wasi/pkgconfig/
 
 # For contributors
 
-If you want to contribute by porting a library, or suggesting an improvement to how this is done, feel free to drop a not on the [Libs roadmap](https://github.com/vmware-labs/webassembly-language-runtimes/issues/78) issue.
+If you want to contribute by porting a library, or suggesting an improvement to how this is done, feel free to drop a note on the [Libs roadmap](https://github.com/vmware-labs/webassembly-language-runtimes/issues/78) issue.
 
 We will expand this section with more information about the build scripts, as needed.
