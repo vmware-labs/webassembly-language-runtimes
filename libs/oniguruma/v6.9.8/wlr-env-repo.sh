@@ -14,4 +14,4 @@ export WLR_REPO=https://github.com/kkos/oniguruma
 export WLR_REPO_BRANCH=v6.9.8
 export WLR_ENV_NAME=oniguruma/v6.9.8
 export WLR_PACKAGE_VERSION=6.9.8
-export WLR_PACKAGE_NAME=libonig
+export WLR_PACKAGE_NAME=onig

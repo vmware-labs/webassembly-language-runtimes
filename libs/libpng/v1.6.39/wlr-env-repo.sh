@@ -14,5 +14,5 @@ export WLR_REPO=https://github.com/glennrp/libpng
 export WLR_REPO_BRANCH=v1.6.39
 export WLR_ENV_NAME=libpng/v1.6.39
 export WLR_PACKAGE_VERSION=1.6.39
-export WLR_PACKAGE_NAME=libpng
+export WLR_PACKAGE_NAME=png
 

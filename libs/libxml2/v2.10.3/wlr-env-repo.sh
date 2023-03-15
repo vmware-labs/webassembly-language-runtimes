@@ -14,5 +14,5 @@ export WLR_REPO=https://github.com/GNOME/libxml2.git
 export WLR_REPO_BRANCH=v2.10.3
 export WLR_ENV_NAME=libxml2/v2.10.3
 export WLR_PACKAGE_VERSION=2.10.3
-export WLR_PACKAGE_NAME=libxml2
+export WLR_PACKAGE_NAME=xml2
 

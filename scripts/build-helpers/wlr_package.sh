@@ -11,7 +11,7 @@ if [[ ! -v WLR_ENV ]]; then
 fi
 
 function wlr_package_lib {
-    local _PACKAGE=${WLR_OUTPUT_BASE}/${WLR_PACKAGE_NAME}-${WLR_PACKAGE_VERSION}-${WASI_SDK_ASSET_NAME}.tar
+    local _PACKAGE=${WLR_OUTPUT_BASE}/lib${WLR_PACKAGE_NAME}-${WLR_PACKAGE_VERSION}-${WASI_SDK_ASSET_NAME}.tar
     logStatus "Packaging... ${_PACKAGE}"
     tar -cvf ${_PACKAGE} \
         -C ${WLR_OUTPUT}/ \
