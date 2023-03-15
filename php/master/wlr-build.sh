@@ -30,7 +30,7 @@ if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
     logStatus "Generating configure script..."
     ./buildconf --force || exit 1
 
-    export PHP_CONFIGURE='--without-iconv --without-openssl --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --disable-fiber-asm --disable-posix --disable-sockets'
+    export PHP_CONFIGURE='--without-iconv --without-openssl --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --disable-fiber-asm --disable-posix --disable-sockets --disable-fileinfo --disable-session'
 
     if [[ -v WLR_RUNTIME ]]
     then
