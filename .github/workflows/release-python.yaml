@@ -12,122 +12,73 @@ on:
 jobs:
   release-python:
     strategy:
-      matrix:
-        include:
-          - version: 3.11.1
+      fail-fast: false
     runs-on: ubuntu-latest
     steps:
+      - name: Determine version
+        id: determineVersion
+        run: |
+          VERSION=$(echo ${{ github.event.ref }} | sed 's,refs/tags/python/,,g' | cut -f 1 -d \+)
+          echo "value=${VERSION}" >> $GITHUB_OUTPUT
       - name: Checkout repository
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref,  format('refs/tags/python/{0}+', matrix.version))
         uses: actions/checkout@v3
       - name: Build Python
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
-        run: make python/v${{ matrix.version }}
+        run: make python/v${{ steps.determineVersion.outputs.value }}
       - name: Build Python Wasmedge
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
-        run: make python/wasmedge-v${{ matrix.version }}
+        run: make python/wasmedge-v${{ steps.determineVersion.outputs.value }}
       - name: Build Python AIO
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
-        run: make python/aio-v${{ matrix.version }}
+        run: make python/aio-v${{ steps.determineVersion.outputs.value }}
       - name: Build Python AIO Wasmedge
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
-        run: make python/aio-wasmedge-v${{ matrix.version }}
+        run: make python/aio-wasmedge-v${{ steps.determineVersion.outputs.value }}
       - name: Rename release artifacts
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
         shell: bash
         run: |
-          sudo mv build-output/python/v${{ matrix.version }}/bin/python{,-${{ matrix.version }}}.wasm
-          sudo mv build-output/python/v${{ matrix.version }}-wasmedge/bin/python{,-${{ matrix.version }}-wasmedge}.wasm
-          sudo mv build-output/python/v${{ matrix.version }}-aio/bin/python{,-${{ matrix.version }}}.wasm
-          sudo mv build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python{,-${{ matrix.version }}-wasmedge}.wasm
+          sudo mv build-output/python/v${{ steps.determineVersion.outputs.value }}/bin/python{,-${{ steps.determineVersion.outputs.value }}}.wasm
+          sudo mv build-output/python/v${{ steps.determineVersion.outputs.value }}-wasmedge/bin/python{,-${{ steps.determineVersion.outputs.value }}-wasmedge}.wasm
+          sudo mv build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python{,-${{ steps.determineVersion.outputs.value }}}.wasm
+          sudo mv build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python{,-${{ steps.determineVersion.outputs.value }}-wasmedge}.wasm
       - name: Bundle Python with standard libraries
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
         run: |
-          tar -cvf python-${{ matrix.version }}.tar \
-            -C build-output/python/v${{ matrix.version }}/ \
-            bin/python-${{ matrix.version }}.wasm \
+          tar -cvf python-${{ steps.determineVersion.outputs.value }}.tar \
+            -C build-output/python/v${{ steps.determineVersion.outputs.value }}/ \
+            bin/python-${{ steps.determineVersion.outputs.value }}.wasm \
             usr
-          tar -rvf python-${{ matrix.version }}.tar \
-            -C build-output/python/v${{ matrix.version }}-wasmedge/ \
-            bin/python-${{ matrix.version }}-wasmedge.wasm
-          gzip python-${{ matrix.version }}.tar
+          tar -rvf python-${{ steps.determineVersion.outputs.value }}.tar \
+            -C build-output/python/v${{ steps.determineVersion.outputs.value }}-wasmedge/ \
+            bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm
+          gzip python-${{ steps.determineVersion.outputs.value }}.tar
       - name: Create release
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create --generate-notes ${{ github.ref_name }} || true
       - name: Append Python release assets
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: ${{ startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))}}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            python-${{ matrix.version }}.tar.gz \
-            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm \
-            build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm
+            python-${{ steps.determineVersion.outputs.value }}.tar.gz \
+            libpython-${{ steps.determineVersion.outputs.value }}.tar.gz \
+            build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python-${{ steps.determineVersion.outputs.value }}.wasm \
+            build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm
       - name: Generate release assets digests
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: ${{ startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))}}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for asset in \
-              python-${{ matrix.version }}.tar.gz \
-              build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm \
-              build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm; \
+              python-${{ steps.determineVersion.outputs.value }}.tar.gz \
+              libpython-${{ steps.determineVersion.outputs.value }}.tar.gz \
+              build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python-${{ steps.determineVersion.outputs.value }}.wasm \
+              build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm; \
           do
             sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
           done
       - name: Append release assets digests
-        # Only run for the Python version specified in the git tag.
-        #
-        # This if could be moved to the parent `job` section when it's
-        # supported by GitHub (https://github.com/community/community/discussions/37883)
-        if: ${{ startsWith(github.event.ref, format('refs/tags/python/{0}+', matrix.version))}}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} \
-            python-${{ matrix.version }}.tar.gz.sha256sum \
-            build-output/python/v${{ matrix.version }}-aio/bin/python-${{ matrix.version }}.wasm.sha256sum \
-            build-output/python/v${{ matrix.version }}-aio-wasmedge/bin/python-${{ matrix.version }}-wasmedge.wasm.sha256sum
+            python-${{ steps.determineVersion.outputs.value }}.tar.gz.sha256sum \
+            libpython-${{ steps.determineVersion.outputs.value }}.tar.gz.sha256sum \
+            build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python-${{ steps.determineVersion.outputs.value }}.wasm.sha256sum \
+            build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm.sha256sum
