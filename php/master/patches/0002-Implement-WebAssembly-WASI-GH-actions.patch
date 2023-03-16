@@ -1,4 +1,4 @@
-From 4584dc2c7e1be03a434906c345d317d4106328a1 Mon Sep 17 00:00:00 2001
+From 5d7786942409e077ed844efd06d58d97f79d73b3 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Rafael=20Fern=C3=A1ndez=20L=C3=B3pez?=
  <rfernandezl@vmware.com>
 Date: Wed, 1 Feb 2023 17:42:41 +0100
@@ -201,10 +201,10 @@ index 0000000000..7882feccea
 +        path: ${{ github.workspace }}/junit.out.xml
 +        retention-days: 5
 diff --git a/.github/workflows/push.yml b/.github/workflows/push.yml
-index 309205404d..385ab7d136 100644
+index 65cdf72f3c..2b1b83499a 100644
 --- a/.github/workflows/push.yml
 +++ b/.github/workflows/push.yml
-@@ -205,3 +205,36 @@ jobs:
+@@ -215,3 +215,36 @@ jobs:
          run: .github/scripts/windows/build.bat
        - name: Test
          run: .github/scripts/windows/test.bat

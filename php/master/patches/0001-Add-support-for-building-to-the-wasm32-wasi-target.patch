@@ -1,4 +1,4 @@
-From bdad876532cd4ab163add7230447e540b4583a2b Mon Sep 17 00:00:00 2001
+From e31e6b8def46c16a7c6e77f3b80c67dd644a93a8 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Rafael=20Fern=C3=A1ndez=20L=C3=B3pez?=
  <rfernandezl@vmware.com>
 Date: Wed, 25 Jan 2023 14:38:28 +0100
@@ -94,7 +94,7 @@ index a3475fab6c..63fb0fff49 100644
  #endif
  	F1("stream_get_contents", MAY_BE_STRING|MAY_BE_FALSE),
 diff --git a/Zend/zend.c b/Zend/zend.c
-index 971560f2df..1fbec61d08 100644
+index 7f5257c570..313ee0bc1b 100644
 --- a/Zend/zend.c
 +++ b/Zend/zend.c
 @@ -784,7 +784,9 @@ static void executor_globals_ctor(zend_executor_globals *executor_globals) /* {{
@@ -635,7 +635,7 @@ index f65a71a726..a3557bbc94 100644
  		umask(oldmask);
  
 diff --git a/ext/standard/basic_functions.stub.php b/ext/standard/basic_functions.stub.php
-index 68d0e69516..c7641c1c89 100755
+index 2a624f1892..3cc608a82a 100755
 --- a/ext/standard/basic_functions.stub.php
 +++ b/ext/standard/basic_functions.stub.php
 @@ -739,6 +739,7 @@
@@ -654,7 +654,7 @@ index 68d0e69516..c7641c1c89 100755
  
  /* string.c */
  
-@@ -2147,9 +2149,13 @@ function md5_file(string $filename, bool $binary = false): string|false {}
+@@ -2146,9 +2148,13 @@ function md5_file(string $filename, bool $binary = false): string|false {}
  
  /* pageinfo.c */
  
@@ -668,7 +668,7 @@ index 68d0e69516..c7641c1c89 100755
  
  function getmypid(): int|false {}
  
-@@ -2800,9 +2806,13 @@ function stat(string $filename): array|false {}
+@@ -2799,9 +2805,13 @@ function stat(string $filename): array|false {}
   */
  function lstat(string $filename): array|false {}
  
@@ -682,7 +682,7 @@ index 68d0e69516..c7641c1c89 100755
  
  #ifdef HAVE_LCHOWN
  function lchown(string $filename, string|int $user): bool {}
-@@ -2810,7 +2820,9 @@ function lchown(string $filename, string|int $user): bool {}
+@@ -2809,7 +2819,9 @@ function lchown(string $filename, string|int $user): bool {}
  function lchgrp(string $filename, string|int $group): bool {}
  #endif
  
@@ -692,7 +692,7 @@ index 68d0e69516..c7641c1c89 100755
  
  #ifdef HAVE_UTIME
  function touch(string $filename, ?int $mtime = null, ?int $atime = null): bool {}
-@@ -2955,7 +2967,9 @@ function link(string $target, string $link): bool {}
+@@ -2954,7 +2966,9 @@ function link(string $target, string $link): bool {}
  
  /* mail.c */
  
@@ -702,7 +702,7 @@ index 68d0e69516..c7641c1c89 100755
  
  /* math.c */
  
-@@ -3204,6 +3218,7 @@ function stream_filter_append($stream, string $filter_name, int $mode = 0, mixed
+@@ -3203,6 +3217,7 @@ function stream_filter_append($stream, string $filter_name, int $mode = 0, mixed
  /** @param resource $stream_filter */
  function stream_filter_remove($stream_filter): bool {}
  
@@ -710,7 +710,7 @@ index 68d0e69516..c7641c1c89 100755
  /**
   * @param int $error_code
   * @param string $error_message
-@@ -3261,6 +3276,7 @@ function stream_socket_shutdown($stream, int $mode): bool {}
+@@ -3260,6 +3275,7 @@ function stream_socket_shutdown($stream, int $mode): bool {}
   */
  function stream_socket_pair(int $domain, int $type, int $protocol): array|false {}
  #endif
@@ -719,13 +719,13 @@ index 68d0e69516..c7641c1c89 100755
  /**
   * @param resource $from
 diff --git a/ext/standard/basic_functions_arginfo.h b/ext/standard/basic_functions_arginfo.h
-index 45daf2d4f7..6c1b93452a 100644
+index 61822b4067..0704e3fc34 100644
 --- a/ext/standard/basic_functions_arginfo.h
 +++ b/ext/standard/basic_functions_arginfo.h
 @@ -1,5 +1,5 @@
  /* This is a generated file, edit the .stub.php file instead.
-- * Stub hash: b0b1fb366a3ba6acfcb460e5b1ac8212c436bf2f */
-+ * Stub hash: 410f1b6aec0c36b559c1d5c2c92aa5216f2714e7 */
+- * Stub hash: 22d7938e2402143250c99e110b2ab06ae8270a0b */
++ * Stub hash: 140bc65b9543e5b4e1949b0f903a663578e54e82 */
  
  ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_set_time_limit, 0, 1, _IS_BOOL, 0)
  	ZEND_ARG_TYPE_INFO(0, seconds, IS_LONG, 0)
