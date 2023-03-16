@@ -58,7 +58,7 @@ jobs:
         run: |
           gh release upload ${{ github.ref_name }} \
             python-${{ steps.determineVersion.outputs.value }}.tar.gz \
-            libpython-${{ steps.determineVersion.outputs.value }}.tar.gz \
+            build-output/libpython-${{ steps.determineVersion.outputs.value }}*.tar.gz \
             build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python-${{ steps.determineVersion.outputs.value }}.wasm \
             build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm
       - name: Generate release assets digests
@@ -67,7 +67,7 @@ jobs:
         run: |
           for asset in \
               python-${{ steps.determineVersion.outputs.value }}.tar.gz \
-              libpython-${{ steps.determineVersion.outputs.value }}.tar.gz \
+              build-output/libpython-${{ steps.determineVersion.outputs.value }}*.tar.gz \
               build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python-${{ steps.determineVersion.outputs.value }}.wasm \
               build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm; \
           do
@@ -79,6 +79,6 @@ jobs:
         run: |
           gh release upload ${{ github.ref_name }} \
             python-${{ steps.determineVersion.outputs.value }}.tar.gz.sha256sum \
-            libpython-${{ steps.determineVersion.outputs.value }}.tar.gz.sha256sum \
+            build-output/libpython-${{ steps.determineVersion.outputs.value }}*.tar.gz.sha256sum \
             build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python-${{ steps.determineVersion.outputs.value }}.wasm.sha256sum \
             build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm.sha256sum

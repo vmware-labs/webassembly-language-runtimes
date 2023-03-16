@@ -93,13 +93,16 @@ else
     cp -TRv usr ${WLR_OUTPUT}/usr || exit 1
 fi
 
-logStatus "Install includes..."
-make inclinstall \
-    prefix=${WLR_OUTPUT} \
-    libdir=${WLR_OUTPUT}/lib/wasm32-wasi \
-    pkgconfigdir=${WLR_OUTPUT}/lib/wasm32-wasi/pkgconfig || exit 1
+if [[ "${WLR_BUILD_FLAVOR}" != *"aio"* ]]
+then
 
-logStatus "Create libpython3.11-aio.a"
+    logStatus "Install includes..."
+    make inclinstall \
+        prefix=${WLR_OUTPUT} \
+        libdir=${WLR_OUTPUT}/lib/wasm32-wasi \
+        pkgconfigdir=${WLR_OUTPUT}/lib/wasm32-wasi/pkgconfig || exit 1
+
+    logStatus "Create libpython3.11-aio.a"
 (${AR} -M <<EOF
 create libpython3.11-aio.a
 addlib libpython3.11.a
@@ -113,15 +116,16 @@ end
 EOF
 ) || echo exit 1
 
-mkdir -p ${WLR_OUTPUT}/lib/wasm32-wasi/ 2>/dev/null || exit 1
-cp -v libpython3.11-aio.a ${WLR_OUTPUT}/lib/wasm32-wasi/libpython3.11.a || exit 1
+    mkdir -p ${WLR_OUTPUT}/lib/wasm32-wasi/ 2>/dev/null || exit 1
+    cp -v libpython3.11-aio.a ${WLR_OUTPUT}/lib/wasm32-wasi/libpython3.11.a || exit 1
 
-logStatus "Generating pkg-config file for libpython3.11.a"
-DESCRIPTION="libpython3.11 allows embedding the CPython interpreter"
-STACK_LINKER_FLAGS="-Wl,-z,stack-size=524288 -Wl,--stack-first -Wl,--initial-memory=10485760"
+    logStatus "Generating pkg-config file for libpython3.11.a"
+    DESCRIPTION="libpython3.11 allows embedding the CPython interpreter"
+    STACK_LINKER_FLAGS="-Wl,-z,stack-size=524288 -Wl,--stack-first -Wl,--initial-memory=10485760"
 
-wlr_pkg_config_create_pc_file "libpython3.11" "${WLR_PACKAGE_VERSION}" "${DESCRIPTION}" "${STACK_LINKER_FLAGS}" || exit 1
+    wlr_pkg_config_create_pc_file "libpython3.11" "${WLR_PACKAGE_VERSION}" "${DESCRIPTION}" "${STACK_LINKER_FLAGS}" || exit 1
 
-wlr_package_lib || exit 1
+    wlr_package_lib || exit 1
+fi
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"
