@@ -1,8 +1,26 @@
 # webassembly-language-runtimes
 
-## Overview
+WebAssembly Language Runtimes (or WLR for short) offers pre-built wasm32-wasi binaries for language runtimes and static builds of common open source libraries.
 
-This repository contains build scripts and patches that are used to compile language runtimes and common open source libraries for the wasm32-wasi target.
+This repository contains the build scripts and patches that are used to do those builds, as well as examples on how to use them.
+
+## Try it out
+
+WLR is used in projects like [mod_wasm](https://github.com/vmware-labs/mod_wasm) for traditional deployments and [Wasm Workers Server](https://github.com/vmware-labs/wasm-workers-server) for the development of serverless apps. To get a glimpse of that you could:
+
+ - [5 min] Run [WordPress with php.wasm, mod_wasm and Apache](https://wasmlabs.dev/articles/running-wordpress-with-mod-wasm/). (You'll need Docker for a container with Apache).
+ - [10 min] Create and run a [Ruby worker on wws](https://workers.wasmlabs.dev/docs/languages/ruby).
+
+The released assets are also easy to use with various platforms and tools.
+
+ - [5 min] Take a look at how to [run the python-wasm Docker container](./python/examples/#running-the-docker-container). (You'll need the latest Docker Desktop with enabled containerd).
+ - [10 min] Follow the steps in Fermyon's blog post on [PHP, Spin and Fermyon cloud](https://www.fermyon.com/blog/php-spin-fermyon-cloud).
+
+If you are into porting of C-based apps to wasm32-wasi you could play with the libs.
+
+ - [10 min] Build a [C-app that uses the libuuid and zlib](./libs/examples//uuid_zlib_example/#the-app) static libraries.
+ - [1 day – 2 weeks] Port a static library. Take a look at the build scripts for [`libs/zlib`](./libs/zlib/) as an example. Pick a library you want to see ported. Try building it to wasm32-wasi. (Prior knowledge of building C apps with autotools, make, cmake, pkg-config will be an advantage).
+
 
 ## Releases
 
