@@ -93,7 +93,7 @@ else
     cp -TRv usr ${WLR_OUTPUT}/usr || exit 1
 fi
 
-if [[ "${WLR_BUILD_FLAVOR}" != *"aio"* ]]
+if [[ "${WLR_BUILD_FLAVOR}" != *"aio"* && "${WLR_BUILD_FLAVOR}" != *"wasmedge"* ]]
 then
 
     logStatus "Install includes..."
