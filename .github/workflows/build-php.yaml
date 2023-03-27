@@ -28,6 +28,11 @@ jobs:
             flavor: ""
             build-php-cli: false
             version: 8.2.0
+          - name: wasmedge-php-
+            suffix: "-wasmedge"
+            flavor: ""
+            build-php-cli: false
+            version: 8.2.0
           - name: php-
             suffix: ""
             flavor: -slim
