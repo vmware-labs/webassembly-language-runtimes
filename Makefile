@@ -6,6 +6,11 @@ include Makefile.helpers
 php/php-*:
 	make -C php $(subst php/php-,php-,$@)
 
+.PHONY: php/wasmedge-php-8.2.0
+php/wasmedge-php-8.2.0:
+	WLR_BUILD_FLAVOR=wasmedge \
+	make -C php php-8.2.0
+
 .PHONY: php/master
 php/master:
 	make -C php master

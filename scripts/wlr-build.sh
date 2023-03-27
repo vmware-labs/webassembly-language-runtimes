@@ -41,7 +41,7 @@ then
 fi
 
 function logStatus {
-    echo "$(date --iso-8601=ns) | ${WLR_ENV_NAME} | $@" | tee -a ${WLR_PROGRESS_LOG}
+    echo "$(date --iso-8601=ns) | ${WLR_ENV_NAME}${WLR_BUILD_FLAVOR:+(${WLR_BUILD_FLAVOR})} | $@" | tee -a ${WLR_PROGRESS_LOG}
 }
 
 export -f logStatus
