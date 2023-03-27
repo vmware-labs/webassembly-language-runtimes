@@ -14,4 +14,4 @@ export WLR_REPO=https://github.com/madler/zlib
 export WLR_REPO_BRANCH=v1.2.13
 export WLR_ENV_NAME=zlib/v1.2.13
 export WLR_PACKAGE_VERSION=1.2.13
-export WLR_PACKAGE_NAME=libz
+export WLR_PACKAGE_NAME=z

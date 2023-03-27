@@ -14,4 +14,4 @@ export WLR_REPO=https://github.com/sqlite/sqlite.git
 export WLR_REPO_BRANCH=version-3.39.2
 export WLR_ENV_NAME=sqlite/v3.39.2
 export WLR_PACKAGE_VERSION=3.39.2
-export WLR_PACKAGE_NAME=libsqlite
+export WLR_PACKAGE_NAME=sqlite
