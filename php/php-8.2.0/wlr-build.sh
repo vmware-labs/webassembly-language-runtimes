@@ -34,9 +34,9 @@ if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
 
     export PHP_CONFIGURE='--without-iconv --without-openssl --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --enable-mbstring --enable-gd --disable-fiber-asm --with-jpeg'
 
-    if [[ -v WLR_RUNTIME ]]
+    if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
     then
-        export PHP_CONFIGURE="--with-wasm-runtime=${WLR_RUNTIME} ${PHP_CONFIGURE}"
+        export PHP_CONFIGURE="--with-wasm-runtime=wasmedge ${PHP_CONFIGURE}"
     fi
 
     logStatus "Configuring build with '${PHP_CONFIGURE}'... "
@@ -46,7 +46,7 @@ else
 fi
 
 export MAKE_TARGETS='cgi'
-if [[ "${WLR_RUNTIME}" == "wasmedge" ]]
+if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
 then
     export MAKE_TARGETS="${MAKE_TARGETS} cli"
 fi
@@ -66,13 +66,17 @@ unset WLR_SKIP_WASM_OPT
 logStatus "Preparing artifacts..."
 mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
-logStatus "Running wasm-opt with the asyncify pass on php-cgi..."
-wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php-cgi${WLR_RUNTIME:+-$WLR_RUNTIME}.wasm sapi/cgi/php-cgi || exit 1
+# WASMOPD_ASYNCIFY_ARGS="--asyncify --pass-arg=asyncify-ignore-imports"
 
-if [[ "${WLR_RUNTIME}" == "wasmedge" ]]
+PHP_CGI_TARGET="${WLR_OUTPUT}/bin/php-cgi${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm"
+logStatus "Ru#nning wasm-opt with '${WASMOPD_ASYNCIFY_ARGS}' on php-cgi..."
+wasm-opt -O2 ${WASMOPD_ASYNCIFY_ARGS} -o "${PHP_CGI_TARGET}" sapi/cgi/php-cgi || exit 1
+
+if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
 then
-    logStatus "Running wasm-opt with the asyncify pass on php..."
-    wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php${WLR_RUNTIME:+-$WLR_RUNTIME}.wasm sapi/cli/php || exit 1
+    PHP_CLI_TARGET="${WLR_OUTPUT}/bin/php${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm"
+    logStatus "Running wasm-opt with '${WASMOPD_ASYNCIFY_ARGS}' for ${PHP_CLI_TARGET}..."
+    wasm-opt -O2 ${WASMOPD_ASYNCIFY_ARGS} -o ${PHP_CLI_TARGET} sapi/cli/php || exit 1
 fi
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

@@ -15,13 +15,15 @@ set_available_runtime() {
     return 1
 }
 
-if [[ -v WLR_RUNTIME ]]
+if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
 then
-    set_available_runtime $WLR_RUNTIME
+    set_available_runtime wasmedge || \
+    exit 1
 else
     # Checking first for wasmtime as the reference implementation
     set_available_runtime wasmtime || \
-    set_available_runtime wasmedge
+    set_available_runtime wasmedge || \
+    exit 1
 fi
 
 if ! [[ -v WLR_TEST_RUNTIME ]]

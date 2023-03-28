@@ -12,14 +12,19 @@ then
     exit 1
 fi
 
-if [ -f "${WLR_OUTPUT}/bin/php${WLR_RUNTIME:+-$WLR_RUNTIME}" ]
+if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
 then
-    export WLR_TESTED_MODULE="${WLR_OUTPUT}/bin/php${WLR_RUNTIME:+-$WLR_RUNTIME}"
-else
-    export WLR_TESTED_MODULE="${WLR_OUTPUT}/bin/php-cgi${WLR_RUNTIME:+-$WLR_RUNTIME}"
+    WLR_BINARY_WUFFIX=-wasmedge
 fi
 
-if ! [ -x "${WLR_TESTED_MODULE}" ]
+if [ -f "${WLR_OUTPUT}/bin/php${WLR_BINARY_WUFFIX}" ]
+then
+    export WLR_TESTED_MODULE="${WLR_OUTPUT}/bin/php${WLR_BINARY_WUFFIX}.wasm"
+else
+    export WLR_TESTED_MODULE="${WLR_OUTPUT}/bin/php-cgi${WLR_BINARY_WUFFIX}.wasm"
+fi
+
+if ! [ -f "${WLR_TESTED_MODULE}" ]
 then
     echo "WASM module not found at '${WLR_TESTED_MODULE}'"
     exit 1
