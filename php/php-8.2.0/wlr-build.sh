@@ -69,7 +69,7 @@ mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 # WASMOPD_ASYNCIFY_ARGS="--asyncify --pass-arg=asyncify-ignore-imports"
 
 PHP_CGI_TARGET="${WLR_OUTPUT}/bin/php-cgi${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm"
-logStatus "Ru#nning wasm-opt with '${WASMOPD_ASYNCIFY_ARGS}' on php-cgi..."
+logStatus "Running wasm-opt with '${WASMOPD_ASYNCIFY_ARGS}' on php-cgi..."
 wasm-opt -O2 ${WASMOPD_ASYNCIFY_ARGS} -o "${PHP_CGI_TARGET}" sapi/cgi/php-cgi || exit 1
 
 if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
