@@ -1,0 +1,40 @@
+From 13087ac2531143092f5218e86c23b36a85a34c1d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=3D=3FUTF-8=3Fq=3FJesu=3DCC=3D81s=3D20Gonza=3DCC=3D81lez?=
+ =?UTF-8?q?=3F=3D?= <jesusgm@vmware.com>
+Date: Wed, 29 Mar 2023 14:53:21 +0300
+Subject: [PATCH] Allow installation of headers and pkg-config files with the
+ library
+
+
+diff --git a/Makefile.in b/Makefile.in
+index 2a71bd2..c9b0363 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -1450,19 +1450,19 @@ threadtest5: sqlite3.c $(TOP)/test/threadtest5.c
+ 
+ # Standard install and cleanup targets
+ #
+-lib_install:	libsqlite3.la
++lib_install:	libsqlite3.la sqlite3.h sqlite3.pc
+ 	$(INSTALL) -d $(DESTDIR)$(libdir)
+ 	$(LTINSTALL) libsqlite3.la $(DESTDIR)$(libdir)
+-
+-install:	sqlite3$(TEXE) lib_install sqlite3.h sqlite3.pc ${HAVE_TCL:1=tcl_install}
+-	$(INSTALL) -d $(DESTDIR)$(bindir)
+-	$(LTINSTALL) sqlite3$(TEXE) $(DESTDIR)$(bindir)
+ 	$(INSTALL) -d $(DESTDIR)$(includedir)
+ 	$(INSTALL) -m 0644 sqlite3.h $(DESTDIR)$(includedir)
+ 	$(INSTALL) -m 0644 $(TOP)/src/sqlite3ext.h $(DESTDIR)$(includedir)
+ 	$(INSTALL) -d $(DESTDIR)$(pkgconfigdir)
+ 	$(INSTALL) -m 0644 sqlite3.pc $(DESTDIR)$(pkgconfigdir)
+ 
++install:	sqlite3$(TEXE) lib_install ${HAVE_TCL:1=tcl_install}
++	$(INSTALL) -d $(DESTDIR)$(bindir)
++	$(LTINSTALL) sqlite3$(TEXE) $(DESTDIR)$(bindir)
++
+ pkgIndex.tcl:
+ 	echo 'package ifneeded sqlite3 $(RELEASE) [list load [file join $$dir libtclsqlite3[info sharedlibextension]] sqlite3]' > $@
+ tcl_install:	lib_install libtclsqlite3.la pkgIndex.tcl
+-- 
+2.38.1
+
