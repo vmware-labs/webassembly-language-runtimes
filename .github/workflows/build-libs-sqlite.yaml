@@ -19,8 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - version: 3.39.2
+        version: [3.39.2, 3.41.2]
     uses: ./.github/workflows/reusable-build-lib.yaml
     with:
       target: sqlite/v${{ matrix.version }}
