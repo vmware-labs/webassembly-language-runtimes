@@ -16,8 +16,10 @@ export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-getpid -lwasi-emu
 ########## Setup the flags for php #############
 export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DPNG_USER_CONFIG -DWASM_WASI'
 
+export LDFLAGS_WARNINGS='-Wno-unused-command-line-argument -Werror=implicit-function-declaration'
+
 # We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
-export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES}"
+export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_WARNINGS}"
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_DEPENDENCIES} ${CFLAGS_PHP} ${LDFLAGS}"
 
 logStatus "CFLAGS="${CFLAGS}
@@ -36,6 +38,7 @@ if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
 
     if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
     then
+        export PHP_CONFIGURE="${PHP_CONFIGURE} --enable-mysqlnd --with-pdo-mysql"
         export PHP_CONFIGURE="--with-wasm-runtime=wasmedge ${PHP_CONFIGURE}"
     fi
 
