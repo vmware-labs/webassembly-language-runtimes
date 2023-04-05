@@ -7,3 +7,4 @@ target
 # Except this file
 !.gitignore
 .wlr-local-conf.sh
+wlr-tmp
