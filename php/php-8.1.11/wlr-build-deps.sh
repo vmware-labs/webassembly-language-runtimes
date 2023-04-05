@@ -7,5 +7,5 @@ fi
 
 source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_dependencies.sh
 
-wlr_dependencies_add "SQLite" "libs/sqlite/version-3.39.2" "lib/wasm32-wasi/libsqlite3.a" \
-    "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fsqlite%2F3.39.2%2B20230310-c46e363/libsqlite-3.39.2-wasi-sdk-19.0.tar.gz"
+wlr_dependencies_add "SQLite" "libs/sqlite/version-3.41.2" "lib/wasm32-wasi/libsqlite3.a" \
+    "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fsqlite%2F3.41.2%2B20230329-43f9aea/libsqlite-3.41.2-wasi-sdk-19.0.tar.gz"
