@@ -7,7 +7,7 @@ then
     exit 1
 fi
 
-export CFLAGS_CONFIG="-O2"
+export CFLAGS_CONFIG="-O0"
 
 ########## Setup the wasi related flags #############
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
@@ -38,7 +38,7 @@ if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
 
     if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
     then
-        export PHP_CONFIGURE="${PHP_CONFIGURE} --enable-mysqlnd --with-pdo-mysql"
+        export PHP_CONFIGURE="${PHP_CONFIGURE} --enable-mysqlnd --with-pdo-mysql --with-mysqli"
         export PHP_CONFIGURE="--with-wasm-runtime=wasmedge ${PHP_CONFIGURE}"
     fi
 
@@ -70,6 +70,7 @@ logStatus "Preparing artifacts..."
 mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
 # WASMOPD_ASYNCIFY_ARGS="--asyncify --pass-arg=asyncify-ignore-imports"
+WASMOPD_ASYNCIFY_ARGS=-O3
 
 PHP_CGI_TARGET="${WLR_OUTPUT}/bin/php-cgi${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm"
 logStatus "Running wasm-opt with '${WASMOPD_ASYNCIFY_ARGS}' on php-cgi..."
