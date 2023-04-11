@@ -83,4 +83,4 @@ fi
 
 demo_step Test mySQL with PHP.
 sleep 1
-wasmedge --dir /test:$(pwd) --env TEST_USER=${TEST_USER} --env TEST_PASSWORD=${TEST_PASSWORD} ../../../build-output/php/php-8.2.0-wasmedge/bin/php-wasmedge.wasm -f /test/test_mysql.php
+wasmedge --dir /test:$(pwd) --env TEST_USER=${TEST_USER} --env TEST_PASSWORD=${TEST_PASSWORD} ../../../build-output/php/php-8.2.0-wasmedge/bin/php-wasmedge.wasm -f /test/test_mysql_pdo.php
