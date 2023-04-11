@@ -1,0 +1,27 @@
+From c681c872176a665656fa8d982bc17a66edbf09b4 Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Wed, 5 Apr 2023 11:55:31 +0300
+Subject: [PATCH 14/15] fix: implicit-function-declaration in syslog
+
+
+ 100.0% main/
+diff --git a/main/php_syslog.c b/main/php_syslog.c
+index 68c7aac7..a1d6a23c 100644
+--- a/main/php_syslog.c
++++ b/main/php_syslog.c
+@@ -32,6 +32,12 @@
+ #define syslog std_syslog
+ #endif
+ 
++#ifdef __wasi__
++#define syslog(...)
++#define openlog(...)
++#define closelog()
++#endif
++
+ PHPAPI void php_syslog_str(int priority, const zend_string* message)
+ {
+ 	smart_string sbuf = {0};
+-- 
+2.38.1
+

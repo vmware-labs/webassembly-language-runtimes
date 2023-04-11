@@ -7,7 +7,8 @@ then
     exit 1
 fi
 
-export CFLAGS_CONFIG="-O2"
+# Optimization is disabled during build as we might do some instrumentation at the end
+export CFLAGS_CONFIG="-O0"
 
 ########## Setup the wasi related flags #############
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
@@ -16,8 +17,10 @@ export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-getpid -lwasi-emu
 ########## Setup the flags for php #############
 export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DPNG_USER_CONFIG -DWASM_WASI'
 
+export LDFLAGS_WARNINGS='-Wno-unused-command-line-argument -Werror=implicit-function-declaration'
+
 # We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
-export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES}"
+export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_WARNINGS}"
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_DEPENDENCIES} ${CFLAGS_PHP} ${LDFLAGS}"
 
 logStatus "CFLAGS="${CFLAGS}
@@ -36,6 +39,7 @@ if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
 
     if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
     then
+        export PHP_CONFIGURE="${PHP_CONFIGURE} --enable-mysqlnd --with-pdo-mysql --with-mysqli"
         export PHP_CONFIGURE="--with-wasm-runtime=wasmedge ${PHP_CONFIGURE}"
     fi
 
@@ -66,17 +70,18 @@ unset WLR_SKIP_WASM_OPT
 logStatus "Preparing artifacts..."
 mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
-# WASMOPD_ASYNCIFY_ARGS="--asyncify --pass-arg=asyncify-ignore-imports"
+WASM_OPT_ARGS=-O3
+# WASM_OPT_ARGS="${WASM_OPT_ARGS} --asyncify --pass-arg=asyncify-ignore-imports"
 
 PHP_CGI_TARGET="${WLR_OUTPUT}/bin/php-cgi${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm"
-logStatus "Running wasm-opt with '${WASMOPD_ASYNCIFY_ARGS}' on php-cgi..."
-wasm-opt -O2 ${WASMOPD_ASYNCIFY_ARGS} -o "${PHP_CGI_TARGET}" sapi/cgi/php-cgi || exit 1
+logStatus "Running wasm-opt with '${WASM_OPT_ARGS}' on php-cgi..."
+wasm-opt ${WASM_OPT_ARGS} -o "${PHP_CGI_TARGET}" sapi/cgi/php-cgi || exit 1
 
 if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
 then
     PHP_CLI_TARGET="${WLR_OUTPUT}/bin/php${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm"
-    logStatus "Running wasm-opt with '${WASMOPD_ASYNCIFY_ARGS}' for ${PHP_CLI_TARGET}..."
-    wasm-opt -O2 ${WASMOPD_ASYNCIFY_ARGS} -o ${PHP_CLI_TARGET} sapi/cli/php || exit 1
+    logStatus "Running wasm-opt with '${WASM_OPT_ARGS}' for ${PHP_CLI_TARGET}..."
+    wasm-opt ${WASM_OPT_ARGS} -o ${PHP_CLI_TARGET} sapi/cli/php || exit 1
 fi
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

@@ -1,0 +1,42 @@
+From bc71c214b3296801741993748818ac112c424fe6 Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <Wasm Labs Team>
+Date: Fri, 7 Apr 2023 08:51:02 +0300
+Subject: [PATCH 16/16] fix: implicit-function-declaration for bind when not on
+ a wasmedge build
+
+
+ 100.0% main/
+diff --git a/main/network.c b/main/network.c
+index bb39f27e..3c7b9be3 100644
+--- a/main/network.c
++++ b/main/network.c
+@@ -836,6 +836,9 @@ php_socket_t php_network_connect_socket_to_host(const char *host, unsigned short
+ 		int *error_code, const char *bindto, unsigned short bindport, long sockopts
+ 		)
+ {
++#if defined(__wasi__) && !defined(WASM_RUNTIME_WASMEDGE)
++	return -1;
++#else
+ 	int num_addrs, n, fatal = 0;
+ 	php_socket_t sock;
+ 	struct sockaddr **sal, **psal, *sa;
+@@ -940,7 +943,7 @@ php_socket_t php_network_connect_socket_to_host(const char *host, unsigned short
+ 				int val = 1;
+ #ifndef __wasi__
+ 				(void) setsockopt(sock, SOL_IP, IP_BIND_ADDRESS_NO_PORT, &val, sizeof(val));
+-#endif // !defined(__wasi__)o
++#endif // __wasi__
+ 			}
+ #endif
+ 			if (local_address_len == 0) {
+@@ -1021,6 +1024,7 @@ php_socket_t php_network_connect_socket_to_host(const char *host, unsigned short
+ 	php_network_freeaddresses(psal);
+ 
+ 	return sock;
++#endif // __wasi__
+ }
+ /* }}} */
+ 
+-- 
+2.38.1
+

@@ -1,0 +1,132 @@
+From 1f8448de929007f2ee404ceb2dd9b9fe9dc9d32f Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Wed, 5 Apr 2023 11:47:39 +0300
+Subject: [PATCH 13/15] chore: Fixes, logs, getnameinfo in wasi sock sdk
+
+
+ 100.0% wasmedge_stubs/
+diff --git a/wasmedge_stubs/netdb.h b/wasmedge_stubs/netdb.h
+index c1136150..9faf3ced 100644
+--- a/wasmedge_stubs/netdb.h
++++ b/wasmedge_stubs/netdb.h
+@@ -1,6 +1,8 @@
+ #pragma once
+ // Based on https://github.com/hangedfish/wasmedge_wasi_socket_c
+ 
++#include <netinet/in.h>
++
+ struct addrinfo {
+ 	int ai_flags;
+ 	int ai_family;
+@@ -51,6 +53,12 @@ struct addrinfo {
+ #define NI_MAXHOST 255
+ #define NI_MAXSERV 32
+ 
++
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ struct servent {
+ 	char *s_name;
+ 	char **s_aliases;
+@@ -58,15 +66,20 @@ struct servent {
+ 	char *s_proto;
+ };
+ 
+-#ifdef __cplusplus
+-extern "C" {
+-#endif
++struct hostent {
++	char *h_name;
++	char **h_aliases;
++	int h_addrtype;
++	int h_length;
++	char **h_addr_list;
++};
++#define h_addr h_addr_list[0]
+ 
+ struct servent *getservbyname (const char *, const char *);
+ 
+ int getaddrinfo (const char *__restrict, const char *__restrict, const struct addrinfo *__restrict, struct addrinfo **__restrict);
+ void freeaddrinfo (struct addrinfo *);
+-// int getnameinfo (const struct sockaddr *__restrict, socklen_t, char *__restrict, socklen_t, char *__restrict, socklen_t, int);
++int getnameinfo (const struct sockaddr *__restrict addr, socklen_t addrlen, char *__restrict host, socklen_t hostlen, char *__restrict serv, socklen_t servlen, int flags);
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/wasmedge_stubs/wasi_socket_ext.c b/wasmedge_stubs/wasi_socket_ext.c
+index 5a2a3d26..acbebba8 100644
+--- a/wasmedge_stubs/wasi_socket_ext.c
++++ b/wasmedge_stubs/wasi_socket_ext.c
+@@ -180,7 +180,7 @@ int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_setsockopt(
+     uint32_t fd, int32_t level, int32_t name, int32_t *flag,
+     uint32_t *flag_size)
+     __attribute__((__import_module__("wasi_snapshot_preview1"),
+-                   __import_name__("sock_getsockopt")));
++                   __import_name__("sock_setsockopt")));
+ 
+ int socket(int domain, int type, int protocol)
+ {
+@@ -208,7 +208,7 @@ int bind(int fd, const struct sockaddr *addr, socklen_t len)
+ 
+   wasi_address_t wasi_addr;
+   memset(&wasi_addr, 0, sizeof(wasi_address_t));
+-  uint32_t port;
++  uint32_t port = 0;
+   if (AF_INET == addr->sa_family) {
+     struct sockaddr_in *sin = (struct sockaddr_in *)addr;
+     wasi_addr.buf = (uint8_t *)&sin->sin_addr;
+@@ -219,6 +219,9 @@ int bind(int fd, const struct sockaddr *addr, socklen_t len)
+     wasi_addr.buf = (uint8_t *)&sin->sin6_addr;
+     wasi_addr.size = 16;
+     port = sin->sin6_port;
++  } else {
++    errno = EAFNOSUPPORT;
++    return -1;
+   }
+ 
+   WSEDEBUG("WWSock| bind[%d]: __imported_wasmedge_wasi_snapshot_preview1_sock_bind\n", __LINE__);
+@@ -235,7 +238,7 @@ int bind(int fd, const struct sockaddr *addr, socklen_t len)
+ 
+ int connect(int fd, const struct sockaddr *addr, socklen_t len) {
+   WSEDEBUG("WWSock| connect[%d]: fd=%d, addr=%d, port=%d \n", __LINE__,
+-          fd, ((struct sockaddr_in *)addr)->sin_addr.s_addr, ((struct sockaddr_in *)addr)->sin_port);
++           fd, ((struct sockaddr_in *)addr)->sin_addr.s_addr, ((struct sockaddr_in *)addr)->sin_port);
+   wasi_address_t wasi_addr;
+   memset(&wasi_addr, 0, sizeof(wasi_address_t));
+   uint32_t port;
+@@ -249,11 +252,15 @@ int connect(int fd, const struct sockaddr *addr, socklen_t len) {
+     wasi_addr.buf = (uint8_t *)&sin->sin6_addr;
+     wasi_addr.size = 16;
+     port = ntohs(sin->sin6_port);
++  } else {
++    errno = EAFNOSUPPORT;
++    return -1;
+   }
+   int res = __imported_wasmedge_wasi_snapshot_preview1_sock_connect(
+       fd, &wasi_addr, port);
+   if (res != 0) {
+     errno = res;
++    WSEDEBUG("WWSock| connect[%d]: fd=%d failed: wasi_error=%d, errno=%d \n", __LINE__, fd, res, errno);
+     return -1;
+   }
+   return res;
+@@ -407,4 +414,11 @@ int getaddrinfo(const char *restrict host, const char *restrict serv,
+ void freeaddrinfo(struct addrinfo *p) {
+   WSEDEBUG("WWSock| freeaddrinfo[%d]: \n", __LINE__);
+   free(p);
+-}
+\ No newline at end of file
++}
++
++int getnameinfo(const struct sockaddr *__restrict addr, socklen_t addrlen, char *__restrict host, socklen_t hostlen, char *__restrict serv, socklen_t servlen, int flags)
++{
++  WSEDEBUG("WWSock| getnameinfo[%d]: \n", __LINE__);
++  // When lookup fails, software should use the IP address string as hostname
++  return EAI_FAIL;
++}
+-- 
+2.38.1
+

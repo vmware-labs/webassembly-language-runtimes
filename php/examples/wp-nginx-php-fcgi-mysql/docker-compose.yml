@@ -1,0 +1,39 @@
+services:
+  proxy-nginx:
+    container_name: wnpfm-proxy-nginx
+    image: nginx:alpine
+    ports:
+      - ${WNPFM_HOST_PORT}:80
+    volumes:
+      # - /home/alexandrov/work/experiments/2023-Q2/04-06-wp-host-php/wordpress:/var/www/wordpress
+      - ${WNPFM_TEST_DIR}/wordpress:/var/www/wordpress
+      - ${WNPFM_TEST_DIR}/logs/nginx:/var/log/nginx
+      - ./proxy-nginx/default.conf.template:/etc/nginx/templates/default.conf.template
+    environment:
+      - WNPFM_PHP_FCGI_HOST=server-php-fcgi-wp
+      - WNPFM_PHP_FCGI_PORT=${WNPFM_PHP_FCGI_PORT}
+    depends_on:
+      - server-php-fcgi-wp
+
+  server-php-fcgi-wp:
+    container_name: wnpfm-php-cgi-wasmedge
+    image: wnpfm-php-cgi-wasmedge
+    platform: wasi/wasm
+    build:
+      context: php-cgi-wasmedge
+    ports:
+      - ${WNPFM_PHP_FCGI_PORT}:9000
+    volumes:
+      - ${WNPFM_TEST_DIR}/wordpress:/var/www/wordpress
+    restart: unless-stopped
+    runtime: io.containerd.wasmedge.v1
+
+  db-mysql:
+    container_name: ${WNPFM_DB_CONTAINER_NAME}
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${WNPFM_DB_ROOT_PASSWORD}
+    ports:
+      - 3306:3306
+    volumes:
+      - ${WNPFM_TEST_DIR}/db:/var/lib/mysql
