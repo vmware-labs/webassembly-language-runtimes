@@ -7,6 +7,7 @@ then
     exit 1
 fi
 
+# Optimization is disabled during build as we might do some instrumentation at the end
 export CFLAGS_CONFIG="-O0"
 
 ########## Setup the wasi related flags #############
@@ -69,18 +70,18 @@ unset WLR_SKIP_WASM_OPT
 logStatus "Preparing artifacts..."
 mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
-# WASMOPD_ASYNCIFY_ARGS="--asyncify --pass-arg=asyncify-ignore-imports"
-WASMOPD_ASYNCIFY_ARGS=-O3
+WASM_OPT_ARGS=-O3
+# WASM_OPT_ARGS="${WASM_OPT_ARGS} --asyncify --pass-arg=asyncify-ignore-imports"
 
 PHP_CGI_TARGET="${WLR_OUTPUT}/bin/php-cgi${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm"
-logStatus "Running wasm-opt with '${WASMOPD_ASYNCIFY_ARGS}' on php-cgi..."
-wasm-opt -O2 ${WASMOPD_ASYNCIFY_ARGS} -o "${PHP_CGI_TARGET}" sapi/cgi/php-cgi || exit 1
+logStatus "Running wasm-opt with '${WASM_OPT_ARGS}' on php-cgi..."
+wasm-opt ${WASM_OPT_ARGS} -o "${PHP_CGI_TARGET}" sapi/cgi/php-cgi || exit 1
 
 if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
 then
     PHP_CLI_TARGET="${WLR_OUTPUT}/bin/php${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm"
-    logStatus "Running wasm-opt with '${WASMOPD_ASYNCIFY_ARGS}' for ${PHP_CLI_TARGET}..."
-    wasm-opt -O2 ${WASMOPD_ASYNCIFY_ARGS} -o ${PHP_CLI_TARGET} sapi/cli/php || exit 1
+    logStatus "Running wasm-opt with '${WASM_OPT_ARGS}' for ${PHP_CLI_TARGET}..."
+    wasm-opt ${WASM_OPT_ARGS} -o ${PHP_CLI_TARGET} sapi/cli/php || exit 1
 fi
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"
