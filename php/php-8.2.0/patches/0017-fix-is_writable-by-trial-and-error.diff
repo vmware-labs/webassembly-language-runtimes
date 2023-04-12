@@ -52,7 +52,7 @@ index f72825e1..5aa14768 100644
 +	return 1;
 +}
 +
-+#endif /* WASM_WASI */
++#endif /* __wasi__ */
 +
  static int php_plain_files_url_stater(php_stream_wrapper *wrapper, const char *url, int flags, php_stream_statbuf *ssb, php_stream_context *context)
  {
