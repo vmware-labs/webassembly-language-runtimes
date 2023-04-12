@@ -1,0 +1,39 @@
+From d29ed6b1e87e18e437829bee97c6aa93f4999c3f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jesu=CC=81s=20Gonza=CC=81lez?= <jesusgm@vmware.com>
+Date: Wed, 12 Apr 2023 18:01:06 +0200
+Subject: [PATCH] fix: Patch for `is_readable()` and `is_writable()` to bypass
+ WASI preview1 limitations with stating files
+
+---
+ ext/standard/filestat.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/ext/standard/filestat.c b/ext/standard/filestat.c
+index 2fdb9d76..6eddeb15 100644
+--- a/ext/standard/filestat.c
++++ b/ext/standard/filestat.c
+@@ -950,12 +950,21 @@ PHPAPI void php_stat(zend_string *filename, int type, zval *return_value)
+ 		}
+ 		php_error_docref(NULL, E_NOTICE, "Unknown file type (%d)", ssb.sb.st_mode&S_IFMT);
+ 		RETURN_STRING("unknown");
++#ifndef __wasi__
+ 	case FS_IS_W:
+ 		RETURN_BOOL((ssb.sb.st_mode & wmask) != 0);
+ 	case FS_IS_R:
+ 		RETURN_BOOL((ssb.sb.st_mode&rmask)!=0);
+ 	case FS_IS_X:
+ 		RETURN_BOOL((ssb.sb.st_mode&xmask)!=0);
++#else
++	case FS_IS_W:
++		RETURN_TRUE;
++	case FS_IS_R:
++		RETURN_TRUE;
++	case FS_IS_X:
++		RETURN_TRUE;
++#endif /* __wasi__ */
+ 	case FS_IS_FILE:
+ 		RETURN_BOOL(S_ISREG(ssb.sb.st_mode));
+ 	case FS_IS_DIR:
+-- 
+2.39.1
+
