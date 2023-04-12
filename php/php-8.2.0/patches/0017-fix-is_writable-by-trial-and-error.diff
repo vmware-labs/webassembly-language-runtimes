@@ -1,0 +1,104 @@
+From dafe004599782efe80832782b2908b06a40eb9c2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jesu=CC=81s=20Gonza=CC=81lez?= <jesusgm@vmware.com>
+Date: Wed, 12 Apr 2023 13:35:19 +0200
+Subject: [PATCH] fix: Emulated implementations for `is_readable()` and
+ `is_writable()` by trial and error
+
+---
+ main/streams/plain_wrapper.c | 72 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 72 insertions(+)
+
+diff --git a/main/streams/plain_wrapper.c b/main/streams/plain_wrapper.c
+index f72825e1..5aa14768 100644
+--- a/main/streams/plain_wrapper.c
++++ b/main/streams/plain_wrapper.c
+@@ -1214,6 +1214,44 @@ static php_stream *php_plain_files_stream_opener(php_stream_wrapper *wrapper, co
+ 	return php_stream_fopen_rel(path, mode, opened_path, options);
+ }
+ 
++#ifdef WASM_WASI
++int wasi_dir_is_readable(const char* dir)
++{
++	DIR* dd = opendir(dir);
++	if (dd == NULL)
++		return 0;
++	
++	closedir(dd);
++	return 1;
++}
++
++int wasi_dir_is_writable(const char* dir)
++{
++	char path[1024];
++	char test_file[32] = "PHP_WASM_WASI_WRITABLE_TESTING";
++
++	snprintf(path, sizeof(path)-1, "%s/%s", dir, test_file);
++	FILE* fd = fopen(path, "w");
++	if (fd == NULL) 
++		return 0;
++
++	fclose(fd);
++	remove(path);
++	return 1;
++}
++
++int wasi_file_open_check(const char* filename, const char* mode)
++{
++	FILE* fd = fopen(filename, mode);
++	if (fd == NULL) 
++		return 0;
++
++	fclose(fd);
++	return 1;
++}
++
++#endif /* WASM_WASI */
++
+ static int php_plain_files_url_stater(php_stream_wrapper *wrapper, const char *url, int flags, php_stream_statbuf *ssb, php_stream_context *context)
+ {
+ 	if (!(flags & PHP_STREAM_URL_STAT_IGNORE_OPEN_BASEDIR)) {
+@@ -1237,7 +1275,41 @@ static int php_plain_files_url_stater(php_stream_wrapper *wrapper, const char *u
+ 	} else
+ # endif
+ #endif
++
++#ifndef WASM_WASI
+ 		return VCWD_STAT(url, &ssb->sb);
++#else
++	{
++		int result = VCWD_STAT(url, &ssb->sb);
++
++		/* enrich st_mode with trial and error */
++		if ( S_ISDIR(ssb->sb.st_mode) ) {
++			if ( wasi_dir_is_readable(url) == 1 ) {
++				ssb->sb.st_mode |= S_IRUSR;
++				ssb->sb.st_mode |= S_IRGRP;
++				ssb->sb.st_mode |= S_IROTH;
++			}
++			if ( wasi_dir_is_writable(url) == 1 ) {
++				ssb->sb.st_mode |= S_IWUSR;
++				ssb->sb.st_mode |= S_IWGRP;
++				ssb->sb.st_mode |= S_IWOTH;
++			}
++		} else if ( S_ISREG(ssb->sb.st_mode) ) {
++			if ( wasi_file_open_check(url, "r") == 1 ) {
++				ssb->sb.st_mode |= S_IRUSR;
++				ssb->sb.st_mode |= S_IRGRP;
++				ssb->sb.st_mode |= S_IROTH;
++			}
++			if ( wasi_file_open_check(url, "a") == 1 ) {
++				ssb->sb.st_mode |= S_IWUSR;
++				ssb->sb.st_mode |= S_IWGRP;
++				ssb->sb.st_mode |= S_IWOTH;
++			}
++		}
++
++		return result;
++	}
++#endif /* WASM_WASI */
+ }
+ 
+ static int php_plain_files_unlink(php_stream_wrapper *wrapper, const char *url, int options, php_stream_context *context)
+-- 
+2.39.1
+
