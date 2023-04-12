@@ -62,7 +62,7 @@ index f72825e1..5aa14768 100644
  # endif
  #endif
 +
-+#ifndef WASM_WASI
++#ifndef __wasi__
  		return VCWD_STAT(url, &ssb->sb);
 +#else
 +	{
