@@ -16,7 +16,7 @@ index f72825e1..5aa14768 100644
  	return php_stream_fopen_rel(path, mode, opened_path, options);
  }
  
-+#ifdef WASM_WASI
++#ifdef __wasi__
 +int wasi_dir_is_readable(const char* dir)
 +{
 +	DIR* dd = opendir(dir);
