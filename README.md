@@ -28,7 +28,7 @@ Here is a reference to the latest releases of all built projects.
 
 | Language runtime          | Latest release            |
 |---                        |---                        |
-| [php](./php/)             | [8.2.0](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/php%2F8.2.0%2B20230217-0ce5fde)             |
+| [php](./php/)             | [8.2.0](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/php%2F8.2.0%2B20230418-d75a618)             |
 | [python](./python/)       | [3.11.1](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/python%2F3.11.1%2B20230217-15dfbed)        |
 | [ruby](./ruby/)           | [3.2.0](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/ruby%2F3.2.0%2B20230215-1349da9)            |
 
@@ -42,7 +42,7 @@ Here is a reference to the latest releases of all built projects.
 | [libs/libuuid](./libs/libuuid)            | [1.0.3](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Flibuuid%2F1.0.3%2B20230310-c46e363)  |
 | [libs/libxml2](./libs/libxml2)            | [2.10.3](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Flibxml2%2F2.10.3%2B20230310-c46e363)   |
 | [libs/oniguruma](./libs/oniguruma)        | [6.9.8](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Foniguruma%2F6.9.8%2B20230310-c46e363)   |
-| [libs/sqlite](./libs/sqlite)              | [3.39.2](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Fsqlite%2F3.39.2%2B20230310-c46e363)  |
+| [libs/sqlite](./libs/sqlite)              | [3.41.2](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Fsqlite%2F3.41.2%2B20230329-43f9aea)  |
 | [libs/zlib](./libs/zlib)                  | [1.2.13](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/libs%2Fzlib%2F1.2.13%2B20230310-c46e363)   |
 
 
