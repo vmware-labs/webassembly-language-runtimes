@@ -7,7 +7,14 @@ A simple example that shows how one can do an end-to-end deployment of WordPress
  - You would need a Docker Desktop installation with enabled containerd and Wasm support.
  - The orchestration is done in a `bash` script.
 
-# [~3 min] How to run
+# [~5 min ] How to run
+
+Notes:
+
+ - Re-running takes ~1 min after the first run.
+ - Each run cleans up all previous data.
+
+Steps:
 
 1. Checkout the repository. Then `cd` to this folder.
 
