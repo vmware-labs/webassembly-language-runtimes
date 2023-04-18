@@ -32,7 +32,7 @@ jobs:
           - name: wasmedge-php-
             suffix: "-wasmedge"
             flavor: ""
-            build-php-cli: false
+            build-php-cli: true
             version: 8.2.0
           - name: php-
             suffix: ""
@@ -55,7 +55,7 @@ jobs:
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
         run: make php/${{ matrix.name }}${{ matrix.version }}${{ matrix.flavor }}
-      - name: Rename release artifacts
+      - name: Rename CGI release artifacts
         # Only run for the PHP version specified in the git tag.
         #
         # This if could be moved to the parent `job` section when it's
@@ -64,7 +64,7 @@ jobs:
         shell: bash
         run: |
           sudo mv build-output/php/php-${{ matrix.version }}${{ matrix.flavor }}${{ matrix.suffix }}/bin/php-cgi{${{ matrix.suffix }},-${{ matrix.version }}${{ matrix.suffix }}${{ matrix.flavor }}}.wasm
-      - name: Rename release artifacts
+      - name: Rename CLI release artifacts
         # Only run for the PHP version specified in the git tag.
         #
         # This if could be moved to the parent `job` section when it's
