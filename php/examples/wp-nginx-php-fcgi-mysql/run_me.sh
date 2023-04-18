@@ -101,7 +101,7 @@ demo_step "Setup Wordpress"
   sed -i "s/^.*DB_HOST.*$/define('DB_HOST', '${WNPFM_HOST_IP}');/" wp-config.php
 )
 
-curl --data-urlencode "weblog_title=WasmLabs on PHP FCGI with MySQL" \
+curl --data-urlencode "weblog_title=WasmLabs: WordPress on PHP FCGI with MySQL" \
      --data-urlencode "user_name=${WNPFM_WP_ADMIN}" \
      --data-urlencode "admin_password=${WNPFM_WP_ADMIN_PASSWORD}" \
      --data-urlencode "admin_password2=${WNPFM_WP_ADMIN_PASSWORD}" \

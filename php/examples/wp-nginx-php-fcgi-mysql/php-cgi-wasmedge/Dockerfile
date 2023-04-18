@@ -13,7 +13,7 @@ RUN mkdir /opt/work
 WORKDIR /opt/work
 
 # Download php-cgi-wasmedge.wasm
-RUN curl -L -o php-cgi-8.2.0-wasmedge.wasm https://github.com/assambar/webassembly-language-runtimes/releases/download/php%2F8.2.0%2B20230407-72fdc35/php-cgi-8.2.0-wasmedge.wasm
+RUN curl -L -o php-cgi-8.2.0-wasmedge.wasm https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/php%2F8.2.0%2B20230418-d75a618/php-cgi-8.2.0-wasmedge.wasm
 
 # Install wasmedgec
 RUN curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash

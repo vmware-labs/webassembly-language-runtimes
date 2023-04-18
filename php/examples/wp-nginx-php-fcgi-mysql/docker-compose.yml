@@ -5,7 +5,6 @@ services:
     ports:
       - ${WNPFM_HOST_PORT}:80
     volumes:
-      # - /home/alexandrov/work/experiments/2023-Q2/04-06-wp-host-php/wordpress:/var/www/wordpress
       - ${WNPFM_TEST_DIR}/wordpress:/var/www/wordpress
       - ${WNPFM_TEST_DIR}/logs/nginx:/var/log/nginx
       - ./proxy-nginx/default.conf.template:/etc/nginx/templates/default.conf.template

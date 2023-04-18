@@ -14,18 +14,13 @@ server {
     }
 
     location ~ \.php$ {
-        # fastcgi_split_path_info ^(.+\.php)(/.+)$;
         fastcgi_pass ${WNPFM_PHP_FCGI_HOST}:${WNPFM_PHP_FCGI_PORT};
-        fastcgi_param REQUEST_METHOD $request_method;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        # fastcgi_param PATH_INFO $fastcgi_path_info;
         include fastcgi_params;
     }
 
     keepalive_timeout  10m;
 
-    proxy_send_timeout  3600s;
-    proxy_read_timeout  3600s;
     fastcgi_send_timeout 3600s;
     fastcgi_read_timeout 3600s;
 }
