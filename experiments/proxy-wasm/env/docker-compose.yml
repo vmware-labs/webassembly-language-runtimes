@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  proxy:
+    image: envoyproxy/envoy-dev:latest
+    command:
+      - "envoy"
+      - "-c"
+      - "/etc/envoy.yaml"
+      - "--service-cluster"
+      - "proxy"
+    volumes:
+      - ./envoy.yaml:/etc/envoy.yaml
+      - ./lib:/etc/lib
+    depends_on:
+      - static
+    ports:
+      - "8000:8000"
+  static:
+    build: ./static
+    volumes:
+      - ./static:/app

@@ -1,0 +1,17 @@
+{
+  "name": "filter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build-graph": "esbuild index.js --target=es2020 --bundle --outfile=lib/filter.js",
+    "build-translate": "cp translate.js lib/translate.js"
+  },
+  "keywords": [],
+  "dependencies": {
+    "asciichart": "^1.5.25"
+  },
+  "devDependencies": {
+    "esbuild": "^0.17.15"
+  }
+}

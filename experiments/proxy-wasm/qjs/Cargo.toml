@@ -1,0 +1,16 @@
+[package]
+name = "qjs-filter"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+quickjs-wasm-rs = { git = "https://github.com/Shopify/javy.git", rev = "af7ecd8" }
+anyhow = "1.0.70"
+proxy-wasm = "0.2.1"
+log = "0.4"
+lazy_static = "1.4.0"
