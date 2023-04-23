@@ -15,12 +15,12 @@ def process_word(word):
     return word if re.match(r"\w+[.,'!?\"]\w*", word) else reverse(word)
 
 def run_e(payload, ident):
-    log(f'Received payload "{payload}"', ident)
+    log(f'Called run_e("{payload}", {ident})', ident)
 
     text_words = payload.split(' ')
     result = ' '.join([process_word(w) for w in text_words])
 
-    log(f'Returning result "{result}"', ident)
+    log(f'Calling sdk.return_result("{result}", {ident})', ident)
     sdk.return_result(result, ident)
 
     log(f'Result returned for "{ident}"', ident)

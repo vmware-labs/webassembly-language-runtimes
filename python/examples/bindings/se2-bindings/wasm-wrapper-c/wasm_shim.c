@@ -28,7 +28,7 @@ void _initialize()
 
 u8 *allocate(i32 size)
 {
-    LOG_MSG(__FILENAME__, "called allocate(%d)", size);
+    LOG_MSG(__FILENAME__, "Called allocate(%d)", size);
     u8 *result = malloc(size);
     LOG_MSG(__FILENAME__, "allocate(%d) returning %p", size, result);
     return result;
@@ -36,13 +36,13 @@ u8 *allocate(i32 size)
 
 void deallocate(u8 *pointer, i32 size)
 {
-    LOG_MSG(__FILENAME__, "called deallocate(%p, %d)", pointer, size);
+    LOG_MSG(__FILENAME__, "Called deallocate(%p, %d)", pointer, size);
     return free(pointer);
 }
 
 void run_e(u8 *pointer, i32 size, i32 ident)
 {
-    LOG_MSG(__FILENAME__, "id=%d | called run_e(%p, %d, %d)", ident, pointer, size, ident);
+    LOG_MSG(__FILENAME__, "id=%d | Called run_e(%p, %d, %d)", ident, pointer, size, ident);
     if (_plugin_module == NULL)
     {
         LOG_MSG(__FILENAME__, "id=%d | run_e: plugin module was not loaded!", ident);
@@ -70,6 +70,7 @@ void run_e(u8 *pointer, i32 size, i32 ident)
         return;
     }
 
+    LOG_MSG(__FILENAME__, "id=%d | Calling CPython plugin.run_e(\"%.*s\", %d)", ident, size, (char *)pointer, ident);
     PyObject *pValue = PyObject_CallObject(pFunc, pArgs);
     if (pValue == NULL)
     {

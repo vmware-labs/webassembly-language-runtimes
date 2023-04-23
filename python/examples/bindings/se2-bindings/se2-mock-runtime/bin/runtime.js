@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const { WasmMemoryManager } = require('../mem-utils');
 
-log = function() {
+const log = function() {
     var prefix = "\x1b[33m[runtime.js]\x1b[0m |";
     return Function.prototype.bind.call(console.log, console, prefix);
 }();
@@ -70,10 +70,11 @@ const importObject = {
 
     log('Started wasm module');
 
-    const strBuf = memMgr.bufFromString("It can't bite it's own tail. I'm done laughing.");
+    const payload="It can't bite it's own tail. I'm done laughing.";
+    const strBuf = memMgr.bufFromString(payload);
 
     const ident = 12345;
-    log(`Calling wasmModule.run_e(${strBuf.getPtr()}, ${strBuf.getSize()}, ${ident})...`);
+    log(`Calling wasmModule.run_e(0x${strBuf.getPtr().toString(16)}, ${strBuf.getSize()}, ${ident})...`);
     wasmModule.instance.exports.run_e(strBuf.getPtr(), strBuf.getSize(), ident);
 
     log('wasmModule.run_e returned');

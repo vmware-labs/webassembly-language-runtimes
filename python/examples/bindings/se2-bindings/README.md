@@ -70,7 +70,7 @@ This example uses three basic components
 First you need to checkout this repository and `cd` to the current folder
 
 ```shell
-git clone https://github.com/vmware-labs/webassembly-language-runtimes wlr
+git clone --depth 1 --branch https://github.com/vmware-labs/webassembly-language-runtimes wlr
 cd ./wlr/python/examples/bindings/se2-bindings
 ```
 
@@ -110,7 +110,7 @@ Running se2-mock-runtime with
 
 This will print an output where color and indentation mark the location of the code printing the line:
 
-![run_me.sh output](run_me-output.png)
+![run_me.sh output](console-output.png)
 
 ## The output
 
