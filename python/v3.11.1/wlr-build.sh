@@ -121,9 +121,9 @@ EOF
 
     logStatus "Generating pkg-config file for libpython3.11.a"
     DESCRIPTION="libpython3.11 allows embedding the CPython interpreter"
-    STACK_LINKER_FLAGS="-Wl,-z,stack-size=524288 -Wl,--stack-first -Wl,--initial-memory=10485760"
+    EXTRA_LINK_FLAGS="-lpython3.11 -Wl,-z,stack-size=524288 -Wl,--stack-first -Wl,--initial-memory=10485760"
 
-    wlr_pkg_config_create_pc_file "libpython3.11" "${WLR_PACKAGE_VERSION}" "${DESCRIPTION}" "${STACK_LINKER_FLAGS}" || exit 1
+    wlr_pkg_config_create_pc_file "libpython3.11" "${WLR_PACKAGE_VERSION}" "${DESCRIPTION}" "${EXTRA_LINK_FLAGS}" || exit 1
 
     wlr_package_lib || exit 1
 fi
