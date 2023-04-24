@@ -1,0 +1,54 @@
+From e493fcd0205797c266e10b5d50402d49f4bd97fc Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Mon, 24 Apr 2023 11:45:59 +0300
+Subject: [PATCH] chore: Add libinstall to Makefile
+
+
+diff --git a/Makefile b/Makefile
+index f8a1772..2889612 100644
+--- a/Makefile
++++ b/Makefile
+@@ -25,6 +25,7 @@ CFLAGS=-Wall -Winline -O2 -g $(BIGFILES)
+ 
+ # Where you want it installed when you do 'make install'
+ PREFIX=/usr/local
++LIBDIR=$(PREFIX)/lib
+ 
+ 
+ OBJS= blocksort.o  \
+@@ -69,12 +70,18 @@ test: bzip2
+ 	cmp sample3.tst sample3.ref
+ 	@cat words3
+ 
+-install: bzip2 bzip2recover
++libinstall: libbz2.a
++	if ( test ! -d $(LIBDIR) ) ; then mkdir -p $(LIBDIR) ; fi
++	if ( test ! -d $(PREFIX)/include ) ; then mkdir -p $(PREFIX)/include ; fi
++	cp -f bzlib.h $(PREFIX)/include
++	chmod a+r $(PREFIX)/include/bzlib.h
++	cp -f libbz2.a $(LIBDIR)
++	chmod a+r $(LIBDIR)/libbz2.a
++
++install: bzip2 bzip2recover libinstall
+ 	if ( test ! -d $(PREFIX)/bin ) ; then mkdir -p $(PREFIX)/bin ; fi
+-	if ( test ! -d $(PREFIX)/lib ) ; then mkdir -p $(PREFIX)/lib ; fi
+ 	if ( test ! -d $(PREFIX)/man ) ; then mkdir -p $(PREFIX)/man ; fi
+ 	if ( test ! -d $(PREFIX)/man/man1 ) ; then mkdir -p $(PREFIX)/man/man1 ; fi
+-	if ( test ! -d $(PREFIX)/include ) ; then mkdir -p $(PREFIX)/include ; fi
+ 	cp -f bzip2 $(PREFIX)/bin/bzip2
+ 	cp -f bzip2 $(PREFIX)/bin/bunzip2
+ 	cp -f bzip2 $(PREFIX)/bin/bzcat
+@@ -85,10 +92,6 @@ install: bzip2 bzip2recover
+ 	chmod a+x $(PREFIX)/bin/bzip2recover
+ 	cp -f bzip2.1 $(PREFIX)/man/man1
+ 	chmod a+r $(PREFIX)/man/man1/bzip2.1
+-	cp -f bzlib.h $(PREFIX)/include
+-	chmod a+r $(PREFIX)/include/bzlib.h
+-	cp -f libbz2.a $(PREFIX)/lib
+-	chmod a+r $(PREFIX)/lib/libbz2.a
+ 	cp -f bzgrep $(PREFIX)/bin/bzgrep
+ 	ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzegrep
+ 	ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzfgrep
+-- 
+2.38.1
+

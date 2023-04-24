@@ -1,0 +1,15 @@
+# Note that for this workflow to be triggered, the tag needs to be
+# created of the form `libs/bzip2/<version>+<buildinfo>`, where <buildinfo>
+# by convention is YYYYMMDD-<short-sha> (short SHA can be calculated
+# with `git rev-parse --short HEAD`).
+name: Release libs-bzip2
+on:
+  push:
+    tags:
+      - libs/bzip2/*
+jobs:
+  release-libs-bzip2:
+    uses: ./.github/workflows/reusable-release-external-lib.yaml
+    with:
+      target-name: "bzip2"
+      trigger: ${{ github.event.ref }}

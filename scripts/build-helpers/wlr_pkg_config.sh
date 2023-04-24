@@ -26,25 +26,25 @@ function wlr_pkg_config_reset_pc_prefix {
 }
 
 function wlr_pkg_config_create_pc_file {
-    local TARGET_LIBRARY="$1"
+    local LIBRARY_NAME="$1"
     local VERSION="$2"
     local DESCRIPTION="$3"
-    local EXTRA_LINK_FLAGS="$4"
+    local LINK_FLAGS="$4"
 
-    mkdir -p ${WLR_OUTPUT}/lib/wasm32-wasi/pkg-config 2>/dev/null || exit 1
-    local TARGET_FILE=${WLR_OUTPUT}/lib/wasm32-wasi/pkg-config/${TARGET_LIBRARY}.pc
+    mkdir -p ${WLR_OUTPUT}/lib/wasm32-wasi/pkgconfig 2>/dev/null || exit 1
+    local TARGET_FILE=${WLR_OUTPUT}/lib/wasm32-wasi/pkgconfig/${LIBRARY_NAME}.pc
 
-    mkdir -p ${WLR_OUTPUT}/lib/wasm32-wasi/pkg-config 2>/dev/null
+    mkdir -p ${WLR_OUTPUT}/lib/wasm32-wasi/pkgconfig 2>/dev/null
     cat >$TARGET_FILE <<EOF
 prefix=
 exec_prefix=\${prefix}
 libdir=\${prefix}/lib/wasm32-wasi
 includedir=\${prefix}/include
 
-Name: ${TARGET_LIBRARY}
+Name: ${LIBRARY_NAME}
 Description: ${DESCRIPTION}
 Version: ${VERSION}
-Libs: -L\${libdir} ${EXTRA_LINK_FLAGS}
+Libs: -L\${libdir} ${LINK_FLAGS}
 Cflags: -I\${includedir}
 EOF
 }
