@@ -63,6 +63,7 @@ oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
 		.
 
 LIBS := \
+	bzip2 \
 	icu \
 	libjpeg \
 	libpng \

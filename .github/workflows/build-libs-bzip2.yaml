@@ -1,0 +1,26 @@
+name: Build libs-bzip2
+on:
+  push:
+    # By specifying branches explicitly, we avoid this workflow from
+    # running on tag push. We have a dedicated workflow to be ran when
+    # a tag is pushed.
+    branches:
+      - main
+    paths:
+       - ".github/**"
+       - "libs/bzip2/**"
+       - "libs/*"
+       - "scripts/**"
+       - "Makefile*"
+       - "*.sh"
+  pull_request:
+jobs:
+  build-libs-bzip2:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: 1.0.8
+    uses: ./.github/workflows/reusable-build-lib.yaml
+    with:
+      target: bzip2/v${{ matrix.version }}

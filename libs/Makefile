@@ -1,6 +1,7 @@
 .PHONY: clean
 clean:
 	make -C bundle_wlr clean
+	make -C bzip2 clean
 	make -C icu clean
 	make -C libjpeg clean
 	make -C libpng clean
