@@ -83,11 +83,11 @@ oci-python-3.11.3: python/v3.11.3
 	    --platform wasi/wasm32 \
 		--build-arg NAME=python-wasm \
 		--build-arg SUMMARY="CPython built for WASI, by Wasm Labs" \
-		--build-arg ARTIFACTS_BASE_DIR=build-output/python/v3.11.3 \
+		--build-arg ARTIFACTS_BASE_DIR=python/v3.11.3 \
 		--build-arg PYTHON_BINARY=python.wasm \
 		-t ghcr.io/vmware-labs/python-wasm:3.11.3 \
 		-f images/python/Dockerfile \
-		.
+		build-output
 
 .PHONY: oci-python-3.11.3-wasmedge
 oci-python-3.11.3-wasmedge: python/wasmedge-v3.11.3
@@ -95,11 +95,11 @@ oci-python-3.11.3-wasmedge: python/wasmedge-v3.11.3
 	    --platform wasi/wasm32 \
 		--build-arg NAME=python-wasm \
 		--build-arg SUMMARY="CPython built for WASI+WasmEdge, by Wasm Labs" \
-		--build-arg ARTIFACTS_BASE_DIR=build-output/python/v3.11.3-wasmedge \
+		--build-arg ARTIFACTS_BASE_DIR=python/v3.11.3-wasmedge \
 		--build-arg PYTHON_BINARY=python.wasm \
 		-t ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
 		-f images/python/Dockerfile \
-		.
+		build-output
 
 LIBS := \
 	bzip2 \

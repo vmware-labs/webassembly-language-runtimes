@@ -233,7 +233,7 @@ wasmedge \
 
 ## Running the Docker container
 
-Docker+WASM comes with the WasmEdge runtime. To leverage it we have packaged the `python-3.11.1-wasmedge.wasm` binary in a container image available as `ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge`.
+Docker+WASM first came with the WasmEdge runtime. To leverage it we have packaged the `python-3.11.3-wasmedge.wasm` binary in a container image available as `ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge`.
 
 In case you need a WASI-compliant container that can run on other containerd runtimes, just use the `ghcr.io/vmware-labs/python-wasm:3.11.3` image.
 

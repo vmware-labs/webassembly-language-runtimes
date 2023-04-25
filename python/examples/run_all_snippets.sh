@@ -77,7 +77,7 @@ echo -e "\n\n>>>> Running the docker container"
 
 docker run --rm \
   --runtime=io.containerd.wasmedge.v1 \
-  --platform=wasm32/wasi \
+  --platform=wasi/wasm32 \
   ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
   -c "import os; print([k for k in os.environ.keys()])"
 
@@ -87,7 +87,7 @@ docker run --rm \
   -v $PWD/tmp/venv-emoji/lib/python3.11/site-packages:/usr/local/lib/python3.11/site-packages \
   -v $PWD/workdir/:/workdir/ \
   --runtime=io.containerd.wasmedge.v1 \
-  --platform=wasm32/wasi \
+  --platform=wasi/wasm32 \
   ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
   -- \
   workdir/emojize_text.py workdir/source_text.txt
@@ -107,7 +107,7 @@ EOF
 
 
 docker build \
-  --platform=wasm32/wasi \
+  --platform=wasi/wasm32 \
   -f tmp/Dockerfile.emojize \
   -t emojize.py-wasm .
 
@@ -115,7 +115,7 @@ docker build \
 docker run --rm \
   -v $PWD/workdir/source_text.txt:/source_text.txt \
   --runtime=io.containerd.wasmedge.v1 \
-  --platform=wasm32/wasi \
+  --platform=wasi/wasm32 \
   emojize.py-wasm \
   source_text.txt
 
