@@ -43,7 +43,7 @@ oci-python-3.11.1: python/v3.11.1
 	docker build \
 	    --platform wasm32/wasi \
 		--build-arg NAME=python-wasm \
-		--build-arg SUMMARY="CPython built for WASI+Wasmedge, by Wasm Labs" \
+		--build-arg SUMMARY="CPython built for WASI, by Wasm Labs" \
 		--build-arg ARTIFACTS_BASE_DIR=build-output/python/v3.11.1 \
 		--build-arg PYTHON_BINARY=python.wasm \
 		-t ghcr.io/vmware-labs/python-wasm:3.11.1 \
@@ -82,7 +82,7 @@ oci-python-3.11.3: python/v3.11.3
 	docker build \
 	    --platform wasi/wasm32 \
 		--build-arg NAME=python-wasm \
-		--build-arg SUMMARY="CPython built for WASI+Wasmedge, by Wasm Labs" \
+		--build-arg SUMMARY="CPython built for WASI, by Wasm Labs" \
 		--build-arg ARTIFACTS_BASE_DIR=build-output/python/v3.11.3 \
 		--build-arg PYTHON_BINARY=python.wasm \
 		-t ghcr.io/vmware-labs/python-wasm:3.11.3 \

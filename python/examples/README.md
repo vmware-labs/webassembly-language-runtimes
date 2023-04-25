@@ -40,8 +40,8 @@ If you take a look at the release assets, you will find a few flavors:
 
  Additionally, you can use two flavors of a Docker image:
 
- - `ghcr.io/vmware-labs/python-wasm:3.11.1`, which can run on any WASI-compliant containerd runtime
- - `ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge`, which can run on the WasmEdge containerd runtime
+ - `ghcr.io/vmware-labs/python-wasm:3.11.3`, which can run on any WASI-compliant containerd runtime
+ - `ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge`, which can run on the WasmEdge containerd runtime
 
 # Setup
 
@@ -233,9 +233,9 @@ wasmedge \
 
 ## Running the Docker container
 
-Docker+WASM comes with the WasmEdge runtime. To leverage it we have packaged the `python-3.11.1-wasmedge.wasm` binary in a container image available as `ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge`.
+Docker+WASM comes with the WasmEdge runtime. To leverage it we have packaged the `python-3.11.1-wasmedge.wasm` binary in a container image available as `ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge`.
 
-In case you need a WASI-compliant container that can run on other containerd runtimes, just use the `ghcr.io/vmware-labs/python-wasm:3.11.1` image.
+In case you need a WASI-compliant container that can run on other containerd runtimes, just use the `ghcr.io/vmware-labs/python-wasm:3.11.3` image.
 
 Here is an example of running the Python repl from this container image. As you can see from the output of the interactive session, the container includes only `python.wasm` and the standard libraries from `usr`. No base OS images, no extra environment variables, or any other clutter.
 
@@ -244,7 +244,7 @@ docker run --rm \
   -i \
   --runtime=io.containerd.wasmedge.v1 \
   --platform=wasi/wasm32 \
-  ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge \
+  ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
   -i
 
 Python 3.11.1 (tags/v3.11.1:a7a450f, Feb 17 2023, 11:01:02) ...  on wasi
@@ -268,7 +268,7 @@ You can also run the Docker container to execute a one-liner like this.
 docker run --rm \
   --runtime=io.containerd.wasmedge.v1 \
   --platform=wasi/wasm32 \
-  ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge \
+  ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
   -c "import os; print([k for k in os.environ.keys()])"
 
 ['PATH', 'HOSTNAME']
@@ -294,7 +294,7 @@ docker run --rm \
   -v $PWD/workdir/:/workdir/ \
   --runtime=io.containerd.wasmedge.v1 \
   --platform=wasi/wasm32 \
-  ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge \
+  ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
   -- \
   workdir/emojize_text.py workdir/source_text.txt
 
@@ -312,7 +312,7 @@ Let's first create a Dockerfile that steps on `python-wasm` to package our emoji
 
 ```shell-session
 cat > tmp/Dockerfile.emojize <<EOF
-FROM ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge
+FROM ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge
 
 COPY tmp/venv-emoji/ /opt/venv-emoji/
 COPY workdir/emojize_text.py /opt

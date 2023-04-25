@@ -17,4 +17,4 @@ wlr_dependencies_add "SQLite" "libs/sqlite/version-3.41.2" "lib/wasm32-wasi/libs
     "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fsqlite%2F3.41.2%2B20230329-43f9aea/libsqlite-3.41.2-wasi-sdk-19.0.tar.gz"
 
 wlr_dependencies_add "bzip2" "libs/bzip2/v1.0.8" "lib/wasm32-wasi/libbz2.a" \
-    "https://github.com/assambar/webassembly-language-runtimes/releases/download/libs%2Fbzip2%2F1.0.8%2B20230424-ffa3f41/libbzip2-1.0.8-wasi-sdk-19.0.tar.gz"
+    "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fbzip2%2F1.0.8%2B20230425-e1a7579/libbzip2-1.0.8-wasi-sdk-19.0.tar.gz"
