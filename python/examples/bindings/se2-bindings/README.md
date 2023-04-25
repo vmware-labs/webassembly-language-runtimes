@@ -1,4 +1,4 @@
-# About
+# Suborbital Python bindings
 
 This is a basic showcase for WasmHost-to-Python and Python-to-WasmHost bindings, based on `libpython3.11.a`.
 

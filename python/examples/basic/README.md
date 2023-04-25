@@ -1,6 +1,8 @@
-Here you can find a list of basic things to try out with Python.wasm
+# Python on WebAssembly basic example
 
-The latest release is available at [python/3.11.1+20230217-15dfbed](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/python%2F3.11.1%2B20230217-15dfbed)
+Here you can find a list of basic things to try out with `python.wasm`.
+
+The latest release is available at [python/3.11.1+20230217-15dfbed](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/python%2F3.11.1%2B20230217-15dfbed).
 
 If you hate walls of text and just want to look at the sample commands, take a look at [run_all_snippets.sh](./run_all_snippets.sh). You could even run it (from this folder as PWD) to try and reproduce most of the examples below.
 
