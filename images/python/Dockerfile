@@ -15,4 +15,7 @@ ARG PYTHON_BINARY
 COPY ${ARTIFACTS_BASE_DIR}/bin/${PYTHON_BINARY} /python.wasm
 COPY ${ARTIFACTS_BASE_DIR}/usr/ /usr
 
+# Shadow the default linux PATH, which is irrelevant for Wasm
+ENV PATH=
+
 ENTRYPOINT [ "python.wasm" ]
