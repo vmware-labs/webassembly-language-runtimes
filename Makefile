@@ -43,12 +43,12 @@ oci-python-3.11.1: python/v3.11.1
 	docker build \
 	    --platform wasm32/wasi \
 		--build-arg NAME=python-wasm \
-		--build-arg SUMMARY="CPython built for WASI+Wasmedge, by Wasm Labs" \
-		--build-arg ARTIFACTS_BASE_DIR=build-output/python/v3.11.1 \
+		--build-arg SUMMARY="CPython built for WASI, by Wasm Labs" \
+		--build-arg ARTIFACTS_BASE_DIR=python/v3.11.1 \
 		--build-arg PYTHON_BINARY=python.wasm \
 		-t ghcr.io/vmware-labs/python-wasm:3.11.1 \
 		-f images/python/Dockerfile \
-		.
+		build-output
 
 .PHONY: oci-python-3.11.1-wasmedge
 oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
@@ -56,11 +56,50 @@ oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
 	    --platform wasm32/wasi \
 		--build-arg NAME=python-wasm \
 		--build-arg SUMMARY="CPython built for WASI+WasmEdge, by Wasm Labs" \
-		--build-arg ARTIFACTS_BASE_DIR=build-output/python/v3.11.1-wasmedge \
+		--build-arg ARTIFACTS_BASE_DIR=python/v3.11.1-wasmedge \
 		--build-arg PYTHON_BINARY=python.wasm \
 		-t ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge \
 		-f images/python/Dockerfile \
-		.
+		build-output
+
+.PHONY: python/wasmedge-v3.11.3
+python/wasmedge-v3.11.3:
+	WLR_BUILD_FLAVOR=wasmedge \
+	make -C python $(subst python/wasmedge-,,$@)
+
+.PHONY: python/aio-v3.11.3
+python/aio-v3.11.3:
+	WLR_BUILD_FLAVOR=aio \
+	make -C python $(subst python/aio-,,$@)
+
+.PHONY: python/aio-wasmedge-v3.11.3
+python/aio-wasmedge-v3.11.3:
+	WLR_BUILD_FLAVOR=aio-wasmedge \
+	make -C python $(subst python/aio-wasmedge-,,$@)
+
+.PHONY: oci-python-3.11.3
+oci-python-3.11.3: python/v3.11.3
+	docker build \
+	    --platform wasi/wasm32 \
+		--build-arg NAME=python-wasm \
+		--build-arg SUMMARY="CPython built for WASI, by Wasm Labs" \
+		--build-arg ARTIFACTS_BASE_DIR=python/v3.11.3 \
+		--build-arg PYTHON_BINARY=python.wasm \
+		-t ghcr.io/vmware-labs/python-wasm:3.11.3 \
+		-f images/python/Dockerfile \
+		build-output
+
+.PHONY: oci-python-3.11.3-wasmedge
+oci-python-3.11.3-wasmedge: python/wasmedge-v3.11.3
+	docker build \
+	    --platform wasi/wasm32 \
+		--build-arg NAME=python-wasm \
+		--build-arg SUMMARY="CPython built for WASI+WasmEdge, by Wasm Labs" \
+		--build-arg ARTIFACTS_BASE_DIR=python/v3.11.3-wasmedge \
+		--build-arg PYTHON_BINARY=python.wasm \
+		-t ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
+		-f images/python/Dockerfile \
+		build-output
 
 LIBS := \
 	bzip2 \

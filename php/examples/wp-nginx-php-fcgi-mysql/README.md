@@ -37,7 +37,10 @@ Step 4 | 2023-04-11T19:16:35+03:00 | Setup Wordpress DB 'WordPress' with user 'a
 Step 5 | 2023-04-11T19:16:36+03:00 | Download Wordpress...
 Step 6 | 2023-04-11T19:16:37+03:00 | Setup Wordpress...
 
-Go to http://localhost:8080/wp-admin/ and login with user='wp_admin' password='wp_admin_password'!                                                                                                                                  
+Go to http://localhost:8080/wp-admin/ and login with the following credentials:
+
+ * User: `wp_admin` 
+ * Password: `wp_admin_password`
 ```
 
 # Under the hood

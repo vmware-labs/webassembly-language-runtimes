@@ -20,7 +20,7 @@ But that is OK for most scenarios we are interested in, as `python.wasm` is like
 
 ### A WASI-compatible runtime
 
-As `python.wasm` is built for WASI you will need to get a compatible WebAssembly runtime, such as [Wasmtime](https://wasmtime.dev/). We also provide an additional binary that will run on [WasmEdge](https://wasmedge.org/), which offers extended socket support on top of a modified WASI API. Since Docker+Wasm uses WasmEdge, this is the binary you will need if you want to build a WASM container image to use with Docker, as explained later in the article.
+As `python.wasm` is built for WASI you will need to get a compatible WebAssembly runtime, such as [Wasmtime](https://wasmtime.dev/). We also provide an additional binary that will run on [WasmEdge](https://wasmedge.org/). WasmEdge offers extended socket support on top of a modified WASI API and [is not compliant with the `sock_accept` method](https://github.com/WasmEdge/WasmEdge/issues/2056#issuecomment-1308348306) from WASI Preview1. Since Docker+Wasm uses WasmEdge, this is the binary you will need if you want to build a WASM container image to use with Docker. Note that sockets will not work with the current release.
 
 ### Docker+Wasm
 
@@ -31,8 +31,8 @@ To try the examples with Docker you will need "Docker Desktop" + Wasm [version 4
 If you take a look at the release assets, you will find a few flavors:
 
  - `python-3.11.1.wasm` - WASI compliant interpreter and standard libs wrapped within a single Wasm binary
- - `python-3.11.1-wasmedge.wasm` - WASI+WasmEdge compliant interpreter and standard libs wrapped within a single Wasm binary. WasmEdge extends WASI's socket API
- - `python-3.11.1.tar.gz` - Both the WASI and WASI+WasmEdge interpreters as separate Wasm binaries. The standard libs are also available separately. All of these within the same archive.
+ - `python-3.11.1-wasmedge.wasm` - WASI+WasmEdge compliant interpreter and standard libs wrapped within a single Wasm binary.
+ - `python-3.11.1.tar.gz` - Both the WASI and WASI+WasmEdge interpreters as separate Wasm binaries. The standard libs are also available separately. All of these are within the same archive.
 
  You would want to use the first two versions when convenience is the most important factor. You get a single binary and you don't have to manage how it uses the Python standard library. It all just works.
 
@@ -40,8 +40,8 @@ If you take a look at the release assets, you will find a few flavors:
 
  Additionally, you can use two flavors of a Docker image:
 
- - `ghcr.io/vmware-labs/python-wasm:3.11.1`, which can run on any WASI-compliant containerd runtime
- - `ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge`, which can run on the WasmEdge containerd runtime (WasmEdge supports additional socket APIs)
+ - `ghcr.io/vmware-labs/python-wasm:3.11.3`, which can run on any WASI-compliant containerd runtime
+ - `ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge`, which can run on the WasmEdge containerd runtime
 
 # Setup
 
@@ -60,7 +60,7 @@ curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/d
 
 Now, let's look into what we downloaded. The `python-3.11.1-wasmedge.wasm` and `python-3.11.1.wasm` binaries inside `tmp` can be used as standalone interpreters, as they embed the Python standard libraries.
 
-The ones in `tmp/unpacked/bin`, however, will need the files from `tmp/unpacked/usr/local/lib` to work. These files include a `python311.zip` archive of the standard libraries, a placeholder `python3.11/lib-dynload` and a `python3.11/os.py`. The last two are not strictly necessary but if omitted will cause dependency warnings whenever python runs.
+The ones in `tmp/unpacked/bin`, however, will need the files from `tmp/unpacked/usr/local/lib` to work. These files include a `python311.zip` archive of the standard libraries, a placeholder `python3.11/lib-dynload` and a `python3.11/os.py`. The last two are not strictly necessary but if omitted will cause dependency warnings whenever Python runs.
 
 ```shell-session
 tmp
@@ -78,7 +78,6 @@ tmp
                 │   └── [ 39K]  os.py
                 └── [3.9M]  python311.zip
 ```
-
 # First time running python.wasm
 
 Running the packed binaries is as easy as
@@ -153,7 +152,7 @@ Next, let's assume we have a Python app that has additional dependencies. For ex
 
 To set up the dependencies we will need `pip3` (or `python3 -m pip`) on the development machine, to download and install the necessary dependencies. The most straightforward way of doing this is by running pip with `--target` pointing to the path that is already pre-compiled into the `python.wasm` binary. Namely, `usr/local/lib/python3.11/`
 
-However, we could use this approach only with the version where the python interpreter is not packed with the standard libraries. In this case the host folder with the standard libraries (along with the extra dependencies that we installed) will be pre-opened to the proper location within the Wasm application at runtime.
+However, we could use this approach only with the version where the Python interpreter is not packed with the standard libraries. In this case the host folder with the standard libraries (along with the extra dependencies that we installed) will be pre-opened to the proper location within the Wasm application at runtime.
 
 ```shell-session
 pip3 install emoji -t tmp/unpacked/usr/local/lib/python3.11/
@@ -187,7 +186,7 @@ He will put on his 👖 and get out of the 🏠 for a walk.
 
 ### Using a virtual environment
 
-Any more complex python application is likely to be using virtual environments. In that case, you will have a `venv` folder with all requirements pre-installed. All you need to leverage them is to:
+Any more complex Python application is likely to be using virtual environments. In that case, you will have a `venv` folder with all requirements pre-installed. All you need to leverage them is to:
 
  - Make sure this folder is pre-opened when running `python.wasm`
  - Add it to the `PYTHONPATH` environment variable
@@ -234,9 +233,9 @@ wasmedge \
 
 ## Running the Docker container
 
-Docker+WASM uses the WasmEdge runtime internally. To leverage it we have packaged the python-3.11.1-wasmedge.wasm binary in a container image available as `ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge`.
+Docker+WASM first came with the WasmEdge runtime. To leverage it we have packaged the `python-3.11.3-wasmedge.wasm` binary in a container image available as `ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge`.
 
-In case you need a WASI-compliant container that can run on other containerd runtimes, just use the `ghcr.io/vmware-labs/python-wasm:3.11.1` image.
+In case you need a WASI-compliant container that can run on other containerd runtimes, just use the `ghcr.io/vmware-labs/python-wasm:3.11.3` image.
 
 Here is an example of running the Python repl from this container image. As you can see from the output of the interactive session, the container includes only `python.wasm` and the standard libraries from `usr`. No base OS images, no extra environment variables, or any other clutter.
 
@@ -244,8 +243,8 @@ Here is an example of running the Python repl from this container image. As you 
 docker run --rm \
   -i \
   --runtime=io.containerd.wasmedge.v1 \
-  --platform=wasm32/wasi \
-  ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge \
+  --platform=wasi/wasm32 \
+  ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
   -i
 
 Python 3.11.1 (tags/v3.11.1:a7a450f, Feb 17 2023, 11:01:02) ...  on wasi
@@ -268,8 +267,8 @@ You can also run the Docker container to execute a one-liner like this.
 ```shell-session
 docker run --rm \
   --runtime=io.containerd.wasmedge.v1 \
-  --platform=wasm32/wasi \
-  ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge \
+  --platform=wasi/wasm32 \
+  ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
   -c "import os; print([k for k in os.environ.keys()])"
 
 ['PATH', 'HOSTNAME']
@@ -283,7 +282,7 @@ We need to do three things
 
 1. Ensure that the `emoji` module installed in the `venv-emoji` folder is mounted in the running `python-wasm` container
 2. Ensure that it is also on the `PYTHONPATH` within the running `python-wasm` container
-3. Ensure that the python program and its data (in this case `workdir/emojize_text.py` and `workdir/source_text.txt`) are also mounted in the container
+3. Ensure that the Python program and its data (in this case `workdir/emojize_text.py` and `workdir/source_text.txt`) are also mounted in the container
 
 A vital piece of knowledge here is that whatever you mount in the running container gets automatically pre-opened by the WasmEdge runtime. Same goes for all environment variables that you pass to the container when you run it. 
 
@@ -294,8 +293,8 @@ docker run --rm \
   -v $PWD/tmp/venv-emoji/lib/python3.11/site-packages:/usr/local/lib/python3.11/site-packages \
   -v $PWD/workdir/:/workdir/ \
   --runtime=io.containerd.wasmedge.v1 \
-  --platform=wasm32/wasi \
-  ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge \
+  --platform=wasi/wasm32 \
+  ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
   -- \
   workdir/emojize_text.py workdir/source_text.txt
 
@@ -307,13 +306,13 @@ He will put on his 👖 and get out of the 🏠 for a walk.
 
 ## Wrapping it all in a new container image
 
-This way of running your python application with the `python-wasm` container is too cumbersome. Luckily OCI and Docker already offer a way to package everything nicely.
+This way of running your Python application with the `python-wasm` container is too cumbersome. Luckily OCI and Docker already offer a way to package everything nicely.
 
 Let's first create a Dockerfile that steps on `python-wasm` to package our emojize_text.py app and its `venv` into a single image.
 
 ```shell-session
 cat > tmp/Dockerfile.emojize <<EOF
-FROM ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge
+FROM ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge
 
 COPY tmp/venv-emoji/ /opt/venv-emoji/
 COPY workdir/emojize_text.py /opt
@@ -328,7 +327,7 @@ Building the container is straightforward
 
 ```shell-session
 docker build \
-  --platform=wasm32/wasi \
+  --platform=wasi/wasm32 \
   -f tmp/Dockerfile.emojize \
   -t emojize.py-wasm .
 ```
@@ -339,7 +338,7 @@ And to run it we only have to mount and provide the data file.
 docker run --rm \
   -v $PWD/workdir/source_text.txt:/source_text.txt \
   --runtime=io.containerd.wasmedge.v1 \
-  --platform=wasm32/wasi \
+  --platform=wasi/wasm32 \
   emojize.py-wasm \
   source_text.txt
 
