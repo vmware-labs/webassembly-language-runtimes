@@ -67,11 +67,12 @@ This example uses three basic components
 
 # How to build and run
 
-First you need to checkout this repository and `cd` to the current folder
+First, you need to clone this repository and `cd` to this example.
 
 ```shell
-git clone --depth 1 --branch https://github.com/vmware-labs/webassembly-language-runtimes wlr
-cd ./wlr/python/examples/bindings/se2-bindings
+TMP_WORKDIR=$(mktemp -d)
+git clone --depth 1 https://github.com/vmware-labs/webassembly-language-runtimes ${TMP_WORKDIR}/wlr
+cd ${TMP_WORKDIR}/wlr/python/examples/bindings/se2-bindings
 ```
 
 ## Fast track
@@ -114,7 +115,7 @@ This will print an output where color and indentation mark the location of the c
 
 ## The output
 
-For easier understanding we added simple logs in all straight-path functions in all the layers.
+For easier understanding, we added simple logs in all straight-path functions in all the layers.
 
  - all *se2-mock-runtime* logs start at the beginning of the line and the filename is dark orange
  - all *wasm-wrapper-c* logs are indented by one tab and the filename is green

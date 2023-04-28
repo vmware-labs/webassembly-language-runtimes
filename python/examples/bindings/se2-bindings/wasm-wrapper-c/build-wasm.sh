@@ -25,6 +25,11 @@ export PKG_CONFIG_PATH=""
 export PKG_CONFIG_SYSROOT_DIR=${FULL_TARGET_DIR}/deps
 export PKG_CONFIG_LIBDIR=${FULL_TARGET_DIR}/deps/lib/wasm32-wasi/pkgconfig
 
+# Note: The target/wasm32-wasi/deps/lib/wasm32-wasi/pkgconfig/libpython3.11.pc file
+# contains all additional link options for libpython3.11
+#  "-Wl,-z,stack-size=524288 -Wl,--initial-memory=10485760 -Wl,--stack-first" for proper handling of stack overflows
+#  "-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks" for wasi-libc emulations
+
 export CMAKE_EXTRA_ARGS="-DWASI_SDK_PREFIX=${WASI_SDK_PATH} -DCMAKE_TOOLCHAIN_FILE=${WASI_SDK_PATH}/share/cmake/wasi-sdk.cmake"
 
 cmake -B${TARGET_DIR} ${CMAKE_EXTRA_ARGS} . || exit 1
