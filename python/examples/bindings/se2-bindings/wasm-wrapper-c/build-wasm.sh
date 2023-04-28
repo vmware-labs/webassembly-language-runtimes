@@ -14,17 +14,16 @@ mkdir -p ${TARGET_DIR}/deps 2>/dev/null
 if [ -f ${TARGET_DIR}/deps/include/python3.11/Python.h -a -f ${TARGET_DIR}/deps/lib/wasm32-wasi/libpython3.11.a ]; then
     echo "Dependencies already downloaded. Reusing..."
 else
-    curl -sL https://github.com/assambar/webassembly-language-runtimes/releases/download/python%2F3.11.1%2B20230223-8a6223c/libpython-3.11.1.tar.gz | tar xzv -C ${TARGET_DIR}/deps
+    curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.11.3%2B20230428-7d1b259/libpython-3.11.3-wasi-sdk-19.0.tar.gz | tar xzv -C ${TARGET_DIR}/deps
 fi
 
-export INCLUDE_DIRS="$(realpath ${TARGET_DIR}/deps/include/python3.11)"
+export FULL_TARGET_DIR=$(realpath ${TARGET_DIR})
 
-export LIBS_DIRS="-L/$(realpath ${TARGET_DIR}/deps/lib/wasm32-wasi)"
-export WASI_LIBS="-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
-## For more info - https://github.com/llvm/llvm-project-release-prs/blob/0604154e006e88e9e7f82d8ee5fd076bda206613/lld/wasm/Writer.cpp#L226
-export WASM_LINKER_FLAGS="-Wl,-z,stack-size=524288 -Wl,--initial-memory=10485760 -Wl,--stack-first"
-
-export LINK_FLAGS="${WASM_LINKER_FLAGS} ${LIBS_DIRS} -lpython3.11 ${WASI_LIBS}"
+export PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
+export PKG_CONFIG_ALLOW_SYSTEM_LIBS=1
+export PKG_CONFIG_PATH=""
+export PKG_CONFIG_SYSROOT_DIR=${FULL_TARGET_DIR}/deps
+export PKG_CONFIG_LIBDIR=${FULL_TARGET_DIR}/deps/lib/wasm32-wasi/pkgconfig
 
 export CMAKE_EXTRA_ARGS="-DWASI_SDK_PREFIX=${WASI_SDK_PATH} -DCMAKE_TOOLCHAIN_FILE=${WASI_SDK_PATH}/share/cmake/wasi-sdk.cmake"
 

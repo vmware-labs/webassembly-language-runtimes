@@ -15,11 +15,14 @@ add_executable(
     wasm_shim.c
 )
 
-target_link_libraries(wasm-wrapper-c
-    $ENV{LINK_FLAGS}
+find_package(PkgConfig REQUIRED)
+
+pkg_search_module(LIBPYTHON REQUIRED IMPORTED_TARGET "libpython3.11>=3.11.0")
+
+include_directories(AFTER
+    ${LIBPYTHON_INCLUDE_DIRS}
 )
 
-target_include_directories(wasm-wrapper-c PUBLIC
-    $ENV{INCLUDE_DIRS}
+target_link_libraries(wasm-wrapper-c PUBLIC
+        PkgConfig::LIBPYTHON
 )
-
