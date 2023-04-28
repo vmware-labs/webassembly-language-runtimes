@@ -18,7 +18,7 @@ function wlr_package_lib {
         --exclude=*.la \
         --exclude=lib/wasm32-wasi/cmake \
         include \
-        lib
+        lib ${WLR_PACKAGE_LIB_EXTRA_DIRS}
     gzip -f ${_PACKAGE}
 }
 

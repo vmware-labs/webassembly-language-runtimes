@@ -39,7 +39,7 @@ function wlr_pkg_config_create_pc_file {
 prefix=
 exec_prefix=\${prefix}
 libdir=\${prefix}/lib/wasm32-wasi
-includedir=\${prefix}/include
+includedir=\${prefix}/include${PC_INCLUDE_SUBDIR:+/$PC_INCLUDE_SUBDIR}
 
 Name: ${LIBRARY_NAME}
 Description: ${DESCRIPTION}
@@ -48,3 +48,4 @@ Libs: -L\${libdir} ${LINK_FLAGS}
 Cflags: -I\${includedir}
 EOF
 }
+\

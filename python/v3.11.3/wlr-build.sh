@@ -107,6 +107,7 @@ then
 create libpython3.11-aio.a
 addlib libpython3.11.a
 addlib ${WLR_DEPS_ROOT}/build-output/lib/wasm32-wasi/libz.a
+addlib ${WLR_DEPS_ROOT}/build-output/lib/wasm32-wasi/libbz2.a
 addlib ${WLR_DEPS_ROOT}/build-output/lib/wasm32-wasi/libsqlite3.a
 addlib ${WLR_DEPS_ROOT}/build-output/lib/wasm32-wasi/libuuid.a
 addlib Modules/expat/libexpat.a
@@ -121,11 +122,11 @@ EOF
 
     logStatus "Generating pkg-config file for libpython3.11.a"
     DESCRIPTION="libpython3.11 allows embedding the CPython interpreter"
-    EXTRA_LINK_FLAGS="-lpython3.11 -Wl,-z,stack-size=524288 -Wl,--stack-first -Wl,--initial-memory=10485760"
+    EXTRA_LINK_FLAGS="-lpython3.11 -Wl,-z,stack-size=524288 -Wl,--stack-first -Wl,--initial-memory=10485760 -lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
 
-    wlr_pkg_config_create_pc_file "libpython3.11" "${WLR_PACKAGE_VERSION}" "${DESCRIPTION}" "${EXTRA_LINK_FLAGS}" || exit 1
+    PC_INCLUDE_SUBDIR=python3.11 wlr_pkg_config_create_pc_file "libpython3.11" "${WLR_PACKAGE_VERSION}" "${DESCRIPTION}" "${EXTRA_LINK_FLAGS}" || exit 1
 
-    wlr_package_lib || exit 1
+    WLR_PACKAGE_LIB_EXTRA_DIRS=usr wlr_package_lib || exit 1
 fi
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"
