@@ -6,6 +6,7 @@ on:
     # a tag is pushed.
     branches:
       - main
+      - "ereslibre/php+sqlite-size-optimized"
   pull_request:
 jobs:
   build-php:

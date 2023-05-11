@@ -7,7 +7,7 @@ then
     exit 1
 fi
 
-export CFLAGS_CONFIG="-O2"
+export CFLAGS_CONFIG="-Oz"
 
 ########## Setup the wasi related flags #############
 export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS"
@@ -30,7 +30,7 @@ if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
     logStatus "Generating configure script..."
     ./buildconf --force || exit 1
 
-    export PHP_CONFIGURE='--disable-all --without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --without-sqlite3 --disable-pdo --without-pdo-sqlite --disable-fiber-asm'
+    export PHP_CONFIGURE='--without-openssl --without-libxml --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --disable-fiber-asm --disable-posix --disable-dom --disable-xml --disable-simplexml --without-libxml --disable-xmlreader --disable-xmlwriter --disable-fileinfo --disable-session --disable-all --disable-dom --disable-inifile --disable-flatfile --disable-ctype --disable-dom --disable-fileinfo --disable-filter --disable-mbregex --disable-opcache --disable-huge-code-pages --disable-opcache-jit --disable-phar --disable-posix --disable-session --disable-simplexml --disable-tokenizer --disable-xml --disable-xmlreader --disable-xmlwriter --disable-mysqlnd-compression-support --disable-fiber-asm --disable-zend-signals --without-cdb --with-sqlite3 --enable-pdo --with-pdo-sqlite'
 
     if [[ -v WLR_RUNTIME ]]
     then
@@ -44,10 +44,6 @@ else
 fi
 
 export MAKE_TARGETS='cgi'
-if [[ "${WLR_RUNTIME}" == "wasmedge" ]]
-then
-    export MAKE_TARGETS="${MAKE_TARGETS} cli"
-fi
 
 logStatus "Building '${MAKE_TARGETS}'..."
 # By exporting WLR_SKIP_WASM_OPT envvar during the build, the
@@ -65,12 +61,6 @@ logStatus "Preparing artifacts..."
 mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
 logStatus "Running wasm-opt with the asyncify pass on php-cgi..."
-wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php-cgi${WLR_RUNTIME:+-$WLR_RUNTIME}.wasm sapi/cgi/php-cgi || exit 1
-
-if [[ "${WLR_RUNTIME}" == "wasmedge" ]]
-then
-    logStatus "Running wasm-opt with the asyncify pass on php..."
-    wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php${WLR_RUNTIME:+-$WLR_RUNTIME}.wasm sapi/cli/php || exit 1
-fi
+wasm-opt -O4 -o ${WLR_OUTPUT}/bin/php-cgi${WLR_RUNTIME:+-$WLR_RUNTIME}.wasm sapi/cgi/php-cgi || exit 1
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

@@ -6,7 +6,7 @@ then
     exit 1
 fi
 
-export CFLAGS_CONFIG="-O0"
+export CFLAGS_CONFIG="-Os"
 
 
 # We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
