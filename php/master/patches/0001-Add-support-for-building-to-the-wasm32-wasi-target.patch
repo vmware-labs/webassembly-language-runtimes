@@ -1,4 +1,4 @@
-From e31e6b8def46c16a7c6e77f3b80c67dd644a93a8 Mon Sep 17 00:00:00 2001
+From da0058d7868814cb0c34dabbc3c5414996d10136 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Rafael=20Fern=C3=A1ndez=20L=C3=B3pez?=
  <rfernandezl@vmware.com>
 Date: Wed, 25 Jan 2023 14:38:28 +0100
@@ -15,7 +15,6 @@ Co-Authored-By: Asen Alexandrov <alexandrov@vmware.com>
  Zend/zend_alloc.c                      |  18 ++-
  Zend/zend_fibers.c                     |  20 ++-
  Zend/zend_globals.h                    |   5 +
- Zend/zend_types.h                      |   1 -
  Zend/zend_virtual_cwd.c                |   6 +-
  build/ax_check_define.m4               |  73 +++++++++++
  configure.ac                           |  36 ++++--
@@ -55,7 +54,7 @@ Co-Authored-By: Asen Alexandrov <alexandrov@vmware.com>
  wasi/main/network.c                    |  19 +++
  wasi/main/php_open_temporary_file.c    |  20 +++
  wasi/unistd.c                          |  21 ++++
- 46 files changed, 847 insertions(+), 95 deletions(-)
+ 45 files changed, 847 insertions(+), 94 deletions(-)
  create mode 100644 build/ax_check_define.m4
  create mode 100644 ext/standard/wasi/dns.c
  create mode 100644 ext/standard/wasi/exec.c
@@ -69,7 +68,7 @@ Co-Authored-By: Asen Alexandrov <alexandrov@vmware.com>
  create mode 100644 wasi/unistd.c
 
 diff --git a/Zend/Optimizer/zend_func_infos.h b/Zend/Optimizer/zend_func_infos.h
-index a3475fab6c..63fb0fff49 100644
+index 34b8b9c4cb..7c207aa962 100644
 --- a/Zend/Optimizer/zend_func_infos.h
 +++ b/Zend/Optimizer/zend_func_infos.h
 @@ -658,11 +658,19 @@ static const func_info_t func_infos[] = {
@@ -94,10 +93,10 @@ index a3475fab6c..63fb0fff49 100644
  #endif
  	F1("stream_get_contents", MAY_BE_STRING|MAY_BE_FALSE),
 diff --git a/Zend/zend.c b/Zend/zend.c
-index 7f5257c570..313ee0bc1b 100644
+index bbddd45970..7131ec771f 100644
 --- a/Zend/zend.c
 +++ b/Zend/zend.c
-@@ -784,7 +784,9 @@ static void executor_globals_ctor(zend_executor_globals *executor_globals) /* {{
+@@ -788,7 +788,9 @@ static void executor_globals_ctor(zend_executor_globals *executor_globals) /* {{
  #endif
  	executor_globals->saved_fpu_cw_ptr = NULL;
  	executor_globals->active = 0;
@@ -107,7 +106,7 @@ index 7f5257c570..313ee0bc1b 100644
  	executor_globals->error_handling  = EH_NORMAL;
  	executor_globals->exception_class = NULL;
  	executor_globals->exception = NULL;
-@@ -1175,9 +1177,9 @@ ZEND_COLD void zenderror(const char *error) /* {{{ */
+@@ -1179,9 +1181,9 @@ ZEND_COLD void zenderror(const char *error) /* {{{ */
  }
  /* }}} */
  
@@ -118,7 +117,7 @@ index 7f5257c570..313ee0bc1b 100644
  	if (!EG(bailout)) {
  		zend_output_debug_string(1, "%s(%d) : Bailed out without a bailout address!", filename, lineno);
  		exit(-1);
-@@ -1190,6 +1192,7 @@ ZEND_API ZEND_COLD ZEND_NORETURN void _zend_bailout(const char *filename, uint32
+@@ -1195,6 +1197,7 @@ ZEND_API ZEND_COLD ZEND_NORETURN void _zend_bailout(const char *filename, uint32
  	LONGJMP(*EG(bailout), FAILURE);
  }
  /* }}} */
@@ -127,10 +126,10 @@ index 7f5257c570..313ee0bc1b 100644
  ZEND_API size_t zend_get_page_size(void)
  {
 diff --git a/Zend/zend.h b/Zend/zend.h
-index 6e550843ea..b7bd83bf19 100644
+index fd21cbfeb9..6750a9e614 100644
 --- a/Zend/zend.h
 +++ b/Zend/zend.h
-@@ -258,6 +258,7 @@ typedef size_t (*zend_write_func_t)(const char *str, size_t str_length);
+@@ -257,6 +257,7 @@ typedef size_t (*zend_write_func_t)(const char *str, size_t str_length);
  
  #define zend_bailout()		_zend_bailout(__FILE__, __LINE__)
  
@@ -138,7 +137,7 @@ index 6e550843ea..b7bd83bf19 100644
  #define zend_try												\
  	{															\
  		JMP_BUF *__orig_bailout = EG(bailout);					\
-@@ -274,6 +275,19 @@ typedef size_t (*zend_write_func_t)(const char *str, size_t str_length);
+@@ -273,6 +274,19 @@ typedef size_t (*zend_write_func_t)(const char *str, size_t str_length);
  	}
  #define zend_first_try		EG(bailout)=NULL;	zend_try
  
@@ -159,7 +158,7 @@ index 6e550843ea..b7bd83bf19 100644
  void zend_startup(zend_utility_functions *utility_functions);
  void zend_shutdown(void);
 diff --git a/Zend/zend_alloc.c b/Zend/zend_alloc.c
-index 4cb9386eed..7728f79713 100644
+index 7335baf849..51f9f41342 100644
 --- a/Zend/zend_alloc.c
 +++ b/Zend/zend_alloc.c
 @@ -80,7 +80,7 @@
@@ -220,7 +219,7 @@ index 4cb9386eed..7728f79713 100644
  }
  
  static void *zend_mm_chunk_alloc(zend_mm_heap *heap, size_t size, size_t alignment)
-@@ -2931,7 +2945,7 @@ ZEND_API void start_memory_manager(void)
+@@ -2934,7 +2948,7 @@ ZEND_API void start_memory_manager(void)
  #else
  	alloc_globals_ctor(&alloc_globals);
  #endif
@@ -230,7 +229,7 @@ index 4cb9386eed..7728f79713 100644
  	REAL_PAGE_SIZE = sysconf(_SC_PAGESIZE);
  #  elif defined(_SC_PAGE_SIZE)
 diff --git a/Zend/zend_fibers.c b/Zend/zend_fibers.c
-index 99b044adbd..c1edb189f5 100644
+index a43ed60dcd..b033e55841 100644
 --- a/Zend/zend_fibers.c
 +++ b/Zend/zend_fibers.c
 @@ -39,7 +39,7 @@
@@ -328,7 +327,7 @@ index 99b044adbd..c1edb189f5 100644
  	to->handle = data.handle;
  #endif
 diff --git a/Zend/zend_globals.h b/Zend/zend_globals.h
-index 71f1f8168b..278362e868 100644
+index 8900a5f416..eeb9b4d499 100644
 --- a/Zend/zend_globals.h
 +++ b/Zend/zend_globals.h
 @@ -21,7 +21,10 @@
@@ -352,21 +351,11 @@ index 71f1f8168b..278362e868 100644
  
  	int error_reporting;
  	int exit_status;
-diff --git a/Zend/zend_types.h b/Zend/zend_types.h
-index faed815401..0b0ef252b8 100644
---- a/Zend/zend_types.h
-+++ b/Zend/zend_types.h
-@@ -1283,5 +1283,4 @@ static zend_always_inline uint32_t zval_delref_p(zval* pz) {
- #define ZVAL_COPY_OR_DUP_PROP(z, v) \
- 	do { ZVAL_COPY_OR_DUP(z, v); Z_PROP_FLAG_P(z) = Z_PROP_FLAG_P(v); } while (0)
- 
--
- #endif /* ZEND_TYPES_H */
 diff --git a/Zend/zend_virtual_cwd.c b/Zend/zend_virtual_cwd.c
-index 64fc165174..029df2b913 100644
+index 6bff2ad984..3db42f5a1c 100644
 --- a/Zend/zend_virtual_cwd.c
 +++ b/Zend/zend_virtual_cwd.c
-@@ -1375,6 +1375,7 @@ CWD_API int virtual_utime(const char *filename, struct utimbuf *buf) /* {{{ */
+@@ -1378,6 +1378,7 @@ CWD_API int virtual_utime(const char *filename, struct utimbuf *buf) /* {{{ */
  /* }}} */
  #endif
  
@@ -374,7 +363,7 @@ index 64fc165174..029df2b913 100644
  CWD_API int virtual_chmod(const char *filename, mode_t mode) /* {{{ */
  {
  	cwd_state new_state;
-@@ -1408,8 +1409,9 @@ CWD_API int virtual_chmod(const char *filename, mode_t mode) /* {{{ */
+@@ -1411,8 +1412,9 @@ CWD_API int virtual_chmod(const char *filename, mode_t mode) /* {{{ */
  	return ret;
  }
  /* }}} */
@@ -385,7 +374,7 @@ index 64fc165174..029df2b913 100644
  CWD_API int virtual_chown(const char *filename, uid_t owner, gid_t group, int link) /* {{{ */
  {
  	cwd_state new_state;
-@@ -1656,7 +1658,7 @@ CWD_API FILE *virtual_popen(const char *command, const char *type) /* {{{ */
+@@ -1659,7 +1661,7 @@ CWD_API FILE *virtual_popen(const char *command, const char *type) /* {{{ */
  	return popen_ex(command, type, CWDG(cwd).cwd, NULL);
  }
  /* }}} */
@@ -474,7 +463,7 @@ index 0000000000..c10d1137ae
 +AS_VAR_POPDEF([ac_var])dnl
 +])# AC_CHECK_FUNC
 diff --git a/configure.ac b/configure.ac
-index ce981d1b87..3ddcaa73c4 100644
+index 0a475ed80f..1281a39ced 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -4,6 +4,7 @@ dnl Include external macro definitions before the AC_INIT to also remove
@@ -485,7 +474,7 @@ index ce981d1b87..3ddcaa73c4 100644
  m4_include([build/ax_func_which_gethostbyname_r.m4])
  m4_include([build/ax_gcc_func_attribute.m4])
  m4_include([build/libtool.m4])
-@@ -467,6 +468,8 @@ PHP_MISSING_TIME_R_DECL
+@@ -477,6 +478,8 @@ PHP_MISSING_TIME_R_DECL
  PHP_MISSING_FCLOSE_DECL
  PHP_STRUCT_FLOCK
  
@@ -494,7 +483,7 @@ index ce981d1b87..3ddcaa73c4 100644
  AC_CHECK_TYPES(socklen_t, [], [], [
    #ifdef HAVE_SYS_TYPES_H
    # include <sys/types.h>
-@@ -1341,11 +1344,13 @@ else
+@@ -1351,11 +1354,13 @@ else
    if test "$fiber_os" = 'mac'; then
      AC_DEFINE([_XOPEN_SOURCE], 1, [ ])
    fi
@@ -513,7 +502,7 @@ index ce981d1b87..3ddcaa73c4 100644
  fi
  
  LIBZEND_BASIC_CHECKS
-@@ -1697,15 +1702,26 @@ PHP_ADD_SOURCES(main, main.c snprintf.c spprintf.c \
+@@ -1707,15 +1712,26 @@ PHP_ADD_SOURCES(main, main.c snprintf.c spprintf.c \
         php_ini_builder.c \
         php_ini.c SAPI.c rfc1867.c php_content_types.c strlcpy.c \
         strlcat.c explicit_bzero.c reentrancy.c php_variables.c php_ticks.c \
@@ -543,7 +532,7 @@ index ce981d1b87..3ddcaa73c4 100644
  PHP_ADD_SOURCES(/main, internal_functions.c, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1, sapi)
  PHP_ADD_SOURCES_X(/main, internal_functions_cli.c, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1, PHP_BINARY_OBJS)
  
-@@ -1747,6 +1763,10 @@ PHP_ADD_SOURCES(Zend, \
+@@ -1757,6 +1773,10 @@ PHP_ADD_SOURCES(Zend, \
  	Optimizer/zend_dump.c \
      , -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
  
@@ -555,7 +544,7 @@ index ce981d1b87..3ddcaa73c4 100644
  PHP_ADD_BUILD_DIR(TSRM)
  PHP_ADD_BUILD_DIR(Zend Zend/asm Zend/Optimizer)
 diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
-index f65a71a726..a3557bbc94 100644
+index 1c84ddcc98..e863dbad14 100644
 --- a/ext/standard/basic_functions.c
 +++ b/ext/standard/basic_functions.c
 @@ -66,9 +66,9 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
@@ -635,7 +624,7 @@ index f65a71a726..a3557bbc94 100644
  		umask(oldmask);
  
 diff --git a/ext/standard/basic_functions.stub.php b/ext/standard/basic_functions.stub.php
-index 2a624f1892..3cc608a82a 100755
+index effb05ff9f..998586d60c 100755
 --- a/ext/standard/basic_functions.stub.php
 +++ b/ext/standard/basic_functions.stub.php
 @@ -739,6 +739,7 @@
@@ -654,7 +643,7 @@ index 2a624f1892..3cc608a82a 100755
  
  /* string.c */
  
-@@ -2146,9 +2148,13 @@ function md5_file(string $filename, bool $binary = false): string|false {}
+@@ -2178,9 +2180,13 @@ function md5_file(string $filename, bool $binary = false): string|false {}
  
  /* pageinfo.c */
  
@@ -668,7 +657,7 @@ index 2a624f1892..3cc608a82a 100755
  
  function getmypid(): int|false {}
  
-@@ -2799,9 +2805,13 @@ function stat(string $filename): array|false {}
+@@ -2894,9 +2900,13 @@ function stat(string $filename): array|false {}
   */
  function lstat(string $filename): array|false {}
  
@@ -682,7 +671,7 @@ index 2a624f1892..3cc608a82a 100755
  
  #ifdef HAVE_LCHOWN
  function lchown(string $filename, string|int $user): bool {}
-@@ -2809,7 +2819,9 @@ function lchown(string $filename, string|int $user): bool {}
+@@ -2904,7 +2914,9 @@ function lchown(string $filename, string|int $user): bool {}
  function lchgrp(string $filename, string|int $group): bool {}
  #endif
  
@@ -692,7 +681,7 @@ index 2a624f1892..3cc608a82a 100755
  
  #ifdef HAVE_UTIME
  function touch(string $filename, ?int $mtime = null, ?int $atime = null): bool {}
-@@ -2954,7 +2966,9 @@ function link(string $target, string $link): bool {}
+@@ -3055,7 +3067,9 @@ function link(string $target, string $link): bool {}
  
  /* mail.c */
  
@@ -702,7 +691,7 @@ index 2a624f1892..3cc608a82a 100755
  
  /* math.c */
  
-@@ -3203,6 +3217,7 @@ function stream_filter_append($stream, string $filter_name, int $mode = 0, mixed
+@@ -3355,6 +3369,7 @@ function stream_filter_append($stream, string $filter_name, int $mode = 0, mixed
  /** @param resource $stream_filter */
  function stream_filter_remove($stream_filter): bool {}
  
@@ -710,7 +699,7 @@ index 2a624f1892..3cc608a82a 100755
  /**
   * @param int $error_code
   * @param string $error_message
-@@ -3260,6 +3275,7 @@ function stream_socket_shutdown($stream, int $mode): bool {}
+@@ -3412,6 +3427,7 @@ function stream_socket_shutdown($stream, int $mode): bool {}
   */
  function stream_socket_pair(int $domain, int $type, int $protocol): array|false {}
  #endif
@@ -719,17 +708,17 @@ index 2a624f1892..3cc608a82a 100755
  /**
   * @param resource $from
 diff --git a/ext/standard/basic_functions_arginfo.h b/ext/standard/basic_functions_arginfo.h
-index 61822b4067..0704e3fc34 100644
+index 5612ee2186..b0da259e45 100644
 --- a/ext/standard/basic_functions_arginfo.h
 +++ b/ext/standard/basic_functions_arginfo.h
 @@ -1,5 +1,5 @@
  /* This is a generated file, edit the .stub.php file instead.
-- * Stub hash: 22d7938e2402143250c99e110b2ab06ae8270a0b */
-+ * Stub hash: 140bc65b9543e5b4e1949b0f903a663578e54e82 */
+- * Stub hash: 9cc9c0954bd7032d363ce9a531be621274b9a7e2 */
++ * Stub hash: 7763da007bf30a405fc7fa16588649317ce7bb20 */
  
  ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_set_time_limit, 0, 1, _IS_BOOL, 0)
  	ZEND_ARG_TYPE_INFO(0, seconds, IS_LONG, 0)
-@@ -691,9 +691,14 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_md5_file, 0, 1, MAY_BE_STRING|MA
+@@ -686,9 +686,14 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_md5_file, 0, 1, MAY_BE_STRING|MA
  	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, binary, _IS_BOOL, 0, "false")
  ZEND_END_ARG_INFO()
  
@@ -746,7 +735,7 @@ index 61822b4067..0704e3fc34 100644
  
  #define arginfo_getmypid arginfo_ob_get_length
  
-@@ -1411,15 +1416,19 @@ ZEND_END_ARG_INFO()
+@@ -1406,15 +1411,19 @@ ZEND_END_ARG_INFO()
  
  #define arginfo_lstat arginfo_stat
  
@@ -766,7 +755,7 @@ index 61822b4067..0704e3fc34 100644
  
  #if defined(HAVE_LCHOWN)
  ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_lchown, 0, 2, _IS_BOOL, 0)
-@@ -1435,10 +1444,12 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_lchgrp, 0, 2, _IS_BOOL, 0)
+@@ -1430,10 +1439,12 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_lchgrp, 0, 2, _IS_BOOL, 0)
  ZEND_END_ARG_INFO()
  #endif
  
@@ -779,7 +768,7 @@ index 61822b4067..0704e3fc34 100644
  
  #if defined(HAVE_UTIME)
  ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_touch, 0, 1, _IS_BOOL, 0)
-@@ -1596,6 +1607,7 @@ ZEND_END_ARG_INFO()
+@@ -1591,6 +1602,7 @@ ZEND_END_ARG_INFO()
  #define arginfo_link arginfo_symlink
  #endif
  
@@ -787,7 +776,7 @@ index 61822b4067..0704e3fc34 100644
  ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_mail, 0, 3, _IS_BOOL, 0)
  	ZEND_ARG_TYPE_INFO(0, to, IS_STRING, 0)
  	ZEND_ARG_TYPE_INFO(0, subject, IS_STRING, 0)
-@@ -1603,6 +1615,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_mail, 0, 3, _IS_BOOL, 0)
+@@ -1598,6 +1610,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_mail, 0, 3, _IS_BOOL, 0)
  	ZEND_ARG_TYPE_MASK(0, additional_headers, MAY_BE_ARRAY|MAY_BE_STRING, "[]")
  	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, additional_params, IS_STRING, 0, "\"\"")
  ZEND_END_ARG_INFO()
@@ -795,7 +784,7 @@ index 61822b4067..0704e3fc34 100644
  
  ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_abs, 0, 1, MAY_BE_LONG|MAY_BE_DOUBLE)
  	ZEND_ARG_TYPE_MASK(0, num, MAY_BE_LONG|MAY_BE_DOUBLE, NULL)
-@@ -1875,6 +1888,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_stream_filter_remove, 0, 1, _IS_
+@@ -1870,6 +1883,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_stream_filter_remove, 0, 1, _IS_
  	ZEND_ARG_INFO(0, stream_filter)
  ZEND_END_ARG_INFO()
  
@@ -803,7 +792,7 @@ index 61822b4067..0704e3fc34 100644
  ZEND_BEGIN_ARG_INFO_EX(arginfo_stream_socket_client, 0, 0, 1)
  	ZEND_ARG_TYPE_INFO(0, address, IS_STRING, 0)
  	ZEND_ARG_INFO_WITH_DEFAULT_VALUE(1, error_code, "null")
-@@ -1883,7 +1897,9 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_stream_socket_client, 0, 0, 1)
+@@ -1878,7 +1892,9 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_stream_socket_client, 0, 0, 1)
  	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, flags, IS_LONG, 0, "STREAM_CLIENT_CONNECT")
  	ZEND_ARG_INFO_WITH_DEFAULT_VALUE(0, context, "null")
  ZEND_END_ARG_INFO()
@@ -813,7 +802,7 @@ index 61822b4067..0704e3fc34 100644
  ZEND_BEGIN_ARG_INFO_EX(arginfo_stream_socket_server, 0, 0, 1)
  	ZEND_ARG_TYPE_INFO(0, address, IS_STRING, 0)
  	ZEND_ARG_INFO_WITH_DEFAULT_VALUE(1, error_code, "null")
-@@ -1891,47 +1907,58 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_stream_socket_server, 0, 0, 1)
+@@ -1886,47 +1902,58 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_stream_socket_server, 0, 0, 1)
  	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, flags, IS_LONG, 0, "STREAM_SERVER_BIND | STREAM_SERVER_LISTEN")
  	ZEND_ARG_INFO_WITH_DEFAULT_VALUE(0, context, "null")
  ZEND_END_ARG_INFO()
@@ -874,7 +863,7 @@ index 61822b4067..0704e3fc34 100644
  ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_stream_socket_pair, 0, 3, MAY_BE_ARRAY|MAY_BE_FALSE)
  	ZEND_ARG_TYPE_INFO(0, domain, IS_LONG, 0)
  	ZEND_ARG_TYPE_INFO(0, type, IS_LONG, 0)
-@@ -2398,8 +2425,12 @@ ZEND_FUNCTION(ftok);
+@@ -2393,8 +2420,12 @@ ZEND_FUNCTION(ftok);
  ZEND_FUNCTION(hrtime);
  ZEND_FUNCTION(md5);
  ZEND_FUNCTION(md5_file);
@@ -887,7 +876,7 @@ index 61822b4067..0704e3fc34 100644
  ZEND_FUNCTION(getmypid);
  ZEND_FUNCTION(getmyinode);
  ZEND_FUNCTION(getlastmod);
-@@ -2586,15 +2617,21 @@ ZEND_FUNCTION(is_dir);
+@@ -2581,15 +2612,21 @@ ZEND_FUNCTION(is_dir);
  ZEND_FUNCTION(is_link);
  ZEND_FUNCTION(stat);
  ZEND_FUNCTION(lstat);
@@ -909,7 +898,7 @@ index 61822b4067..0704e3fc34 100644
  #if defined(HAVE_UTIME)
  ZEND_FUNCTION(touch);
  #endif
-@@ -2638,7 +2675,9 @@ ZEND_FUNCTION(symlink);
+@@ -2633,7 +2670,9 @@ ZEND_FUNCTION(symlink);
  #if (defined(HAVE_SYMLINK) || defined(PHP_WIN32))
  ZEND_FUNCTION(link);
  #endif
@@ -919,7 +908,7 @@ index 61822b4067..0704e3fc34 100644
  ZEND_FUNCTION(abs);
  ZEND_FUNCTION(ceil);
  ZEND_FUNCTION(floor);
-@@ -2723,17 +2762,31 @@ ZEND_FUNCTION(stream_context_set_default);
+@@ -2718,17 +2757,31 @@ ZEND_FUNCTION(stream_context_set_default);
  ZEND_FUNCTION(stream_filter_prepend);
  ZEND_FUNCTION(stream_filter_append);
  ZEND_FUNCTION(stream_filter_remove);
@@ -953,7 +942,7 @@ index 61822b4067..0704e3fc34 100644
  ZEND_FUNCTION(stream_socket_pair);
  #endif
  ZEND_FUNCTION(stream_copy_to_stream);
-@@ -3030,8 +3083,12 @@ static const zend_function_entry ext_functions[] = {
+@@ -3025,8 +3078,12 @@ static const zend_function_entry ext_functions[] = {
  	ZEND_FE(hrtime, arginfo_hrtime)
  	ZEND_FE(md5, arginfo_md5)
  	ZEND_FE(md5_file, arginfo_md5_file)
@@ -966,7 +955,7 @@ index 61822b4067..0704e3fc34 100644
  	ZEND_FE(getmypid, arginfo_getmypid)
  	ZEND_FE(getmyinode, arginfo_getmyinode)
  	ZEND_FE(getlastmod, arginfo_getlastmod)
-@@ -3223,15 +3280,21 @@ static const zend_function_entry ext_functions[] = {
+@@ -3218,15 +3275,21 @@ static const zend_function_entry ext_functions[] = {
  	ZEND_FE(is_link, arginfo_is_link)
  	ZEND_FE(stat, arginfo_stat)
  	ZEND_FE(lstat, arginfo_lstat)
@@ -988,17 +977,17 @@ index 61822b4067..0704e3fc34 100644
  #if defined(HAVE_UTIME)
  	ZEND_FE(touch, arginfo_touch)
  #endif
-@@ -3276,7 +3339,9 @@ static const zend_function_entry ext_functions[] = {
+@@ -3271,7 +3334,9 @@ static const zend_function_entry ext_functions[] = {
  #if (defined(HAVE_SYMLINK) || defined(PHP_WIN32))
  	ZEND_FE(link, arginfo_link)
  #endif
 +#if !defined(__wasi__)
  	ZEND_FE(mail, arginfo_mail)
 +#endif
- 	ZEND_FE(abs, arginfo_abs)
- 	ZEND_FE(ceil, arginfo_ceil)
- 	ZEND_FE(floor, arginfo_floor)
-@@ -3361,17 +3426,31 @@ static const zend_function_entry ext_functions[] = {
+ 	ZEND_SUPPORTS_COMPILE_TIME_EVAL_FE(abs, arginfo_abs)
+ 	ZEND_SUPPORTS_COMPILE_TIME_EVAL_FE(ceil, arginfo_ceil)
+ 	ZEND_SUPPORTS_COMPILE_TIME_EVAL_FE(floor, arginfo_floor)
+@@ -3356,17 +3421,31 @@ static const zend_function_entry ext_functions[] = {
  	ZEND_FE(stream_filter_prepend, arginfo_stream_filter_prepend)
  	ZEND_FE(stream_filter_append, arginfo_stream_filter_append)
  	ZEND_FE(stream_filter_remove, arginfo_stream_filter_remove)
@@ -1032,7 +1021,7 @@ index 61822b4067..0704e3fc34 100644
  	ZEND_FE(stream_socket_pair, arginfo_stream_socket_pair)
  #endif
  	ZEND_FE(stream_copy_to_stream, arginfo_stream_copy_to_stream)
-@@ -3674,65 +3753,103 @@ static void register_basic_functions_symbols(int module_number)
+@@ -3669,65 +3748,103 @@ static void register_basic_functions_symbols(int module_number)
  	REGISTER_LONG_CONSTANT("CREDITS_FULLPAGE", PHP_CREDITS_FULLPAGE, CONST_PERSISTENT);
  	REGISTER_LONG_CONSTANT("CREDITS_QA", PHP_CREDITS_QA, CONST_PERSISTENT);
  	REGISTER_LONG_CONSTANT("CREDITS_ALL", PHP_CREDITS_ALL, CONST_PERSISTENT);
@@ -1328,7 +1317,7 @@ index 1b1b0ab9e9..a01af31d5e 100644
  #ifdef HAVE_NICE
  /* {{{ Change the priority of the current process */
 diff --git a/ext/standard/file.c b/ext/standard/file.c
-index 345536624d..0f1d7c3521 100644
+index f06b672fb6..d40ef1636c 100644
 --- a/ext/standard/file.c
 +++ b/ext/standard/file.c
 @@ -55,7 +55,9 @@
@@ -1530,10 +1519,10 @@ index 8622ec1aec..f44af135d6 100644
  #endif
 +#endif // __wasi__
 diff --git a/ext/standard/mail.c b/ext/standard/mail.c
-index 9b3b3ed75f..0716cbbe14 100644
+index b1e0f14b8d..02743882f3 100644
 --- a/ext/standard/mail.c
 +++ b/ext/standard/mail.c
-@@ -370,6 +370,7 @@ static int php_mail_detect_multiple_crlf(const char *hdr) {
+@@ -372,6 +372,7 @@ static int php_mail_detect_multiple_crlf(const char *hdr) {
  
  
  /* {{{ php_mail */
@@ -1541,7 +1530,7 @@ index 9b3b3ed75f..0716cbbe14 100644
  PHPAPI int php_mail(const char *to, const char *subject, const char *message, const char *headers, const char *extra_cmd)
  {
  #ifdef PHP_WIN32
-@@ -554,6 +555,7 @@ PHPAPI int php_mail(const char *to, const char *subject, const char *message, co
+@@ -556,6 +557,7 @@ PHPAPI int php_mail(const char *to, const char *subject, const char *message, co
  
  	MAIL_RET(1); /* never reached */
  }
@@ -1681,10 +1670,10 @@ index 8926485025..4b317d8870 100644
  		zend_stat_t st = {0};
  		memset(&st, 0, sizeof(st));
 diff --git a/ext/standard/streamsfuncs.c b/ext/standard/streamsfuncs.c
-index ac2c777eea..5842336d30 100644
+index 53fa8d33da..6006872539 100644
 --- a/ext/standard/streamsfuncs.c
 +++ b/ext/standard/streamsfuncs.c
-@@ -46,7 +46,7 @@ static php_stream_context *decode_context_param(zval *contextresource);
+@@ -48,7 +48,7 @@ static php_stream_context *decode_context_param(zval *contextresource);
  
  /* Streams based network functions */
  
@@ -1693,7 +1682,7 @@ index ac2c777eea..5842336d30 100644
  /* {{{ Creates a pair of connected, indistinguishable socket streams */
  PHP_FUNCTION(stream_socket_pair)
  {
-@@ -72,14 +72,14 @@ PHP_FUNCTION(stream_socket_pair)
+@@ -74,14 +74,14 @@ PHP_FUNCTION(stream_socket_pair)
          close(pair[0]);
          close(pair[1]);
          php_error_docref(NULL, E_WARNING, "Failed to open stream from socketpair");
@@ -1710,7 +1699,7 @@ index ac2c777eea..5842336d30 100644
      }
  
      array_init(return_value);
-@@ -92,10 +92,11 @@ PHP_FUNCTION(stream_socket_pair)
+@@ -94,10 +94,11 @@ PHP_FUNCTION(stream_socket_pair)
  	add_next_index_resource(return_value, s1->res);
  	add_next_index_resource(return_value, s2->res);
  }
@@ -1723,7 +1712,7 @@ index ac2c777eea..5842336d30 100644
  PHP_FUNCTION(stream_socket_client)
  {
  	zend_string *host;
-@@ -186,6 +187,7 @@ PHP_FUNCTION(stream_socket_client)
+@@ -195,6 +196,7 @@ PHP_FUNCTION(stream_socket_client)
  	php_stream_to_zval(stream, return_value);
  
  }
@@ -1731,7 +1720,7 @@ index ac2c777eea..5842336d30 100644
  /* }}} */
  
  /* {{{ Create a server socket bound to localaddress */
-@@ -344,6 +346,7 @@ PHP_FUNCTION(stream_socket_get_name)
+@@ -355,6 +357,7 @@ PHP_FUNCTION(stream_socket_get_name)
  /* }}} */
  
  /* {{{ Send data to a socket stream.  If target_addr is specified it must be in dotted quad (or [ipv6]) format */
@@ -1739,7 +1728,7 @@ index ac2c777eea..5842336d30 100644
  PHP_FUNCTION(stream_socket_sendto)
  {
  	php_stream *stream;
-@@ -373,9 +376,11 @@ PHP_FUNCTION(stream_socket_sendto)
+@@ -384,9 +387,11 @@ PHP_FUNCTION(stream_socket_sendto)
  
  	RETURN_LONG(php_stream_xport_sendto(stream, data, datalen, (int)flags, target_addr_len ? &sa : NULL, sl));
  }
@@ -1751,7 +1740,7 @@ index ac2c777eea..5842336d30 100644
  PHP_FUNCTION(stream_socket_recvfrom)
  {
  	php_stream *stream;
-@@ -423,6 +428,7 @@ PHP_FUNCTION(stream_socket_recvfrom)
+@@ -434,6 +439,7 @@ PHP_FUNCTION(stream_socket_recvfrom)
  	zend_string_efree(read_buf);
  	RETURN_FALSE;
  }
@@ -1759,7 +1748,7 @@ index ac2c777eea..5842336d30 100644
  /* }}} */
  
  /* {{{ Reads all remaining bytes (or up to maxlen bytes) from a stream and returns them as a string. */
-@@ -1497,6 +1503,7 @@ PHP_FUNCTION(stream_set_read_buffer)
+@@ -1508,6 +1514,7 @@ PHP_FUNCTION(stream_set_read_buffer)
  /* }}} */
  
  /* {{{ Enable or disable a specific kind of crypto on the stream */
@@ -1767,7 +1756,7 @@ index ac2c777eea..5842336d30 100644
  PHP_FUNCTION(stream_socket_enable_crypto)
  {
  	zend_long cryptokind = 0;
-@@ -1548,6 +1555,7 @@ PHP_FUNCTION(stream_socket_enable_crypto)
+@@ -1559,6 +1566,7 @@ PHP_FUNCTION(stream_socket_enable_crypto)
  			RETURN_TRUE;
  	}
  }
@@ -1775,7 +1764,7 @@ index ac2c777eea..5842336d30 100644
  /* }}} */
  
  /* {{{ Determine what file will be opened by calls to fopen() with a relative path */
-@@ -1718,7 +1726,7 @@ PHP_FUNCTION(sapi_windows_vt100_support)
+@@ -1729,7 +1737,7 @@ PHP_FUNCTION(sapi_windows_vt100_support)
  }
  #endif
  
@@ -2024,7 +2013,7 @@ index a77491f1bf..59e0f757d7 100644
  int fcgi_read(fcgi_request *req, char *str, int len)
  {
 diff --git a/main/fopen_wrappers.c b/main/fopen_wrappers.c
-index efb110171b..daefc30db5 100644
+index ead11a958b..379721bddb 100644
 --- a/main/fopen_wrappers.c
 +++ b/main/fopen_wrappers.c
 @@ -52,7 +52,9 @@
@@ -2038,10 +2027,10 @@ index efb110171b..daefc30db5 100644
  #include <arpa/inet.h>
  #endif
 diff --git a/main/main.c b/main/main.c
-index 8e09f4cd4c..9bd6fbdc23 100644
+index ad5ef2902f..508e88fdd2 100644
 --- a/main/main.c
 +++ b/main/main.c
-@@ -1462,11 +1462,14 @@ PHPAPI char *php_get_current_user(void)
+@@ -1461,11 +1461,14 @@ PHPAPI char *php_get_current_user(void)
  			return "";
  		}
  		pwd = &_pw;
@@ -2056,7 +2045,7 @@ index 8e09f4cd4c..9bd6fbdc23 100644
  		SG(request_info).current_user_length = strlen(pwd->pw_name);
  		SG(request_info).current_user = estrndup(pwd->pw_name, SG(request_info).current_user_length);
  #if defined(ZTS) && defined(HAVE_GETPWUID_R) && defined(_SC_GETPW_R_SIZE_MAX)
-@@ -1474,6 +1477,7 @@ PHPAPI char *php_get_current_user(void)
+@@ -1473,6 +1476,7 @@ PHPAPI char *php_get_current_user(void)
  #endif
  		return SG(request_info).current_user;
  #endif
@@ -2065,7 +2054,7 @@ index 8e09f4cd4c..9bd6fbdc23 100644
  }
  /* }}} */
 diff --git a/main/network.c b/main/network.c
-index a189714aaf..149a537a96 100644
+index ea3d17614f..572ea1e044 100644
 --- a/main/network.c
 +++ b/main/network.c
 @@ -54,7 +54,9 @@
@@ -2287,7 +2276,7 @@ index f2682d74f2..7257599234 100644
  #define PHP_SYSLOG_FILTER_ALL		0
  #define PHP_SYSLOG_FILTER_NO_CTRL	1
 diff --git a/main/streams/plain_wrapper.c b/main/streams/plain_wrapper.c
-index 3a6b2ccf28..25b6f7691a 100644
+index 128c3410aa..89ec330c91 100644
 --- a/main/streams/plain_wrapper.c
 +++ b/main/streams/plain_wrapper.c
 @@ -47,7 +47,7 @@
@@ -2379,7 +2368,7 @@ index 3a6b2ccf28..25b6f7691a 100644
  			zend_value_error("Unknown option %d for stream_metadata", option);
  			return 0;
 diff --git a/main/streams/streams.c b/main/streams/streams.c
-index 9663f792bc..fc5fe4fba8 100644
+index eeb3cdf101..0725f6dc3a 100644
 --- a/main/streams/streams.c
 +++ b/main/streams/streams.c
 @@ -1790,6 +1790,7 @@ void php_shutdown_stream_hashes(void)
@@ -2414,7 +2403,7 @@ index 9663f792bc..fc5fe4fba8 100644
  void php_shutdown_stream_wrappers(int module_number)
  {
 diff --git a/sapi/cgi/cgi_main.c b/sapi/cgi/cgi_main.c
-index b45468031f..99ea77534a 100644
+index bf0f233118..0afa1bd5ee 100644
 --- a/sapi/cgi/cgi_main.c
 +++ b/sapi/cgi/cgi_main.c
 @@ -95,7 +95,7 @@ int __riscosify_control = __RISCOSIFY_STRICT_UNIX_SPECS;
@@ -2526,10 +2515,10 @@ index d17d531683..427a0ee0f2 100644
    case $host_alias in
    *aix*)
 diff --git a/sapi/cli/php_cli.c b/sapi/cli/php_cli.c
-index 4766fac253..6df79240b7 100644
+index 653093cee9..c13d876409 100644
 --- a/sapi/cli/php_cli.c
 +++ b/sapi/cli/php_cli.c
-@@ -1255,7 +1255,7 @@ int main(int argc, char *argv[])
+@@ -1250,7 +1250,7 @@ int main(int argc, char *argv[])
  				/* define ini entries on command line */
  				php_ini_builder_define(&ini_builder, php_optarg);
  				break;
@@ -2538,7 +2527,7 @@ index 4766fac253..6df79240b7 100644
  			case 'S':
  				sapi_module = &cli_server_sapi_module;
  				cli_server_sapi_module.additional_functions = server_additional_functions;
-@@ -1327,11 +1327,11 @@ int main(int argc, char *argv[])
+@@ -1322,11 +1322,11 @@ int main(int argc, char *argv[])
  	}
  
  	zend_first_try {
@@ -2730,5 +2719,5 @@ index 0000000000..7719bf22a9
 +  return -1;
 +}
 -- 
-2.38.4
+2.40.1
 

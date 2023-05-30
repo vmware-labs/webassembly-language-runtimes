@@ -1,4 +1,4 @@
-From 5d7786942409e077ed844efd06d58d97f79d73b3 Mon Sep 17 00:00:00 2001
+From 32a7f81197461457e2802e883ce41bddfba45500 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Rafael=20Fern=C3=A1ndez=20L=C3=B3pez?=
  <rfernandezl@vmware.com>
 Date: Wed, 1 Feb 2023 17:42:41 +0100
@@ -201,13 +201,13 @@ index 0000000000..7882feccea
 +        path: ${{ github.workspace }}/junit.out.xml
 +        retention-days: 5
 diff --git a/.github/workflows/push.yml b/.github/workflows/push.yml
-index 65cdf72f3c..2b1b83499a 100644
+index 19a7985e5b..293c63888b 100644
 --- a/.github/workflows/push.yml
 +++ b/.github/workflows/push.yml
-@@ -215,3 +215,36 @@ jobs:
-         run: .github/scripts/windows/build.bat
-       - name: Test
-         run: .github/scripts/windows/test.bat
+@@ -310,3 +310,36 @@ jobs:
+             ${{ github.sha }} \
+             $(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.sha }}) \
+             > $GITHUB_STEP_SUMMARY
 +  WASM32_WASI:
 +    name: "WASM32_WASI_${{ matrix.debug && 'DEBUG' || 'RELEASE' }}_${{ matrix.zts && 'ZTS' || 'NTS' }}"
 +    runs-on: ubuntu-20.04
@@ -242,5 +242,5 @@ index 65cdf72f3c..2b1b83499a 100644
 +      - name: Verify generated files are up to date
 +        uses: ./.github/actions/verify-generated-files
 -- 
-2.38.4
+2.40.1
 
