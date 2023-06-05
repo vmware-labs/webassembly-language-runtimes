@@ -22,7 +22,7 @@ Hello from Python(libpython3.11.a) in Wasm(Rust). args= ('a1', 'a2', 3, 4)
 
 This example is really simple and adopted from `pyo3`'s documentation on [calling Python from Rust](https://pyo3.rs/v0.18.3/python_from_rust).
 
-It's main purpose is to show how to configure the build and dependencies.
+Its main purpose is to show how to configure the build and dependencies.
 
 # Build and dependencies
 
