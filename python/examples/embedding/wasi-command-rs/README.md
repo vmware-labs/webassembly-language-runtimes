@@ -28,7 +28,7 @@ Its main purpose is to show how to configure the build and dependencies.
 
 For pyo3 to work the final binary needs to link to `libpython3.11.a`. The WLR project provides a pre-build `libpython` static library, which depends on `wasi-sdk`. To setup the build properly you will need to provide several static libs and configure the linker to use them properly.
 
-The build uses pre-built `wasm32-wasi` static libs, based on [wasi-sdk](https://github.com/WebAssembly/wasi-sdk). There is custom code in [build.rs](./build.rs), which downloads them and configures the linker to properly use them.
+Fortunately, the custom code in [build.rs](./build.rs) downloads the required libraries and configures the linker to use them for you. The build uses pre-built `wasm32-wasi` static libs, based on [wasi-sdk](https://github.com/WebAssembly/wasi-sdk).
 
  - [wasi-sysroot-19.0.tar.gz](https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-19/wasi-sysroot-19.0.tar.gz) provides some POSIX emulations
  - [libclang_rt.builtins-wasm32-wasi-19.0.tar.gz](https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-19/libclang_rt.builtins-wasm32-wasi-19.0.tar.gz) provides some built-ins which may be required by code built via clang (like the `libpython` that we publish)
