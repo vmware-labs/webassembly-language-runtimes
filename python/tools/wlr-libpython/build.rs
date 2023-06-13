@@ -134,7 +134,6 @@ fn main() -> Result<(), BoxedError> {
 
     libs_config.emit_link_flags();
 
-    // println!("cargo:rustc-cfg=option_insert");
 
     Ok(())
 }

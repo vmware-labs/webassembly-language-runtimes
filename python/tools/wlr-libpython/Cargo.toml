@@ -11,8 +11,6 @@ libc = "0.2.62"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-# crate-type = ["staticlib"]
-# crate-type = ["rlib", "staticlib"]
 
 [build-dependencies]
 flate2 = "1.0.26"
