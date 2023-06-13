@@ -1,0 +1,14 @@
+[package]
+name = "wlr-libpy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wlr-assets = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", branch="rust-py-example", optional = true }
+
+[features]
+
+default = []
+
+build = ["dep:wlr-assets"]
+py_main = []
