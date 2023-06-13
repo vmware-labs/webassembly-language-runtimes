@@ -1,0 +1,11 @@
+[package]
+name = "wasi-py-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pyo3 = { version = "0.19.0", features = ["abi3-py311"] }
+wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", branch="rust-py-example", features = ["py_main"] }
+
+[build-dependencies]
+wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", branch="rust-py-example", features = ["build"] }
