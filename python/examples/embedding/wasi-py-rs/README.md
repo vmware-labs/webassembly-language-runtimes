@@ -24,7 +24,7 @@ Original people: [Person(Name: "John", Age: 21, Tags:["male", "student"]), Perso
 Filtered people by `student`: [Person(Name: "John", Age: 21, Tags:["male", "student"]), Person(Name: "Jane", Age: 22, Tags:["female", "student"])]
 + set +x
 
-35mCalling a WASI Command which wraps the Python binary (adding a custom module implemented in Rust):
+Calling a WASI Command which wraps the Python binary (adding a custom module implemented in Rust):
 + wasmtime --mapdir /usr::target/wasm32-wasi/wasi-deps/usr target/wasm32-wasi/debug/py-wrapper.wasm -- -c 'import person as p; pp = [p.Person("a", 1), p.Person("b", 2)]; pp[0].add_tag("X"); print("Filtered: ", p.filter_by_tag(pp, "X"))'
 Filtered:  [Person(Name: "a", Age: 1, Tags:["X"])]
 + set +x
@@ -57,14 +57,18 @@ Take a look at [Cargo.toml](./Cargo.toml) to see how to add it as a build depend
 
 ```toml
 [build-dependencies]
-wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", branch="rust-py-example", features = ["build"] }
+wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", features = ["build"] }
 ```
 
 Then, in the [build.rs](./build.rs) file we only need to add this to the `main` method:
 
 ```rs
+fn main() {
+    // ...
     use wlr_libpy::bld_cfg::configure_static_libs;
     configure_static_libs().unwrap().emit_link_flags();
+    // ...
+}
 ```
 
 This will ensure that all required libraries are downloaded and the linker is configured to use them.

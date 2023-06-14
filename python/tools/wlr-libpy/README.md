@@ -12,15 +12,17 @@ To use this feature add this to your Cargo.toml
 
 ```toml
 [build-dependencies]
-wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", branch="rust-py-example", features = ["build"] }
+wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", features = ["build"] }
 ```
 
 Then, in the `build.rs` file of your project you only need to call `configure_static_libs().unwrap().emit_link_flags()` like this:
 
 ```rs
 fn main() {
+    // ...
     use wlr_libpy::bld_cfg::configure_static_libs;
     configure_static_libs().unwrap().emit_link_flags();
+    // ...
 }
 ```
 
@@ -39,12 +41,14 @@ To use this feature add this to your Cargo.toml
 ```toml
 [dependencies]
 ...
-wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", branch="rust-py-example", features = ["py_main"] }
+wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", features = ["py_main"] }
 ```
 
 Then to call on the `Py_Main` method just do this:
 
 ```rs
+fn main() {
     use wlr_libpy::py_main::py_main;
     py_main(std::env::args().collect());
+}
 ```
