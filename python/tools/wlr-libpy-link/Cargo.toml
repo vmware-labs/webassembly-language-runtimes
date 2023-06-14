@@ -1,0 +1,8 @@
+[package]
+name = "wlr-libpy-link"
+version = "0.1.0"
+edition = "2021"
+links = "wasi-sdk"
+
+[build-dependencies]
+wlr-libpy = { path = "../wlr-libpy", features = ["build"] }
