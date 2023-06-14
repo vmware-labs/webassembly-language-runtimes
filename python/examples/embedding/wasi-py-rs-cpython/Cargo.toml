@@ -1,0 +1,15 @@
+[package]
+name = "wasi-py-rs-cpython"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cpython = { version = "0.7", features = ["extension-module"] }
+wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", features = [
+    "py_main",
+] }
+
+[build-dependencies]
+wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", features = [
+    "build",
+] }

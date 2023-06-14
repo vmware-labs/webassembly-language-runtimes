@@ -1,5 +1,5 @@
 [package]
-name = "wasi-py-rs"
+name = "wasi-py-rs-pyo3"
 version = "0.1.0"
 edition = "2021"
 

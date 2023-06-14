@@ -4,6 +4,8 @@ Example that embeds CPython via libpython into a Wasm module written in Rust.
 
 Offers a couple of WASI Command (exporting `_start`) Wasm modules, written in Rust and demonstrates interaction with simple Python code via [pyo3](https://pyo3.rs/v0.19.0/).
 
+Take a look at the similar example in [../wasi-py-rs-cpython](../wasi-py-rs-cpython) to see how this works with the [cpython](http://dgrunwald.github.io/rust-cpython/doc/cpython/index.html) crate.
+
 # How to run
 
 Make sure you have `cargo` with the `wasm32-wasi` target. For running we use `wasmtime`, but the module will work with any WASI-compliant runtime.
@@ -11,7 +13,7 @@ Make sure you have `cargo` with the `wasm32-wasi` target. For running we use `wa
 Just run `./run_me.sh` in the current folder. You will see something like this
 
 ```
-wlr/python/examples/embedding/wasi-py-rs $$ ./run_me.sh
+wlr/python/examples/embedding/wasi-py-rs-pyo3 $$ ./run_me.sh
    Compiling pyo3-build-config v0.18.3
    ...
     Finished dev [unoptimized + debuginfo] target(s) in 26.43s
@@ -77,7 +79,7 @@ Here is a diagram of the relevant dependencies
 
 ```mermaid
 graph LR
-    wasi_py_rs["wasi-py-rs"] --> wlr_libpy["wlr-libpy"]
+    wasi_py_rs_pyo3["wasi-py-rs-pyo3"] --> wlr_libpy["wlr-libpy"]
     wlr_libpy --> wlr_assets["wlr-assets"]
     wlr_assets --> wasi_sysroot["wasi-sysroot-19.0.tar.gz"]
     wlr_assets --> clang_builtins["libclang_rt.builtins-wasm32-wasi-19.0.tar.gz"]
@@ -89,7 +91,7 @@ graph LR
     clang_builtins --> libclang_rt.builtins-wasm32.a
     libpython --> libpython3.11.a
 
-    wasi_py_rs["wasi-py-rs"] --> pyo3["pyo3"]
+    wasi_py_rs_pyo3 --> pyo3["pyo3"]
     pyo3 --> pyo3-ffi
     pyo3-ffi -..-> libpython3.11.a
 ```
