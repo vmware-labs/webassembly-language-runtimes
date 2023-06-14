@@ -21,5 +21,5 @@ wasmtime \
     --mapdir /usr::target/wasm32-wasi/wasi-deps/usr \
     target/wasm32-wasi/debug/py-wrapper.wasm \
     -- -c \
-    'import person as p; pp = [p.Person("a", 1), p.Person("b", 2)]; pp[0].add_tag("X"); print("Filtered: ", p.filter_by_tag(pp, "X"))'
+    "import person as p; pp = [p.Person('a', 1), p.Person('b', 2)]; pp[0].add_tag('X'); print('Filtered: ', p.filter_by_tag(pp, 'X'))"
 set +x
