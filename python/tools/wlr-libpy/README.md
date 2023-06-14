@@ -15,11 +15,13 @@ To use this feature add this to your Cargo.toml
 wlr-libpy = { git = "https://github.com/vmware-labs/webassembly-language-runtimes.git", branch="rust-py-example", features = ["build"] }
 ```
 
-Then, in the [build.rs](./build.rs) file of your project you only need to call this:
+Then, in the `build.rs` file of your project you only need to call `configure_static_libs().unwrap().emit_link_flags()` like this:
 
 ```rs
+fn main() {
     use wlr_libpy::bld_cfg::configure_static_libs;
     configure_static_libs().unwrap().emit_link_flags();
+}
 ```
 
 Here is a list of the pre-built `wasm32-wasi` static libraries:

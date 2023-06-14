@@ -1145,7 +1145,6 @@ dependencies = [
 [[package]]
 name = "wlr-assets"
 version = "0.1.0"
-source = "git+https://github.com/vmware-labs/webassembly-language-runtimes.git?branch=rust-py-example#a93c1bf20a3903fa82e865999077ca31ecda0092"
 dependencies = [
  "bytes",
  "flate2",
