@@ -412,9 +412,9 @@ checksum = "ef53942eb7bf7ff43a617b3e2c1c4a5ecf5944a7c1bc12d7ee39bbb15e5c1519"
 
 [[package]]
 name = "lock_api"
-version = "0.4.9"
+version = "0.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "435011366fe56583b16cf956f9df0095b405b82d76425bc8981c0e22e60ec4df"
+checksum = "c1cc9717a20b1bb222f333e6a92fd32f7d8a18ddc5a3191a11af45dcbf4dcd16"
 dependencies = [
  "autocfg",
  "scopeguard",
@@ -557,15 +557,33 @@ dependencies = [
 
 [[package]]
 name = "parking_lot_core"
-version = "0.9.7"
+version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9069cbb9f99e3a5083476ccb29ceb1de18b9118cafa53e90c9551235de2b9521"
+checksum = "93f00c865fe7cabf650081affecd3871070f26767e7b2070a3ffae14c654b447"
 dependencies = [
  "cfg-if",
  "libc",
- "redox_syscall 0.2.16",
+ "redox_syscall 0.3.5",
  "smallvec",
- "windows-sys 0.45.0",
+ "windows-targets 0.48.0",
+]
+
+[[package]]
+name = "path-absolutize"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43eb3595c63a214e1b37b44f44b0a84900ef7ae0b4c5efce59e123d246d7a0de"
+dependencies = [
+ "path-dedot",
+]
+
+[[package]]
+name = "path-dedot"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d55e486337acb9973cdea3ec5638c1b3bcb22e573b2b7b41969e0c744d5a15e"
+dependencies = [
+ "once_cell",
 ]
 
 [[package]]
@@ -1037,14 +1055,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
-name = "wasi-command-rs"
+name = "wasi-py-rs"
 version = "0.1.0"
 dependencies = [
- "bytes",
- "flate2",
  "pyo3",
- "reqwest",
- "tar",
+ "wlr-libpy",
 ]
 
 [[package]]
@@ -1299,6 +1314,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
 dependencies = [
  "winapi",
+]
+
+[[package]]
+name = "wlr-assets"
+version = "0.1.0"
+source = "git+https://github.com/vmware-labs/webassembly-language-runtimes.git?branch=rust-py-example#7b3b358e946cacdbc97048eaa719d8c8ea8bfd36"
+dependencies = [
+ "bytes",
+ "flate2",
+ "path-absolutize",
+ "reqwest",
+ "tar",
+]
+
+[[package]]
+name = "wlr-libpy"
+version = "0.1.0"
+source = "git+https://github.com/vmware-labs/webassembly-language-runtimes.git?branch=rust-py-example#7b3b358e946cacdbc97048eaa719d8c8ea8bfd36"
+dependencies = [
+ "wlr-assets",
 ]
 
 [[package]]
