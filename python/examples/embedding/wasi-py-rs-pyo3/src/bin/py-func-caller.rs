@@ -1,7 +1,7 @@
 use pyo3::{append_to_inittab, PyResult};
 
-use wasi_py_rs::call_function;
-use wasi_py_rs::py_module::make_person_module;
+use wasi_py_rs_pyo3::call_function;
+use wasi_py_rs_pyo3::py_module::make_person_module;
 
 pub fn main() -> PyResult<()> {
     append_to_inittab!(make_person_module);
