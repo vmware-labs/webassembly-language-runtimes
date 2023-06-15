@@ -5,6 +5,15 @@ if ! (rustup target list | grep "installed" | grep -q "wasm32-wasi"); then
     exit 1
 fi
 
+check() {
+    if ! command -v $1 &>/dev/null; then
+        echo "$1 is required by 'rust-cpython'. Install it and ensure its on PATH"
+        exit 1
+    fi
+}
+
+check python3
+
 set -e
 
 PYO3_NO_PYTHON=1 cargo build --target=wasm32-wasi
