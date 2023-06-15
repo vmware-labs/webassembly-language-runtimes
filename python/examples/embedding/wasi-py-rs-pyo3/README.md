@@ -51,7 +51,9 @@ src
 
 # Build and dependencies
 
-For pyo3 to work the final binary needs to link to `libpython3.11.a`. The WLR project provides a pre-build `libpython` static library (based on [wasi-sdk](https://github.com/WebAssembly/wasi-sdk)), which depends on `wasi-sdk`. To setup the build properly you will need to provide several static libs and configure the linker to use them properly.
+For pyo3 to work the final binary needs to link to `libpython3.11.a`. The WLR project provides a pre-build `libpython` static library (based on [wasi-sdk](https://github.com/WebAssembly/wasi-sdk)), which depends on `wasi-sdk`. To setup the build you will need to provide several static libs and configure the linker to use them properly.
+
+Note that unless we set the `PYO3_NO_PYTHON=1` environment variable the `pyo3` crate's build requires that `python3` is installed on the build machine (even if we actually link to the wasm32-wasi `libpython` fetched by `wlr-libpy`).
 
 We provide a helper crate [wlr-libpy](../../../tools/wlr-libpy/), which can be used to fetch the pre-built libpython.
 

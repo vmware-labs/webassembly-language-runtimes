@@ -30,6 +30,8 @@ The code is adapted from [cpython crate's docs](https://github.com/dgrunwald/rus
 
 # Build and dependencies
 
-To get a wasm32-wasi version of `libpython` we provide a helper crate [wlr-libpy](../../../tools/wlr-libpy/), which can be used to fetch the pre-built library that this repository publishes.
+For `cpython` to work the final binary needs to link to `libpython3.11.a`. To get a wasm32-wasi version of `libpython` we provide a helper crate [wlr-libpy](../../../tools/wlr-libpy/), which can be used to fetch the pre-built library that this repository publishes.
 
-The build and dependencies process is described in detail with the similar example in [../wasi-py-rs-pyo3](../wasi-py-rs-pyo3).
+Note that the `cpython` crate's build requires that `python3` is installed on the build machine (even if we actually link to the wasm32-wasi `libpython` fetched by `wlr-libpy`).
+
+The build process and dependencies are described in detail with the similar example in [../wasi-py-rs-pyo3](../wasi-py-rs-pyo3).
