@@ -1,6 +1,7 @@
+
 def my_func(*args, **kwargs):
     import sys
-    print(f'Hello from Python (libpython3.11.a / {sys.version}) in Wasm(Rust).\\nargs=', args)
+    print(f'Hello from Python (libpython3.11.a / {sys.version}) in Wasm(Rust).\nargs={args}\n')
 
     import person
     people = []
@@ -10,6 +11,10 @@ def my_func(*args, **kwargs):
             p.add_tag(t)
         people.append(p)
 
-    filtered = person.filter_by_tag(people, 'student')
-    print(f'Original people: {people}')
-    print(f'Filtered people by `student`: {filtered}')
+    from pprint import pprint as pp
+    filter_tag = 'student'
+    filtered = person.filter_by_tag(people, filter_tag)
+    print('Original people:')
+    pp(people)
+    print(f'Filtered people by `{filter_tag}`:')
+    pp(filtered)
