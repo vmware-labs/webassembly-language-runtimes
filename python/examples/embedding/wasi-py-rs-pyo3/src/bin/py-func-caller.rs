@@ -11,9 +11,9 @@ pub fn main() -> PyResult<()> {
         "my_func",
         function_code,
         (
-            ("John", 21, ["male", "student"]),
-            ("Jane", 22, ["female", "student"]),
-            ("George", 75, ["male", "retired"]),
+            ("John", 21, ["funny", "student"]),
+            ("Jane", 22, ["thoughtful", "student"]),
+            ("George", 75, ["wise", "retired"]),
         ),
     )
 }

@@ -4,7 +4,7 @@ Example that embeds CPython via libpython into a Wasm module written in Rust.
 
 Offers a couple of WASI Command (exporting `_start`) Wasm modules, written in Rust and demonstrates interaction with simple Python code via [pyo3](https://pyo3.rs/v0.19.0/).
 
-Take a look at the similar example in [../wasi-py-rs-cpython](../wasi-py-rs-cpython) to see how this works with the [cpython](http://dgrunwald.github.io/rust-cpython/doc/cpython/index.html) crate.
+Take a look at the similar example in [../wasi-py-rs-cpython](../wasi-py-rs-cpython) to see how this works with the [cpython](http://dgrunwald.github.io/rust-cpython/doc/cpython/index.html) crate, which is an alternative to `pyo3` that provides Rust bindings on top of the C API implemented by `libpython`.
 
 # How to run
 
@@ -21,13 +21,23 @@ wlr/python/examples/embedding/wasi-py-rs-pyo3 $$ ./run_me.sh
 Calling a WASI Command which embeds Python (adding a custom module implemented in Rust) and calls a custom function:
 + wasmtime --mapdir /usr::target/wasm32-wasi/wasi-deps/usr target/wasm32-wasi/debug/py-func-caller.wasm
 Hello from Python (libpython3.11.a / 3.11.3 (tags/v3.11.3:f3909b8, Apr 28 2023, 09:45:45) [Clang 15.0.7 ]) in Wasm(Rust).
-args= (('John', 21, ['male', 'student']), ('Jane', 22, ['female', 'student']), ('George', 75, ['male', 'retired']))
-Original people: [Person(Name: "John", Age: 21, Tags:["male", "student"]), Person(Name: "Jane", Age: 22, Tags:["female", "student"]), Person(Name: "George", Age: 75, Tags:["male", "retired"])]
-Filtered people by `student`: [Person(Name: "John", Age: 21, Tags:["male", "student"]), Person(Name: "Jane", Age: 22, Tags:["female", "student"])]
+args=(('John', 21, ['funny', 'student']), ('Jane', 22, ['thoughtful', 'student']), ('George', 75, ['wise', 'retired']))
+
+Original people:
+[Person(Name: "John", Age: 21, Tags:["funny", "student"]),
+ Person(Name: "Jane", Age: 22, Tags:["thoughtful", "student"]),
+ Person(Name: "George", Age: 75, Tags:["wise", "retired"])]
+Filtered people by `student`:
+[Person(Name: "John", Age: 21, Tags:["funny", "student"]),
+ Person(Name: "Jane", Age: 22, Tags:["thoughtful", "student"])]
 + set +x
 
 Calling a WASI Command which wraps the Python binary (adding a custom module implemented in Rust):
-+ wasmtime --mapdir /usr::target/wasm32-wasi/wasi-deps/usr target/wasm32-wasi/debug/py-wrapper.wasm -- -c 'import person as p; pp = [p.Person("a", 1), p.Person("b", 2)]; pp[0].add_tag("X"); print("Filtered: ", p.filter_by_tag(pp, "X"))'
++ read -r -d '\0' SAMPLE_SCRIPT
++ wasmtime --mapdir /usr::target/wasm32-wasi/wasi-deps/usr target/wasm32-wasi/debug/py-wrapper.wasm -- -c 'import person as p
+pp = [p.Person('\''a'\'', 1), p.Person('\''b'\'', 2)]
+pp[0].add_tag('\''X'\'')
+print('\''Filtered: '\'', p.filter_by_tag(pp, '\''X'\''))'
 Filtered:  [Person(Name: "a", Age: 1, Tags:["X"])]
 + set +x
 ```

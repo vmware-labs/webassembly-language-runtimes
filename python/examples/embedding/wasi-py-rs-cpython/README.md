@@ -2,9 +2,9 @@
 
 Example that embeds CPython via libpython into a Wasm module written in Rust.
 
-Uses the [cpython](http://dgrunwald.github.io/rust-cpython/doc/cpython/index.html) crate.
+Uses the [cpython](http://dgrunwald.github.io/rust-cpython/doc/cpython/index.html) crate. For disambiguation purposes, let's note that this crate offers Rust bindings for the C API by CPython and is not part of the official CPython implementation.
 
-Take a look at the similar example in [../wasi-py-rs-pyo3](../wasi-py-rs-pyo3) to see how this works with the [pyo3](https://pyo3.rs/v0.19.0/) crate.
+Take a look at the similar example in [../wasi-py-rs-pyo3](../wasi-py-rs-pyo3) to see how this works with the [pyo3](https://pyo3.rs/v0.19.0/) crate, which is an alternative to `cpython` that also provides Rust bindings on top of the C API implemented by `libpython`.
 
 # How to run
 
