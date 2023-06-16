@@ -1,5 +1,5 @@
 # Default wask-sdk version used in builds
-WASI_SDK_VERSION ?= 19.0
+WASI_SDK_VERSION ?= 20.0
 
 define push_container_image
     $(eval $@_IMAGE_NAME = $(1))

@@ -8,8 +8,8 @@ PYTHON_BUILDER_NAME := ghcr.io/vmware-labs/wasmlabs/python-builder:wasi-$(WASI_S
 python-builder:
 	@$(call make_builder_image,$(PYTHON_BUILDER_NAME),$(ROOT_DIR),$(WASI_SDK_VERSION))
 
-.PHONY: push-python-builder
-push-python-builder:
+.PHONY: update-python-builder
+update-python-builder: python-builder
 	@$(call push_container_image,$(PYTHON_BUILDER_NAME))
 
 .PHONY: v*

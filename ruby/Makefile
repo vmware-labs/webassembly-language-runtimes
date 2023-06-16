@@ -8,8 +8,8 @@ RUBY_BUILDER_NAME := ghcr.io/vmware-labs/wasmlabs/ruby-builder:wasi-$(WASI_SDK_V
 ruby-builder:
 	@$(call make_builder_image,$(RUBY_BUILDER_NAME),$(ROOT_DIR),$(WASI_SDK_VERSION))
 
-.PHONY: push-ruby-builder
-push-ruby-builder:
+.PHONY: update-ruby-builder
+update-ruby-builder: ruby-builder
 	@$(call push_container_image,$(RUBY_BUILDER_NAME))
 
 .PHONY: v*

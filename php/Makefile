@@ -8,8 +8,8 @@ PHP_BUILDER_NAME := ghcr.io/vmware-labs/wasmlabs/php-builder:wasi-$(WASI_SDK_VER
 php-builder:
 	@$(call make_builder_image,$(PHP_BUILDER_NAME),$(ROOT_DIR),$(WASI_SDK_VERSION))
 
-.PHONY: push-php-builder
-push-php-builder:
+.PHONY: update-php-builder
+update-php-builder: php-builder
 	@$(call push_container_image,$(PHP_BUILDER_NAME))
 
 .PHONY: php-*
