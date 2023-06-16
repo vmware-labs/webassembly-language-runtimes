@@ -1,5 +1,3 @@
-WASI_SDK_VERSION ?= 19.0
-
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 REPO_ROOT := $(ROOT_DIR)..
 
