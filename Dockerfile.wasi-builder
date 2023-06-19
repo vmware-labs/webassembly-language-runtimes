@@ -7,7 +7,7 @@ ARG WASI_SDK_RELEASE_NAME
 # For beta releases with specific features this goes like:
 # ARG WASI_SDK_VERSION=20.0.threads
 # ARG WASI_SDK_RELEASE_NAME=wasi-sdk-20+threads
-ARG WASI_VFS_VERSION=ddbea0e2a6a1e0e8fe0373ec3d1bdccf522178ab
+ARG WASI_VFS_VERSION=v0.4.0
 
 ARG WASI_SDK_PATH=/wasi-sdk
 ARG WASI_SDK_ASSET_NAME=wasi-sdk-${WASI_SDK_VERSION}
