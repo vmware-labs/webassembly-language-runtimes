@@ -17,18 +17,25 @@ wasm-base:
 push-wasm-base:
 	@$(call push_container_image,$(WASM_BASE_NAME))
 
-.PHONY: wasi-builder-19-0
-WASI_BUILDER_19_NAME := ghcr.io/vmware-labs/wasmlabs/wasi-builder:19.0
-wasi-builder-19-0:
-	@echo Building $(WASI_BUILDER_19_NAME) in $(BUILDER_ROOT_DIR) ... && \
+.PHONY: wasi-builder
+WASI_BUILDER_NAME := ghcr.io/vmware-labs/wasmlabs/wasi-builder:$(WASI_SDK_VERSION)
+wasi-builder:
+	@echo Building $(WASI_BUILDER_NAME) in $(BUILDER_ROOT_DIR) ... && \
 	docker build \
 		--platform linux/amd64 \
-		--build-arg WASI_SDK_RELEASE_NAME=wasi-sdk-19 \
-		--build-arg WASI_SDK_VERSION=19.0 \
+		--build-arg WASI_SDK_RELEASE_NAME=wasi-sdk-$(word 1,$(subst ., ,$(WASI_SDK_VERSION))) \
+		--build-arg WASI_SDK_VERSION=$(WASI_SDK_VERSION) \
 		-f $(BUILDER_ROOT_DIR)/Dockerfile.wasi-builder \
-		-t $(WASI_BUILDER_19_NAME) \
+		-t $(WASI_BUILDER_NAME) \
 		$(BUILDER_ROOT_DIR)
 
-.PHONY: push-wasi-builder-19-0
-push-wasi-builder-19-0:
-	@$(call push_container_image,$(WASI_BUILDER_19_NAME))
+.PHONY: update-wasi-builder
+update-wasi-builder: wasi-builder
+	@$(call push_container_image,$(WASI_BUILDER_NAME))
+
+
+.PHONY: update-all-builders
+update-all-builders: update-wasi-builder
+	make -f php/Makefile update-php-builder
+	make -f python/Makefile update-python-builder
+	make -f ruby/Makefile update-ruby-builder

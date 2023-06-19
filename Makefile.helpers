@@ -1,3 +1,6 @@
+# Default wask-sdk version used in builds
+WASI_SDK_VERSION ?= 20.0
+
 define push_container_image
     $(eval $@_IMAGE_NAME = $(1))
     @(docker image inspect $($@_IMAGE_NAME) 1>/dev/null 2>&1 || \

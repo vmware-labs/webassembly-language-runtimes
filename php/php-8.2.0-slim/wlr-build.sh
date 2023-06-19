@@ -16,8 +16,10 @@ export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-getpid -lwasi-emu
 ########## Setup the flags for php #############
 export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI'
 
+export LDFLAGS_WARNINGS='-Wno-unused-command-line-argument -Werror=implicit-function-declaration -Wno-incompatible-function-pointer-types'
+
 # We need to add LDFLAGS ot CFLAGS because autoconf compiles(+links) to binary when checking stuff
-export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_SQLITE}"
+export LDFLAGS="${LDFLAGS_WASI} ${LDFLAGS_DEPENDENCIES} ${LDFLAGS_SQLITE} ${LDFLAGS_WARNINGS}"
 export CFLAGS="${CFLAGS_CONFIG} ${CFLAGS_WASI} ${CFLAGS_DEPENDENCIES} ${CFLAGS_PHP} ${LDFLAGS}"
 
 logStatus "CFLAGS="${CFLAGS}
