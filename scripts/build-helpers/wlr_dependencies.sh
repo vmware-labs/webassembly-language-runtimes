@@ -39,6 +39,10 @@ function wlr_dependencies_add {
     fi
 
     if [[ -v _DEP_URL && "${WLR_DEPS_FORCE_LOCAL}" != *"${_NAME}"* ]]; then
+        if [[ "${_DEP_URL}" != *"${WASI_SDK_ASSET_NAME}"* ]]; then
+            logStatus "Trying to get ${_NAME} from asset which is not built with '${WASI_SDK_ASSET_NAME}': '${_DEP_URL}'"
+            exit 1
+        fi
         logStatus "Downloading ${_NAME} dependency from ${_DEP_URL}..."
         echo "curl -sL \"${_DEP_URL}\" | tar xzv -C \"${WLR_DEPS_ROOT}/build-output/\""
         curl -sL "${_DEP_URL}" | tar xzv -C "${WLR_DEPS_ROOT}/build-output/"
@@ -52,4 +56,26 @@ function wlr_dependencies_add {
             WLR_BUILD_TYPE=dependency \
             $WLR_MAKE "${WLR_REPO_ROOT}/${_BUILD_COMMAND}" || exit 1
     fi
+}
+
+function wlr_dependencies_import {
+    local _DEPS_FILE=$1
+
+    if [ ! -f "${_DEPS_FILE}" ]; then
+        echo "Missing dependencies file '${_DEPS_FILE}'"
+        exit 1
+    fi
+
+    for dependency in $(jq '.deps | keys | join(" ")' -r $_DEPS_FILE); do
+        local _NAME=$dependency
+        local _BUILD_TARGET=$(jq ".deps.${_NAME}.build_target" -r $_DEPS_FILE)
+        local _REQUIRED_FILE=$(jq ".deps.${_NAME}.required_file" -r $_DEPS_FILE)
+        local _URL=$(jq ".deps.${_NAME}.url" -r $_DEPS_FILE)
+
+        if [ "${_URL}" = "null" ]; then
+            unset _URL
+        fi
+
+        wlr_dependencies_add "${_NAME}" "${_BUILD_TARGET}" "${_REQUIRED_FILE}" "${_URL}"
+    done
 }

@@ -1,0 +1,16 @@
+{
+    "deps": {
+        "zlib": {
+            "build_target": "libs/zlib/v1.2.13",
+            "required_file": "lib/wasm32-wasi/libz.a"
+        },
+        "libuuid": {
+            "build_target": "libs/libuuid/v1.0.3",
+            "required_file": "lib/wasm32-wasi/libuuid.a"
+        },
+        "bzip2": {
+            "build_target": "libs/bzip2/v1.0.8",
+            "required_file": "lib/wasm32-wasi/libbz2.a"
+        }
+    }
+}

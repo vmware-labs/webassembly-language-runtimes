@@ -28,6 +28,7 @@ RUN apt update && \
         clang \
         curl \
         git \
+        jq \
         libtool \
         libtool-bin \
         pkg-config \

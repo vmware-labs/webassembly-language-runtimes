@@ -51,6 +51,7 @@ for line in $(env | grep -E "WLR_\w+="); do
 done
 
 logStatus WASI_SDK_PATH=${WASI_SDK_PATH}
+logStatus WASI_SDK_ASSET_NAME=${WASI_SDK_ASSET_NAME}
 logStatus BINARYEN_PATH=${BINARYEN_PATH}
 logStatus WABT_ROOT=${WABT_ROOT}
 logStatus WASI_VFS_ROOT=${WASI_VFS_ROOT}
@@ -63,6 +64,13 @@ export NM=${WASI_SDK_PATH}/bin/llvm-nm
 export AR=${WASI_SDK_PATH}/bin/llvm-ar
 export RANLIB=${WASI_SDK_PATH}/bin/llvm-ranlib
 
+logStatus CC+${CC}
+logStatus LD+${LD}
+logStatus CXX+${CXX}
+logStatus NM+${NM}
+logStatus AR+${AR}
+logStatus RANLIB+${RANLIB}
+
 if ! builtin type -P wasm-opt
 then
     logStatus "Using wasm-opt wrapper from ${WLR_REPO_ROOT}/scripts/wrappers"
@@ -70,9 +78,10 @@ then
 fi
 
 logStatus "Checking dependencies..."
-if [[ -f ${WLR_ENV}/wlr-build-deps.sh ]]
+if [[ -f ${WLR_ENV}/wlr-info.json ]]
 then
-    source ${WLR_ENV}/wlr-build-deps.sh
+    source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_dependencies.sh
+    wlr_dependencies_import ${WLR_ENV}/wlr-info.json
 fi
 
 source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_package.sh

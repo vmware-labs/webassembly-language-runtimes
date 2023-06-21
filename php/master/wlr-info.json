@@ -1,0 +1,24 @@
+{
+    "deps": {
+        "zlib": {
+            "build_target": "libs/zlib/v1.2.13",
+            "required_file": "lib/wasm32-wasi/libz.a"
+        },
+        "libpng": {
+            "build_target": "libs/libpng/v1.6.39",
+            "required_file": "lib/wasm32-wasi/libpng16.a"
+        },
+        "libxml2": {
+            "build_target": "libs/libxml2/v2.11.4",
+            "required_file": "lib/wasm32-wasi/libxml2.a"
+        },
+        "oniguruma": {
+            "build_target": "libs/oniguruma/v6.9.8",
+            "required_file": "lib/wasm32-wasi/libonig.a"
+        },
+        "SQLite": {
+            "build_target": "libs/sqlite/v3.42.0",
+            "required_file": "lib/wasm32-wasi/libsqlite3.a"
+        }
+    }
+}
