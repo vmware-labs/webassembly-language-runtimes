@@ -11,6 +11,11 @@ php/wasmedge-php-8.2.0:
 	WLR_BUILD_FLAVOR=wasmedge \
 	make -C php php-8.2.0
 
+.PHONY: php/wasmedge-php-8.2.6
+php/wasmedge-php-8.2.6:
+	WLR_BUILD_FLAVOR=wasmedge \
+	make -C php php-8.2.6
+
 .PHONY: php/master
 php/master:
 	make -C php master

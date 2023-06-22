@@ -1,0 +1,25 @@
+From b1d7bc69013a079a2df2d1c774df11d9cdbbd1a0 Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <no-reply@wasmlabs.dev>
+Date: Wed, 8 Mar 2023 10:45:26 +0200
+Subject: [PATCH 09/18] fix: Avoid 'jmp_buf' in 'gd_jpeg'
+
+ 100.0% ext/gd/libgd/
+
+ 100.0% ext/gd/libgd/
+diff --git a/ext/gd/libgd/gd_jpeg.c b/ext/gd/libgd/gd_jpeg.c
+index f3aa695967c..d9d613a3bc8 100644
+--- a/ext/gd/libgd/gd_jpeg.c
++++ b/ext/gd/libgd/gd_jpeg.c
+@@ -45,7 +45,9 @@ static const char *const GD_JPEG_VERSION = "1.0";
+ 
+ typedef struct _jmpbuf_wrapper
+ {
++#ifndef __wasi__
+ 	jmp_buf jmpbuf;
++#endif // __wasi__
+ 	int ignore_warning;
+ } jmpbuf_wrapper;
+ 
+-- 
+2.38.1
+

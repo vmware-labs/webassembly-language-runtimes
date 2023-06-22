@@ -1,0 +1,167 @@
+From 2285abd8f2a50da92b54e66739267b05236a2a83 Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Thu, 30 Mar 2023 16:23:01 +0300
+Subject: [PATCH 11/18] fix: fastcgi server in php-cgi for wasmedge
+
+ 100.0% main/
+
+ 100.0% main/
+
+ 100.0% main/
+diff --git a/main/fastcgi.c b/main/fastcgi.c
+index ec29595e703..742a44c8432 100644
+--- a/main/fastcgi.c
++++ b/main/fastcgi.c
+@@ -69,11 +69,16 @@ static int is_impersonate = 0;
+ # include <netinet/in.h>
+ # include <netinet/tcp.h>
+ # include <arpa/inet.h>
+-# ifndef WASM_WASI
++# ifndef __wasi__
+ # include <netdb.h>
+-# endif // WASM_WASI
++# endif // __wasi__
+ # include <signal.h>
+ 
++#ifdef WASM_RUNTIME_WASMEDGE
++#include "wasmedge_stubs/netdb.h"
++#include "wasmedge_stubs/wasi_socket_ext.h"
++#endif
++
+ # if defined(HAVE_POLL_H) && defined(HAVE_POLL)
+ #  include <poll.h>
+ # elif defined(HAVE_SYS_POLL_H) && defined(HAVE_POLL)
+@@ -433,7 +438,7 @@ static void fcgi_signal_handler(int signo)
+ 
+ static void fcgi_setup_signals(void)
+ {
+-#ifndef WASM_WASI
++#ifndef __wasi__
+ 	struct sigaction new_sa, old_sa;
+ 
+ 	sigemptyset(&new_sa.sa_mask);
+@@ -445,7 +450,7 @@ static void fcgi_setup_signals(void)
+ 	if (old_sa.sa_handler == SIG_DFL) {
+ 		sigaction(SIGPIPE, &new_sa, NULL);
+ 	}
+-#endif // WASM_WASI
++#endif // __wasi__
+ }
+ #endif
+ 
+@@ -530,7 +535,9 @@ int fcgi_init(void)
+ 		} else {
+ 			return is_fastcgi = 0;
+ 		}
+-#elif defined(WASM_WASI)
++#elif defined(__wasi__)
++		// This should be 1 if we were spawned as a fastcgi process by an external manager.
++		// Otherwise, if listening as a fastcgi server - the only thing supported by Wasi, we should return 0 here.
+ 		return is_fastcgi = 0;
+ #else
+ 		errno = 0;
+@@ -681,7 +688,14 @@ int fcgi_listen(const char *path, int backlog)
+ 
+ 	/* Prepare socket address */
+ 	if (tcp) {
+-#ifndef WASM_WASI
++#ifdef WASM_RUNTIME_WASMEDGE
++		memset(&sa.sa_inet, 0, sizeof(sa.sa_inet));
++		sa.sa_inet.sin_family = AF_INET;
++		sa.sa_inet.sin_addr.s_addr = INADDR_ANY;
++		sa.sa_inet.sin_port = port;
++		sock_len = sizeof(sa.sa_inet);
++#endif
++#ifndef __wasi__
+ 		memset(&sa.sa_inet, 0, sizeof(sa.sa_inet));
+ 		sa.sa_inet.sin_family = AF_INET;
+ 		sa.sa_inet.sin_port = htons(port);
+@@ -713,6 +727,7 @@ int fcgi_listen(const char *path, int backlog)
+ 				sa.sa_inet.sin_addr.s_addr = ((struct in_addr*)hep->h_addr_list[0])->s_addr;
+ 			}
+ 		}
++#endif // __wasi__
+ 	} else {
+ #ifdef _WIN32
+ 		SECURITY_DESCRIPTOR  sd;
+@@ -740,7 +755,7 @@ int fcgi_listen(const char *path, int backlog)
+ 		is_fastcgi = 1;
+ 		return listen_socket;
+ 
+-#else
++#elif !defined(__wasi__)
+ 		size_t path_len = strlen(path);
+ 
+ 		if (path_len >= sizeof(sa.sa_unix.sun_path)) {
+@@ -759,9 +774,10 @@ int fcgi_listen(const char *path, int backlog)
+ #endif
+ 	}
+ 
++#if !defined(__wasi__) || defined(WASM_RUNTIME_WASMEDGE)
+ 	/* Create, bind socket and start listen on it */
+ 	if ((listen_socket = socket(sa.sa.sa_family, SOCK_STREAM, 0)) < 0 ||
+-#ifdef SO_REUSEADDR
++#if defined(SO_REUSEADDR) && !defined(__wasi__)
+ 	    setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse, sizeof(reuse)) < 0 ||
+ #endif
+ 	    bind(listen_socket, (struct sockaddr *) &sa, sock_len) < 0 ||
+@@ -770,11 +786,13 @@ int fcgi_listen(const char *path, int backlog)
+ 		fcgi_log(FCGI_ERROR, "Cannot bind/listen socket - [%d] %s.\n",errno, strerror(errno));
+ 		return -1;
+ 	}
++#endif
+ 
+ 	if (!tcp) {
++#ifndef __wasi__
+ 		chmod(path, 0777);
++#endif // __wasi__
+ 	} else {
+-#endif // WASM_WASI
+ 		char *ip = getenv("FCGI_WEB_SERVER_ADDRS");
+ 		char *cur, *end;
+ 		int n;
+@@ -947,6 +965,8 @@ static inline ssize_t safe_write(fcgi_request *req, const void *buf, size_t coun
+ 				errno = WSAGetLastError();
+ 			}
+ 		}
++#elif defined(__wasi__)
++		ret = send(req->fd, ((char*)buf)+n, count-n, 0);
+ #else
+ 		ret = write(req->fd, ((char*)buf)+n, count-n);
+ #endif
+@@ -984,6 +1004,8 @@ static inline ssize_t safe_read(fcgi_request *req, const void *buf, size_t count
+ 				errno = WSAGetLastError();
+ 			}
+ 		}
++#elif defined(__wasi__)
++		ret = recv(req->fd, ((char*)buf)+n, count-n, 0);
+ #else
+ 		ret = read(req->fd, ((char*)buf)+n, count-n);
+ #endif
+@@ -1107,9 +1129,9 @@ static int fcgi_read_request(fcgi_request *req)
+ 			int on = 1;
+ # endif
+ 
+-# ifndef WASM_WASI
++# ifndef __wasi__
+ 			setsockopt(req->fd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on));
+-# endif // WASM_WASI
++# endif // __wasi__
+ 			req->nodelay = 1;
+ 		}
+ #endif
+@@ -1419,9 +1441,9 @@ int fcgi_accept_request(fcgi_request *req)
+ 					client_sa = sa;
+ 					if (req->fd >= 0 && !fcgi_is_allowed()) {
+ 						fcgi_log(FCGI_ERROR, "Connection disallowed: IP address '%s' has been dropped.", fcgi_get_last_client_ip());
+-#ifndef WASM_WASI
++#ifndef __wasi__
+ 						closesocket(req->fd);
+-#endif // WASM_WASI
++#endif // __wasi__
+ 						req->fd = -1;
+ 						continue;
+ 					}
+-- 
+2.38.1
+

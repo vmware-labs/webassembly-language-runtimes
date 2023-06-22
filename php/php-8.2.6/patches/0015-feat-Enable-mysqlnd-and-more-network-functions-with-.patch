@@ -1,0 +1,248 @@
+From a85084989c64e839f94d1e1efe85e4d177fb4d4b Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Wed, 5 Apr 2023 12:11:28 +0300
+Subject: [PATCH 15/18] feat: Enable mysqlnd and more network functions with
+ WasmEdge
+
+   8.6% ext/mysqlnd/
+  27.8% ext/standard/
+   6.5% main/streams/
+  56.9% main/
+
+   8.6% ext/mysqlnd/
+  27.8% ext/standard/
+   6.5% main/streams/
+  56.9% main/
+diff --git a/ext/mysqlnd/mysqlnd_vio.c b/ext/mysqlnd/mysqlnd_vio.c
+index 79fc92d500a..e94854919ba 100644
+--- a/ext/mysqlnd/mysqlnd_vio.c
++++ b/ext/mysqlnd/mysqlnd_vio.c
+@@ -23,7 +23,10 @@
+ #include "mysqlnd_ext_plugin.h"
+ #include "php_network.h"
+ 
+-#ifndef PHP_WIN32
++#ifdef WASM_RUNTIME_WASMEDGE
++#include "wasmedge_stubs/netdb.h"
++#include "wasmedge_stubs/wasi_socket_ext.h"
++#elif !defined(PHP_WIN32)
+ #include <netinet/tcp.h>
+ #else
+ #include <winsock.h>
+diff --git a/ext/standard/dns.c b/ext/standard/dns.c
+index 104f847ab40..79ea4f6382e 100644
+--- a/ext/standard/dns.c
++++ b/ext/standard/dns.c
+@@ -34,9 +34,11 @@
+ #ifdef HAVE_ARPA_INET_H
+ #include <arpa/inet.h>
+ #endif
+-#ifndef WASM_WASI
++#ifndef __wasi__
+ #include <netdb.h>
+-#endif // WASM_WASI
++#elif defined(WASM_RUNTIME_WASMEDGE)
++#include <wasmedge_stubs/netdb.h>
++#endif // __wasi__
+ #ifdef _OSD_POSIX
+ #undef STATUS
+ #undef T_UNSPEC
+@@ -174,7 +176,7 @@ PHP_FUNCTION(gethostbyaddr)
+ /* {{{ php_gethostbyaddr */
+ static zend_string *php_gethostbyaddr(char *ip)
+ {
+-#ifndef WASM_WASI
++#if !defined(__wasi__) || defined(WASM_RUNTIME_WASMEDGE)
+ #if defined(HAVE_IPV6) && defined(HAVE_INET_PTON)
+ 	struct sockaddr_in sa4;
+ 	struct sockaddr_in6 sa6;
+@@ -218,7 +220,7 @@ static zend_string *php_gethostbyaddr(char *ip)
+ #endif
+ #else
+ 	return NULL;
+-#endif // WASM_WASI
++#endif // __wasi__
+ }
+ /* }}} */
+ 
+@@ -245,7 +247,7 @@ PHP_FUNCTION(gethostbyname)
+ /* {{{ Return a list of IP addresses that a given hostname resolves to. */
+ PHP_FUNCTION(gethostbynamel)
+ {
+-#ifndef WASM_WASI
++#if !defined(__wasi__) || defined(WASM_RUNTIME_WASMEDGE)
+ 	char *hostname;
+ 	size_t hostname_len;
+ 	struct hostent *hp;
+@@ -289,14 +291,14 @@ PHP_FUNCTION(gethostbynamel)
+ 	}
+ #else
+ 	RETURN_FALSE;
+-#endif // WASM_WASI
++#endif // __wasi__
+ }
+ /* }}} */
+ 
+ /* {{{ php_gethostbyname */
+ static zend_string *php_gethostbyname(char *name)
+ {
+-#ifndef WASM_WASI
++#if !defined(__wasi__) || defined(WASM_RUNTIME_WASMEDGE)
+ 	struct hostent *hp;
+ 	struct in_addr *h_addr_0; /* Don't call this h_addr, it's a macro! */
+ 	struct in_addr in;
+@@ -326,7 +328,7 @@ static zend_string *php_gethostbyname(char *name)
+ 	return zend_string_init(address, strlen(address), 0);
+ #else
+ 	return NULL;
+-#endif // WASM_WASI
++#endif // __wasi__
+ }
+ /* }}} */
+ 
+diff --git a/main/network.c b/main/network.c
+index 683e11d03d6..bb39f27e04b 100644
+--- a/main/network.c
++++ b/main/network.c
+@@ -54,9 +54,12 @@
+ 
+ #ifndef PHP_WIN32
+ #include <netinet/in.h>
+-#ifndef WASM_WASI
++#if !defined(__wasi__)
+ #include <netdb.h>
+-#endif // WASM_WASI
++#elif defined(WASM_RUNTIME_WASMEDGE)
++#include <wasmedge_stubs/netdb.h>
++#include <wasmedge_stubs/wasi_socket_ext.h>
++#endif // __wasi__
+ #if HAVE_ARPA_INET_H
+ #include <arpa/inet.h>
+ #endif
+@@ -155,7 +158,9 @@ PHPAPI void php_network_freeaddresses(struct sockaddr **sal)
+  */
+ PHPAPI int php_network_getaddresses(const char *host, int socktype, struct sockaddr ***sal, zend_string **error_string)
+ {
+-#ifndef WASM_WASI
++#if defined(__wasi__) && !defined(WASM_RUNTIME_WASMEDGE)
++	return 0;
++#else
+ 	struct sockaddr **sap;
+ 	int n;
+ #if HAVE_GETADDRINFO
+@@ -278,9 +283,8 @@ PHPAPI int php_network_getaddresses(const char *host, int socktype, struct socka
+ 
+ 	*sap = NULL;
+ 	return n;
+-#else
+-	return 0;
+-#endif // WASM_WASI
++#endif // !__wasi__
++
+ }
+ /* }}} */
+ 
+@@ -316,14 +320,21 @@ PHPAPI int php_network_connect_socket(php_socket_t sockfd,
+ 		zend_string **error_string,
+ 		int *error_code)
+ {
+-#ifndef WASM_WASI
++#if defined(__wasi__) && !defined(WASM_RUNTIME_WASMEDGE)
++	return 0;
++#else
+ 	php_non_blocking_flags_t orig_flags;
+ 	int n;
+ 	int error = 0;
+ 	socklen_t len;
+ 	int ret = 0;
+ 
++#if !defined(WASM_RUNTIME_WASMEDGE)
++	// This always sets the O_NONBLOCK flag to the fd, even if asynchronous == false.
++	// connect will return EINPROGRESS, but we don't expect that when asynchronous == false
++	// Not sure how this works on Linux, but fails 1/1 on WasmEdge
+ 	SET_SOCKET_BLOCKING_MODE(sockfd, orig_flags);
++#endif
+ 
+ 	if ((n = connect(sockfd, addr, addrlen)) != 0) {
+ 		error = php_socket_errno();
+@@ -394,6 +405,7 @@ PHPAPI int php_network_connect_socket(php_socket_t sockfd,
+ 		}
+ 	}
+ 	return ret;
++#endif
+ }
+ /* }}} */
+ 
+@@ -410,9 +422,6 @@ static inline void sub_times(struct timeval a, struct timeval b, struct timeval
+ 		result->tv_sec++;
+ 		result->tv_usec -= 1000000L;
+ 	}
+-#else
+-	return 0;
+-#endif // WASM_WASI
+ }
+ /* }}} */
+ 
+@@ -457,11 +466,11 @@ php_socket_t php_network_bind_socket_to_local_addr(const char *host, unsigned po
+ 		}
+ 
+ 		/* create a socket for this address */
+-#ifndef WASM_WASI
++#if !defined(__wasi__) || defined(WASM_RUNTIME_WASMEDGE)
+ 		sock = socket(sa->sa_family, socktype, 0);
+ #else
+ 		sock = SOCK_ERR;
+-#endif // WASM_WASI
++#endif // __wasi__
+ 
+ 		if (sock == SOCK_ERR) {
+ 			continue;
+@@ -504,11 +513,11 @@ php_socket_t php_network_bind_socket_to_local_addr(const char *host, unsigned po
+ 		}
+ #endif
+ 
+-#ifndef WASM_WASI
++#if !defined(__wasi__) || defined(WASM_RUNTIME_WASMEDGE)
+ 		n = bind(sock, sa, socklen);
+ #else
+ 		n = SOCK_CONN_ERR;
+-#endif // WASM_WASI
++#endif // __wasi__
+ 
+ 		if (n != SOCK_CONN_ERR) {
+ 			goto bound;
+@@ -1376,7 +1385,7 @@ struct hostent * gethostname_re (const char *host,struct hostent *hostbuf,char *
+ #endif
+ 
+ PHPAPI struct hostent*	php_network_gethostbyname(const char *name) {
+-#ifndef WASM_WASI
++#ifndef __wasi__
+ #if !defined(HAVE_GETHOSTBYNAME_R)
+ 	return gethostbyname(name);
+ #else
+@@ -1393,5 +1402,5 @@ PHPAPI struct hostent*	php_network_gethostbyname(const char *name) {
+ #endif
+ #else
+ 	return NULL;
+-#endif // WASM_WASI
++#endif // __wasi__
+ }
+diff --git a/main/streams/xp_socket.c b/main/streams/xp_socket.c
+index 5d1039b0c51..4755b1aaab4 100644
+--- a/main/streams/xp_socket.c
++++ b/main/streams/xp_socket.c
+@@ -219,9 +219,9 @@ static int php_sockop_close(php_stream *stream, int close_handle)
+ 				n = php_pollfd_for_ms(sock->socket, POLLOUT, 500);
+ 			} while (n == -1 && php_socket_errno() == EINTR);
+ #endif
+-#ifndef WASM_WASI
++#if !defined(__wasi__) || defined(WASM_RUNTIME_WASMEDGE)
+ 			closesocket(sock->socket);
+-#endif // WASM_WASI
++#endif // __wasi__
+ 			sock->socket = SOCK_ERR;
+ 		}
+ 
+-- 
+2.38.1
+

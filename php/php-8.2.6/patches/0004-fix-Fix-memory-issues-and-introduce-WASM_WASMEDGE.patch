@@ -1,0 +1,57 @@
+From bf357d349d3c9075c4c38f7146298cf77e91ce26 Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <no-reply@wasmlabs.dev>
+Date: Fri, 6 Jan 2023 11:21:03 +0200
+Subject: [PATCH 04/18] fix: Fix memory issues and introduce WASM_WASMEDGE.
+
+  76.4% Zend/
+  11.4% ext/posix/
+  12.1% ext/standard/
+
+  76.4% Zend/
+  11.4% ext/posix/
+  12.1% ext/standard/
+
+  86.2% Zend/
+  13.7% ext/standard/
+diff --git a/Zend/zend_alloc.c b/Zend/zend_alloc.c
+index 3f71eb22a32..c0184439fa4 100644
+--- a/Zend/zend_alloc.c
++++ b/Zend/zend_alloc.c
+@@ -513,8 +513,8 @@ static void *zend_mm_mmap(size_t size)
+ 	}
+ 	return ptr;
+ #elif ! HAVE_MMAP
+-	void* ptr = malloc(size);
+-	memset(ptr, 0, size);
++	void* ptr = malloc(size + ZEND_MMAP_AHEAD);
++	memset(ptr, 0, size + ZEND_MMAP_AHEAD);
+ 	return ptr;
+ #else
+ 	void *ptr;
+@@ -726,8 +726,8 @@ static zend_always_inline void zend_mm_hugepage(void* ptr, size_t size)
+ static void *zend_mm_chunk_alloc_int(size_t size, size_t alignment)
+ {
+ #if ! HAVE_MMAP
+-	void* ptr = aligned_alloc(alignment, size);
+-	memset(ptr, 0, size);
++	void* ptr = aligned_alloc(alignment, size + ZEND_MMAP_AHEAD);
++	memset(ptr, 0, size + ZEND_MMAP_AHEAD);
+ 	return ptr;
+ #else
+ 	void *ptr = zend_mm_mmap(size);
+diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
+index ad88b7b3a2e..82409e2377a 100755
+--- a/ext/standard/basic_functions.c
++++ b/ext/standard/basic_functions.c
+@@ -70,6 +70,8 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
+ #else
+ #include "win32/inet.h"
+ #endif
++#elif defined(WASM_WASMEDGE)
++# include <netdb.h>
+ #endif // WASM_WASI
+ 
+ #ifdef HAVE_ARPA_INET_H
+-- 
+2.38.1
+
