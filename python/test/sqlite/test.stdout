@@ -1,0 +1,7 @@
+Database created and Successfully Connected to SQLite
+SQLite Database Version is:  [('3.42.0',)]
+(1, 'John', 700.0, 'TheDarkMaster')
+(2, 'Jane', 710.0, 'AngelOfBenevolence')
+(3, 'George', 623.0, 'MagiFromTheDeep')
+The SQLite connection is closed
+File 'test.db' deleted!
