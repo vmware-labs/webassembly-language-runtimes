@@ -1,0 +1,8 @@
+{
+    "deps": {
+        "SQLite": {
+            "build_target": "libs/sqlite/v3.42.0",
+            "required_file": "lib/wasm32-wasi/libsqlite3.a"
+        }
+    }
+}

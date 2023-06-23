@@ -15,16 +15,16 @@ jobs:
         include:
           - prefix: ""
             suffix: ""
-            version: "3.11.3"
+            version: "3.11.4"
           - prefix: "wasmedge-"
             suffix: "-wasmedge"
-            version: "3.11.3"
+            version: "3.11.4"
           - prefix: "aio-"
             suffix: "-aio"
-            version: "3.11.3"
+            version: "3.11.4"
           - prefix: "aio-wasmedge-"
             suffix: "-aio-wasmedge"
-            version: "3.11.3"
+            version: "3.11.4"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

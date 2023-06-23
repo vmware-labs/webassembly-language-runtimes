@@ -1,0 +1,89 @@
+From 32d0a8f0495eb676f92888cd052bb3a50d514df6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jesu=CC=81s=20Gonza=CC=81lez?= <jesusgm@vmware.com>
+Date: Tue, 14 Feb 2023 19:10:15 +0100
+Subject: [PATCH 07/18] fix: Avoid setjmp/longjmp in `gd_jpeg`
+
+ 100.0% ext/gd/libgd/
+
+ 100.0% ext/gd/libgd/
+diff --git a/ext/gd/libgd/gd_jpeg.c b/ext/gd/libgd/gd_jpeg.c
+index f0974c2a99d..f3aa695967c 100644
+--- a/ext/gd/libgd/gd_jpeg.c
++++ b/ext/gd/libgd/gd_jpeg.c
+@@ -23,7 +23,9 @@
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
+-#include <setjmp.h>
++#ifndef __wasi__
++	#include <setjmp.h>
++#endif
+ #include <limits.h>
+ #include <string.h>
+ 
+@@ -97,8 +99,10 @@ static void fatal_jpeg_error (j_common_ptr cinfo)
+ 	jpeg_destroy (cinfo);
+ 
+ 	if (jmpbufw != 0) {
+-		longjmp (jmpbufw->jmpbuf, 1);
+-		gd_error_ex(GD_ERROR, "gd-jpeg: EXTREMELY fatal error: longjmp returned control; terminating");
++		#ifndef __wasi__
++			longjmp (jmpbufw->jmpbuf, 1);
++			gd_error_ex(GD_ERROR, "gd-jpeg: EXTREMELY fatal error: longjmp returned control; terminating");
++		#endif
+ 	} else {
+ 		gd_error_ex(GD_ERROR, "gd-jpeg: EXTREMELY fatal error: jmpbuf unrecoverable; terminating");
+ 	}
+@@ -187,13 +191,15 @@ static int _gdImageJpegCtx(gdImagePtr im, gdIOCtx *outfile, int quality)
+ 
+ 	cinfo.err = jpeg_std_error (&jerr);
+ 	cinfo.client_data = &jmpbufw;
+-	if (setjmp (jmpbufw.jmpbuf) != 0) {
+-		/* we're here courtesy of longjmp */
+-		if (row) {
+-			gdFree (row);
++	#ifndef __wasi__
++		if (setjmp (jmpbufw.jmpbuf) != 0) {
++			/* we're here courtesy of longjmp */
++			if (row) {
++				gdFree (row);
++			}
++			return 1;
+ 		}
+-		return 1;
+-	}
++	#endif
+ 
+ 	cinfo.err->error_exit = fatal_jpeg_error;
+ 
+@@ -356,16 +362,18 @@ gdImagePtr gdImageCreateFromJpegCtxEx (gdIOCtx * infile, int ignore_warning)
+ 	cinfo.client_data = &jmpbufw;
+ 	cinfo.err->emit_message = php_jpeg_emit_message;
+ 
+-	if (setjmp (jmpbufw.jmpbuf) != 0) {
+-		/* we're here courtesy of longjmp */
+-		if (row) {
+-			gdFree (row);
+-		}
+-		if (im) {
+-			gdImageDestroy (im);
++	#ifndef __wasi__
++		if (setjmp (jmpbufw.jmpbuf) != 0) {
++			/* we're here courtesy of longjmp */
++			if (row) {
++				gdFree (row);
++			}
++			if (im) {
++				gdImageDestroy (im);
++			}
++			return 0;
+ 		}
+-		return 0;
+-	}
++	#endif
+ 
+ 	cinfo.err->error_exit = fatal_jpeg_error;
+ 
+-- 
+2.38.1
+

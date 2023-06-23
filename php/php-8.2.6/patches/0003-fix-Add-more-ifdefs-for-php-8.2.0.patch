@@ -1,0 +1,50 @@
+From a6741ecf983131d31c3f70d5c96c3127c5af1aef Mon Sep 17 00:00:00 2001
+From: "no-reply@wasmlabs.dev" <no-reply@wasmlabs.dev>
+Date: Fri, 6 Jan 2023 11:04:53 +0200
+Subject: [PATCH 03/18] fix: Add more ifdefs for php-8.2.0
+
+  43.3% ext/standard/
+  56.6% main/
+
+  43.3% ext/standard/
+  56.6% main/
+
+  43.3% ext/standard/
+  56.6% main/
+diff --git a/ext/standard/basic_functions_arginfo.h b/ext/standard/basic_functions_arginfo.h
+index d7eb83b5569..ffe3f0b1ece 100644
+--- a/ext/standard/basic_functions_arginfo.h
++++ b/ext/standard/basic_functions_arginfo.h
+@@ -3634,6 +3634,7 @@ static void register_basic_functions_symbols(int module_number)
+ 	REGISTER_LONG_CONSTANT("IMAGETYPE_AVIF", IMAGE_FILETYPE_AVIF, CONST_PERSISTENT);
+ 	REGISTER_LONG_CONSTANT("IMAGETYPE_UNKNOWN", IMAGE_FILETYPE_UNKNOWN, CONST_PERSISTENT);
+ 	REGISTER_LONG_CONSTANT("IMAGETYPE_COUNT", IMAGE_FILETYPE_COUNT, CONST_PERSISTENT);
++#ifndef __wasi__
+ 	REGISTER_LONG_CONSTANT("LOG_EMERG", LOG_EMERG, CONST_PERSISTENT);
+ 	REGISTER_LONG_CONSTANT("LOG_ALERT", LOG_ALERT, CONST_PERSISTENT);
+ 	REGISTER_LONG_CONSTANT("LOG_CRIT", LOG_CRIT, CONST_PERSISTENT);
+@@ -3695,6 +3696,7 @@ static void register_basic_functions_symbols(int module_number)
+ #if defined(LOG_PERROR)
+ 	REGISTER_LONG_CONSTANT("LOG_PERROR", LOG_PERROR, CONST_PERSISTENT);
+ #endif
++#endif // __wasi__
+ 	REGISTER_LONG_CONSTANT("STR_PAD_LEFT", PHP_STR_PAD_LEFT, CONST_PERSISTENT);
+ 	REGISTER_LONG_CONSTANT("STR_PAD_RIGHT", PHP_STR_PAD_RIGHT, CONST_PERSISTENT);
+ 	REGISTER_LONG_CONSTANT("STR_PAD_BOTH", PHP_STR_PAD_BOTH, CONST_PERSISTENT);
+diff --git a/main/network.c b/main/network.c
+index 6fb97865cb7..683e11d03d6 100644
+--- a/main/network.c
++++ b/main/network.c
+@@ -929,7 +929,9 @@ php_socket_t php_network_connect_socket_to_host(const char *host, unsigned short
+ #ifdef IP_BIND_ADDRESS_NO_PORT
+ 			{
+ 				int val = 1;
++#ifndef __wasi__
+ 				(void) setsockopt(sock, SOL_IP, IP_BIND_ADDRESS_NO_PORT, &val, sizeof(val));
++#endif // !defined(__wasi__)o
+ 			}
+ #endif
+ 			if (local_address_len == 0) {
+-- 
+2.38.1
+

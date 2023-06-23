@@ -1,0 +1,8 @@
+{
+    "deps": {
+        "zlib": {
+            "build_target": "libs/zlib/v1.2.13",
+            "required_file": "lib/wasm32-wasi/libz.a"
+        }
+    }
+}

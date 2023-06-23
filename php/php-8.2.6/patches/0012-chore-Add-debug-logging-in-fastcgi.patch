@@ -1,0 +1,277 @@
+From 2773d5476500ae6bd9a11586b95b983c86bc923d Mon Sep 17 00:00:00 2001
+From: Asen Alexandrov <alexandrov@vmware.com>
+Date: Thu, 30 Mar 2023 18:17:16 +0300
+Subject: [PATCH 12/18] chore: Add debug logging in fastcgi
+
+ 100.0% main/
+
+ 100.0% main/
+
+ 100.0% main/
+diff --git a/main/fastcgi.c b/main/fastcgi.c
+index 742a44c8432..ab4b4b1286d 100644
+--- a/main/fastcgi.c
++++ b/main/fastcgi.c
+@@ -137,6 +137,14 @@ static int is_impersonate = 0;
+ 
+ #include "fastcgi.h"
+ 
++// #define FASTCGI_DEBUG
++
++#ifdef FASTCGI_DEBUG
++#define FCGIDEBUG(fmt, ...) fprintf(stderr, fmt __VA_OPT__(,) __VA_ARGS__)
++#else
++#define FCGIDEBUG(fmt, ...)
++#endif
++
+ typedef struct _fcgi_header {
+ 	unsigned char version;
+ 	unsigned char type;
+@@ -490,6 +498,7 @@ void __attribute__((weak)) fcgi_log(int type, const char *format, ...) {
+ 
+ int fcgi_init(void)
+ {
++	FCGIDEBUG("(%s)[%d] fcgi_init\n",__FILE__, __LINE__);
+ 	if (!is_initialized) {
+ #ifndef _WIN32
+ 		sa_t sa;
+@@ -498,6 +507,7 @@ int fcgi_init(void)
+ 		zend_hash_init(&fcgi_mgmt_vars, 8, NULL, fcgi_free_mgmt_var_cb, 1);
+ 		fcgi_set_mgmt_var("FCGI_MPXS_CONNS", sizeof("FCGI_MPXS_CONNS")-1, "0", sizeof("0")-1);
+ 
++		FCGIDEBUG("(%s)[%d] is_initialized=1\n",__FILE__, __LINE__);
+ 		is_initialized = 1;
+ #ifdef _WIN32
+ # if 0
+@@ -556,6 +566,7 @@ int fcgi_init(void)
+ int fcgi_is_fastcgi(void)
+ {
+ 	if (!is_initialized) {
++		FCGIDEBUG("(%s)[%d] before fcgi_init\n",__FILE__, __LINE__);
+ 		return fcgi_init();
+ 	} else {
+ 		return is_fastcgi;
+@@ -656,6 +667,7 @@ static int is_port_number(const char *bindpath)
+ 
+ int fcgi_listen(const char *path, int backlog)
+ {
++	FCGIDEBUG("(%s)[%d] fcgi_listen(%s, %d)\n",__FILE__, __LINE__, path, backlog);
+ 	char     *s;
+ 	int       tcp = 0;
+ 	char      host[MAXPATHLEN];
+@@ -729,6 +741,7 @@ int fcgi_listen(const char *path, int backlog)
+ 		}
+ #endif // __wasi__
+ 	} else {
++		FCGIDEBUG("(%s)[%d] else, for if(tcp)\n",__FILE__, __LINE__);
+ #ifdef _WIN32
+ 		SECURITY_DESCRIPTOR  sd;
+ 		SECURITY_ATTRIBUTES  saw;
+@@ -750,6 +763,7 @@ int fcgi_listen(const char *path, int backlog)
+ 		}
+ 		listen_socket = _open_osfhandle((intptr_t)namedPipe, 0);
+ 		if (!is_initialized) {
++			FCGIDEBUG("(%s)[%d] before fcgi_init\n",__FILE__, __LINE__);
+ 			fcgi_init();
+ 		}
+ 		is_fastcgi = 1;
+@@ -783,6 +797,7 @@ int fcgi_listen(const char *path, int backlog)
+ 	    bind(listen_socket, (struct sockaddr *) &sa, sock_len) < 0 ||
+ 	    listen(listen_socket, backlog) < 0) {
+ 		close(listen_socket);
++		FCGIDEBUG("(%s)[%d] Cannot bind/listen socket\n",__FILE__, __LINE__);
+ 		fcgi_log(FCGI_ERROR, "Cannot bind/listen socket - [%d] %s.\n",errno, strerror(errno));
+ 		return -1;
+ 	}
+@@ -798,6 +813,7 @@ int fcgi_listen(const char *path, int backlog)
+ 		int n;
+ 
+ 		if (ip) {
++			FCGIDEBUG("(%s)[%d] FCGI_WEB_SERVER_ADDRS ip=%s\n",__FILE__, __LINE__, ip);
+ 			ip = strdup(ip);
+ 			cur = ip;
+ 			n = 0;
+@@ -823,6 +839,7 @@ int fcgi_listen(const char *path, int backlog)
+ 					n++;
+ #endif
+ 				} else {
++					FCGIDEBUG("(%s)[%d] Wrong IP address '%s' in listen.allowed_clients\n",__FILE__, __LINE__, cur);
+ 					fcgi_log(FCGI_ERROR, "Wrong IP address '%s' in listen.allowed_clients", cur);
+ 				}
+ 				cur = end;
+@@ -830,6 +847,7 @@ int fcgi_listen(const char *path, int backlog)
+ 			allowed_clients[n].sa.sa_family = 0;
+ 			free(ip);
+ 			if (!n) {
++				FCGIDEBUG("(%s)[%d] NO allowed addresses\n",__FILE__, __LINE__);
+ 				fcgi_log(FCGI_ERROR, "There are no allowed addresses");
+ 				/* don't clear allowed_clients as it will create an "open for all" security issue */
+ 			}
+@@ -837,8 +855,10 @@ int fcgi_listen(const char *path, int backlog)
+ 	}
+ 
+ 	if (!is_initialized) {
++		FCGIDEBUG("(%s)[%d] before fcgi_init\n",__FILE__, __LINE__);
+ 		fcgi_init();
+ 	}
++	FCGIDEBUG("(%s)[%d] is_fastcgi = 1;\n",__FILE__, __LINE__);
+ 	is_fastcgi = 1;
+ 
+ #ifdef _WIN32
+@@ -846,13 +866,16 @@ int fcgi_listen(const char *path, int backlog)
+ 		listen_socket = _open_osfhandle((intptr_t)listen_socket, 0);
+ 	}
+ #else
++	FCGIDEBUG("(%s)[%d] before fcgi_setup_signals;\n",__FILE__, __LINE__);
+ 	fcgi_setup_signals();
+ #endif
++	FCGIDEBUG("(%s)[%d] returning listen_socket=%d;\n",__FILE__, __LINE__, listen_socket);
+ 	return listen_socket;
+ }
+ 
+ void fcgi_set_allowed_clients(char *ip)
+ {
++	FCGIDEBUG("(%s)[%d] fcgi_set_allowed_clients ip=%s\n",__FILE__, __LINE__, ip);
+ 	char *cur, *end;
+ 	int n;
+ 
+@@ -883,6 +906,7 @@ void fcgi_set_allowed_clients(char *ip)
+ 				n++;
+ #endif
+ 			} else {
++				FCGIDEBUG("(%s)[%d] Wrong IP address '%s' in listen.allowed_clients\n",__FILE__, __LINE__, cur);
+ 				fcgi_log(FCGI_ERROR, "Wrong IP address '%s' in listen.allowed_clients", cur);
+ 			}
+ 			cur = end;
+@@ -890,6 +914,7 @@ void fcgi_set_allowed_clients(char *ip)
+ 		allowed_clients[n].sa.sa_family = 0;
+ 		free(ip);
+ 		if (!n) {
++			FCGIDEBUG("(%s)[%d] No allowed addresses\n",__FILE__, __LINE__);
+ 			fcgi_log(FCGI_ERROR, "There are no allowed addresses");
+ 			/* don't clear allowed_clients as it will create an "open for all" security issue */
+ 		}
+@@ -1072,6 +1097,7 @@ static int fcgi_get_params(fcgi_request *req, unsigned char *p, unsigned char *e
+ 
+ static int fcgi_read_request(fcgi_request *req)
+ {
++	FCGIDEBUG("(%s)[%d] fcgi_read_request\n",__FILE__, __LINE__);
+ 	fcgi_header hdr;
+ 	int len, padding;
+ 	unsigned char buf[FCGI_MAX_LENGTH+8];
+@@ -1090,12 +1116,14 @@ static int fcgi_read_request(fcgi_request *req)
+ 
+ 	if (safe_read(req, &hdr, sizeof(fcgi_header)) != sizeof(fcgi_header) ||
+ 	    hdr.version < FCGI_VERSION_1) {
++		FCGIDEBUG("(%s)[%d] failed to read header=%d\n",__FILE__, __LINE__, hdr.version);
+ 		return 0;
+ 	}
+ 
+ 	len = (hdr.contentLengthB1 << 8) | hdr.contentLengthB0;
+ 	padding = hdr.paddingLength;
+ 
++	FCGIDEBUG("(%s)[%d] len=%d, padding=%d\n",__FILE__, __LINE__, len, padding);
+ 	while (hdr.type == FCGI_STDIN && len == 0) {
+ 		if (safe_read(req, &hdr, sizeof(fcgi_header)) != sizeof(fcgi_header) ||
+ 		    hdr.version < FCGI_VERSION_1) {
+@@ -1106,6 +1134,7 @@ static int fcgi_read_request(fcgi_request *req)
+ 		padding = hdr.paddingLength;
+ 	}
+ 
++	FCGIDEBUG("(%s)[%d] len + padding=%d\n",__FILE__, __LINE__, len, padding);
+ 	if (len + padding > FCGI_MAX_LENGTH) {
+ 		return 0;
+ 	}
+@@ -1352,12 +1381,15 @@ int fcgi_is_closed(fcgi_request *req)
+ }
+ 
+ static int fcgi_is_allowed(void) {
++	FCGIDEBUG("(%s)[%d] fcgi_is_allowed\n",__FILE__, __LINE__);
+ 	int i;
+ 
+ 	if (client_sa.sa.sa_family == AF_UNIX) {
++		FCGIDEBUG("(%s)[%d] client_sa.sa.sa_family == AF_UNIX\n",__FILE__, __LINE__);
+ 		return 1;
+ 	}
+ 	if (!allowed_clients) {
++		FCGIDEBUG("(%s)[%d] !allowed_clients\n",__FILE__, __LINE__);
+ 		return 1;
+ 	}
+ 	if (client_sa.sa.sa_family == AF_INET) {
+@@ -1386,6 +1418,7 @@ static int fcgi_is_allowed(void) {
+ 	}
+ #endif
+ 
++	FCGIDEBUG("(%s)[%d] fcgi_is_allowed return 0\n",__FILE__, __LINE__);
+ 	return 0;
+ }
+ 
+@@ -1403,6 +1436,7 @@ int fcgi_accept_request(fcgi_request *req)
+ 					return -1;
+ 				}
+ 
++				FCGIDEBUG("(%s)[%d] before req->hook.on_accept\n",__FILE__, __LINE__);
+ 				req->hook.on_accept();
+ #ifdef _WIN32
+ 				if (!req->tcp) {
+@@ -1435,9 +1469,12 @@ int fcgi_accept_request(fcgi_request *req)
+ 					socklen_t len = sizeof(sa);
+ 
+ 					FCGI_LOCK(req->listen_socket);
++					FCGIDEBUG("(%s)[%d] before accept(%d, %p, %u)\n",__FILE__, __LINE__, listen_socket, (struct sockaddr *)&sa, &len);
+ 					req->fd = accept(listen_socket, (struct sockaddr *)&sa, &len);
+ 					FCGI_UNLOCK(req->listen_socket);
+ 
++					FCGIDEBUG("(%s)[%d] accepted fd=%d\n",__FILE__, __LINE__, req->fd);
++
+ 					client_sa = sa;
+ 					if (req->fd >= 0 && !fcgi_is_allowed()) {
+ 						fcgi_log(FCGI_ERROR, "Connection disallowed: IP address '%s' has been dropped.", fcgi_get_last_client_ip());
+@@ -1449,6 +1486,7 @@ int fcgi_accept_request(fcgi_request *req)
+ 					}
+ 				}
+ 
++				FCGIDEBUG("(%s)[%d] before shutdown check\n",__FILE__, __LINE__);
+ #ifdef _WIN32
+ 				if (req->fd < 0 && (in_shutdown || errno != EINTR)) {
+ #else
+@@ -1462,6 +1500,7 @@ int fcgi_accept_request(fcgi_request *req)
+ #else
+ 				if (req->fd >= 0) {
+ #if defined(HAVE_POLL)
++					FCGIDEBUG("(%s)[%d] HAVE_POLL\n",__FILE__, __LINE__);
+ 					struct pollfd fds;
+ 					int ret;
+ 
+@@ -1470,13 +1509,18 @@ int fcgi_accept_request(fcgi_request *req)
+ 					fds.revents = 0;
+ 					do {
+ 						errno = 0;
++						FCGIDEBUG("(%s)[%d] before poll for fd=%d \n",__FILE__, __LINE__, req->fd);
+ 						ret = poll(&fds, 1, 5000);
++						FCGIDEBUG("(%s)[%d] poll returned %d, fds.revents=%d\n",__FILE__, __LINE__, ret, fds.revents);
+ 					} while (ret < 0 && errno == EINTR);
+ 					if (ret > 0 && (fds.revents & POLLIN)) {
++						FCGIDEBUG("(%s)[%d] before break\n",__FILE__, __LINE__);
+ 						break;
+ 					}
++					FCGIDEBUG("(%s)[%d] before fcgi_close\n",__FILE__, __LINE__);
+ 					fcgi_close(req, 1, 0);
+ #else
++					FCGIDEBUG("(%s)[%d] ! HAVE_POLL\n",__FILE__, __LINE__);
+ 					if (req->fd < FD_SETSIZE) {
+ 						struct timeval tv = {5,0};
+ 						fd_set set;
+@@ -1503,7 +1547,9 @@ int fcgi_accept_request(fcgi_request *req)
+ 		} else if (in_shutdown) {
+ 			return -1;
+ 		}
++		FCGIDEBUG("(%s)[%d] before hook.on_read\n",__FILE__, __LINE__);
+ 		req->hook.on_read();
++		FCGIDEBUG("(%s)[%d] before fcgi_read_request\n",__FILE__, __LINE__);
+ 		if (fcgi_read_request(req)) {
+ #ifdef _WIN32
+ 			if (is_impersonate && !req->tcp) {
+-- 
+2.38.1
+

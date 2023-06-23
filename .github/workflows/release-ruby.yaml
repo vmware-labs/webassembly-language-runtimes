@@ -17,6 +17,11 @@ jobs:
         include:
           - version: 3.2.0
             target_version: 3_2_0
+          - version: 3.2.2
+            target_version: 3_2_2
+        exclude:
+          - flavor: "-slim"
+            version: 3.2.2
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
