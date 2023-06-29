@@ -12,6 +12,6 @@
     "node.app": "./bin/runtime.js"
   },
   "dependencies": {
-    "yargs": "13.2"
+    "yargs": "17.7.2"
   }
 }
