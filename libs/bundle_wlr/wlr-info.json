@@ -7,7 +7,8 @@
         },
         "libpng": {
             "build_target": "libs/libpng/v1.6.39",
-            "required_file": "lib/wasm32-wasi/libpng16.a"
+            "required_file": "lib/wasm32-wasi/libpng16.a",
+            "url": "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Flibpng%2F1.6.39%2B20230629-ccb4cb0/libpng-1.6.39-wasi-sdk-20.0.tar.gz"
         },
         "libjpeg": {
             "build_target": "libs/libjpeg/v2.1.5.1",
