@@ -2,7 +2,8 @@
     "deps": {
         "SQLite": {
             "build_target": "libs/sqlite/v3.42.0",
-            "required_file": "lib/wasm32-wasi/libsqlite3.a"
+            "required_file": "lib/wasm32-wasi/libsqlite3.a",
+            "url": "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fsqlite%2F3.42.0%2B20230623-2993864/libsqlite-3.42.0-wasi-sdk-20.0.tar.gz"
         }
     }
 }

@@ -23,8 +23,8 @@ if [ ! -f $1/wlr-tag.sh ]; then
     exit 1
 fi
 
-if [ "$(git branch --show-current)" != "main" ] || [ "${WLR_TAG_ANY_BRANCH}" != "1" ]; then
-    echo "can only tag/release from 'main' branch. To force run with '${WLR_TAG_ANY_BRANCH}=1 $0'"
+if [ "$(git branch --show-current)" != "main" ] && [ "${WLR_TAG_ANY_BRANCH}" != "1" ]; then
+    echo "can only tag/release from 'main' branch. To force run with 'WLR_TAG_ANY_BRANCH=1 $0'"
     exit 1
 fi
 
