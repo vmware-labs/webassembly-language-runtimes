@@ -15,7 +15,12 @@ export CFLAGS_WASI="--sysroot=${WASI_SYSROOT} -D_WASI_EMULATED_GETPID -D_WASI_EM
 export LDFLAGS_WASI="--sysroot=${WASI_SYSROOT} -lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks"
 
 ########## Setup the flags for php #############
-export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DPNG_USER_CONFIG -DWASM_WASI'
+export CFLAGS_PHP='-D_POSIX_SOURCE=1 -D_GNU_SOURCE=1 -DHAVE_FORK=0 -DWASM_WASI'
+
+if [[ "${WLR_BUILD_FLAVOR}" != *"slim"* ]]
+then
+    CFLAGS_PHP+=' -DPNG_USER_CONFIG'
+fi
 
 export LDFLAGS_WARNINGS='-Wno-unused-command-line-argument -Werror=implicit-function-declaration -Wno-incompatible-function-pointer-types'
 
@@ -33,16 +38,54 @@ if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
     logStatus "Generating configure script..."
     ./buildconf --force || exit 1
 
-    export PHP_CONFIGURE='--without-iconv --without-openssl --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --enable-mbstring --enable-gd --disable-fiber-asm --with-jpeg'
+    export PHP_CONFIGURE=''
+    PHP_CONFIGURE+=' --without-iconv'
+    PHP_CONFIGURE+=' --without-openssl'
+    PHP_CONFIGURE+=' --without-pear'
+    PHP_CONFIGURE+=' --disable-phar'
+    PHP_CONFIGURE+=' --disable-opcache'
+    PHP_CONFIGURE+=' --disable-zend-signals'
+    PHP_CONFIGURE+=' --without-pcre-jit'
+    PHP_CONFIGURE+=' --disable-fiber-asm'
+
+    if [[ "${WLR_BUILD_FLAVOR}" == *"slim"* ]]
+    then
+        PHP_CONFIGURE+=' --disable-all'
+        PHP_CONFIGURE+=' --without-libxml'
+        PHP_CONFIGURE+=' --disable-dom'
+        PHP_CONFIGURE+=' --disable-simplexml'
+        PHP_CONFIGURE+=' --disable-xml'
+        PHP_CONFIGURE+=' --disable-xmlreader'
+        PHP_CONFIGURE+=' --disable-xmlwriter'
+        PHP_CONFIGURE+=' --without-sqlite3'
+        PHP_CONFIGURE+=' --disable-pdo'
+        PHP_CONFIGURE+=' --without-pdo-sqlite'
+    else
+        PHP_CONFIGURE+=' --with-sqlite3'
+        PHP_CONFIGURE+=' --enable-pdo'
+        PHP_CONFIGURE+=' --with-pdo-sqlite'
+        PHP_CONFIGURE+=' --enable-mbstring'
+        PHP_CONFIGURE+=' --enable-gd'
+        PHP_CONFIGURE+=' --with-jpeg'
+    fi
 
     if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
     then
-        export PHP_CONFIGURE="${PHP_CONFIGURE} --enable-mysqlnd --with-pdo-mysql --with-mysqli"
-        export PHP_CONFIGURE="--with-wasm-runtime=wasmedge ${PHP_CONFIGURE}"
+        PHP_CONFIGURE+=' --enable-mysqlnd'
+        PHP_CONFIGURE+=' --with-pdo-mysql'
+        PHP_CONFIGURE+=' --with-mysqli'
+
+        PHP_CONFIGURE="--with-wasm-runtime=wasmedge ${PHP_CONFIGURE}"
     fi
 
     logStatus "Configuring build with '${PHP_CONFIGURE}'... "
-    ./configure --config-cache --host=wasm32-wasi host_alias=wasm32-musl-wasi --target=wasm32-wasi target_alias=wasm32-musl-wasi ${PHP_CONFIGURE} || exit 1
+    ./configure \
+        --config-cache \
+        --host=wasm32-wasi \
+        host_alias=wasm32-musl-wasi \
+        --target=wasm32-wasi \
+        target_alias=wasm32-musl-wasi \
+        ${PHP_CONFIGURE} || exit 1
 else
     logStatus "Skipping configure..."
 fi

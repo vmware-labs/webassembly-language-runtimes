@@ -77,7 +77,7 @@ logStatus "Checking dependencies..."
 if [[ -f ${WLR_ENV}/wlr-info.json ]]
 then
     source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_dependencies.sh
-    wlr_dependencies_import ${WLR_ENV}/wlr-info.json
+    wlr_dependencies_load ${WLR_ENV}/wlr-info.json "${WLR_BUILD_FLAVOR}"
 fi
 
 source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_package.sh

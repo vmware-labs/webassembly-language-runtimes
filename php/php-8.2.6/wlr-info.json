@@ -30,7 +30,7 @@
             "required_file": "lib/wasm32-wasi/libonig.a",
             "url": "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Foniguruma%2F6.9.8%2B20230623-2993864/libonig-6.9.8-wasi-sdk-20.0.tar.gz"
         },
-       "SQLite": {
+        "SQLite": {
             "build_target": "libs/sqlite/v3.42.0",
             "required_file": "lib/wasm32-wasi/libsqlite3.a",
             "url": "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fsqlite%2F3.42.0%2B20230623-2993864/libsqlite-3.42.0-wasi-sdk-20.0.tar.gz"
@@ -39,6 +39,11 @@
             "build_target": "libs/bzip2/v1.0.8",
             "required_file": "lib/wasm32-wasi/libbz2.a",
             "url": "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fbzip2%2F1.0.8%2B20230623-2993864/libbzip2-1.0.8-wasi-sdk-20.0.tar.gz"
+        }
+    },
+    "flavors": {
+        "slim": {
+            "deps": {}
         }
     }
 }
