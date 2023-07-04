@@ -46,10 +46,6 @@ function logStatus {
 
 export -f logStatus
 
-for line in $(env | grep -E "WLR_\w+="); do
-    logStatus $line
-done
-
 logStatus WASI_SDK_PATH=${WASI_SDK_PATH}
 logStatus WASI_SDK_ASSET_NAME=${WASI_SDK_ASSET_NAME}
 logStatus BINARYEN_PATH=${BINARYEN_PATH}
@@ -85,6 +81,11 @@ then
 fi
 
 source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_package.sh
+
+logStatus "Building with environment:"
+for line in $(env | grep -E "WLR_\w+=" | sort); do
+    logStatus $line
+done
 
 logStatus "Building..."
 source ${WLR_ENV}/wlr-build.sh
