@@ -12,12 +12,12 @@ php/php-8.2.6-slim:
 	make -C php php-8.2.6
 
 .PHONY: php/wasmedge-php-8.2.0
-php/wasmedge-php-8.2.0:
+php/php-8.2.0-wasmedge:
 	WLR_BUILD_FLAVOR=wasmedge \
 	make -C php php-8.2.0
 
-.PHONY: php/wasmedge-php-8.2.6
-php/wasmedge-php-8.2.6:
+.PHONY: php/php-8.2.6-wasmedge
+php/php-8.2.6-wasmedge:
 	WLR_BUILD_FLAVOR=wasmedge \
 	make -C php php-8.2.6
 

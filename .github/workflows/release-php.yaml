@@ -19,29 +19,26 @@ jobs:
         # make the PHP CLI conditionally compile local server code out
         # on all versions.
         include:
-          - name: php-
-            flavor: ""
+          - flavor: ""
             build-php-cli: false
             version: 8.1.11
-          - name: php-
-            flavor: ""
+          - flavor: ""
             build-php-cli: false
             version: 8.2.0
-          - name: wasmedge-php-
-            flavor: "-wasmedge"
+          - flavor: "-wasmedge"
             build-php-cli: true
             version: 8.2.0
-          - name: php-
-            flavor: -slim
+          - flavor: -slim
             build-php-cli: false
             version: 8.2.0
-          - name: php-
-            flavor: ""
+          - flavor: ""
             build-php-cli: false
             version: 8.2.6
-          - name: wasmedge-php-
-            flavor: "-wasmedge"
+          - flavor: "-wasmedge"
             build-php-cli: true
+            version: 8.2.6
+          - flavor: "-slim"
+            build-php-cli: false
             version: 8.2.6
     runs-on: ubuntu-latest
     steps:
@@ -58,7 +55,7 @@ jobs:
         # This if could be moved to the parent `job` section when it's
         # supported by GitHub (https://github.com/community/community/discussions/37883)
         if: startsWith(github.event.ref, format('refs/tags/php/{0}+', matrix.version))
-        run: make php/${{ matrix.name }}${{ matrix.version }}${{ matrix.flavor }}
+        run: make php/php-${{ matrix.version }}${{ matrix.flavor }}
       - name: Rename CGI release artifacts
         # Only run for the PHP version specified in the git tag.
         #
