@@ -35,7 +35,21 @@ if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
         ./buildconf --force || exit 1
     fi
 
-    export PHP_CONFIGURE='--without-iconv --without-openssl --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --with-sqlite3 --enable-pdo --with-pdo-sqlite --enable-mbstring --enable-gd --disable-fiber-asm --with-jpeg'
+    export PHP_CONFIGURE=''
+    PHP_CONFIGURE+=' --without-iconv'
+    PHP_CONFIGURE+=' --without-openssl'
+    PHP_CONFIGURE+=' --without-pear'
+    PHP_CONFIGURE+=' --disable-phar'
+    PHP_CONFIGURE+=' --disable-opcache'
+    PHP_CONFIGURE+=' --disable-zend-signals'
+    PHP_CONFIGURE+=' --without-pcre-jit'
+    PHP_CONFIGURE+=' --with-sqlite3'
+    PHP_CONFIGURE+=' --enable-pdo'
+    PHP_CONFIGURE+=' --with-pdo-sqlite'
+    PHP_CONFIGURE+=' --enable-mbstring'
+    PHP_CONFIGURE+=' --enable-gd'
+    PHP_CONFIGURE+=' --disable-fiber-asm'
+    PHP_CONFIGURE+=' --with-jpeg'
 
     if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
     then

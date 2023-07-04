@@ -32,7 +32,25 @@ if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
     logStatus "Generating configure script..."
     ./buildconf --force || exit 1
 
-    export PHP_CONFIGURE='--disable-all --without-libxml --disable-dom --without-iconv --without-openssl --disable-simplexml --disable-xml --disable-xmlreader --disable-xmlwriter --without-pear --disable-phar --disable-opcache --disable-zend-signals --without-pcre-jit --without-sqlite3 --disable-pdo --without-pdo-sqlite --disable-fiber-asm'
+    export PHP_CONFIGURE=''
+    PHP_CONFIGURE+=' --disable-all'
+    PHP_CONFIGURE+=' --without-libxml'
+    PHP_CONFIGURE+=' --disable-dom'
+    PHP_CONFIGURE+=' --without-iconv'
+    PHP_CONFIGURE+=' --without-openssl'
+    PHP_CONFIGURE+=' --disable-simplexml'
+    PHP_CONFIGURE+=' --disable-xml'
+    PHP_CONFIGURE+=' --disable-xmlreader'
+    PHP_CONFIGURE+=' --disable-xmlwriter'
+    PHP_CONFIGURE+=' --without-pear'
+    PHP_CONFIGURE+=' --disable-phar'
+    PHP_CONFIGURE+=' --disable-opcache'
+    PHP_CONFIGURE+=' --disable-zend-signals'
+    PHP_CONFIGURE+=' --without-pcre-jit'
+    PHP_CONFIGURE+=' --without-sqlite3'
+    PHP_CONFIGURE+=' --disable-pdo'
+    PHP_CONFIGURE+=' --without-pdo-sqlite'
+    PHP_CONFIGURE+=' --disable-fiber-asm'
 
     if [[ -v WLR_RUNTIME ]]
     then
@@ -67,12 +85,12 @@ logStatus "Preparing artifacts..."
 mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
 logStatus "Running wasm-opt with the asyncify pass on php-cgi..."
-wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php-cgi${WLR_RUNTIME:+-$WLR_RUNTIME}.wasm sapi/cgi/php-cgi || exit 1
+wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php-cgi${WLR_RUNTIME:+-$WLR_RUNTIME}-slim.wasm sapi/cgi/php-cgi || exit 1
 
 if [[ "${WLR_RUNTIME}" == "wasmedge" ]]
 then
     logStatus "Running wasm-opt with the asyncify pass on php..."
-    wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php${WLR_RUNTIME:+-$WLR_RUNTIME}.wasm sapi/cli/php || exit 1
+    wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php${WLR_RUNTIME:+-$WLR_RUNTIME}-slim.wasm sapi/cli/php || exit 1
 fi
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"
