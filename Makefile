@@ -6,20 +6,8 @@ include Makefile.helpers
 php/php-*:
 	make -C php $(subst php/php-,php-,$@)
 
-.PHONY: php/php-8.2.6-slim
-php/php-8.2.6-slim:
-	WLR_BUILD_FLAVOR=slim \
-	make -C php php-8.2.6
-
-.PHONY: php/wasmedge-php-8.2.0
-php/php-8.2.0-wasmedge:
-	WLR_BUILD_FLAVOR=wasmedge \
-	make -C php php-8.2.0
-
-.PHONY: php/php-8.2.6-wasmedge
-php/php-8.2.6-wasmedge:
-	WLR_BUILD_FLAVOR=wasmedge \
-	make -C php php-8.2.6
+$(eval $(call create_flavor_targets,php,php-8.2.0,wasmedge))
+$(eval $(call create_flavor_targets,php,php-8.2.6,slim wasmedge))
 
 .PHONY: php/master
 php/master:
