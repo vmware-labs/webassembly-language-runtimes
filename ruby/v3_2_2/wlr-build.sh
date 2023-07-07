@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -v WLR_ENV ]]
-then
+if [[ ! -v WLR_ENV ]]; then
     echo "WLR build environment is not set"
     exit 1
 fi
@@ -9,40 +8,80 @@ fi
 cd "${WLR_SOURCE_PATH}"
 
 export PREFIX=/wlr-rubies
-export XLDFLAGS="/wasi-vfs/lib/libwasi_vfs.a $XLDFLAGS"
 
-if [[ -z "$WLR_SKIP_CONFIGURE" ]]; then
+if [[ "${WLR_BUILD_FLAVOR}" != *"slim"* ]]; then
+    source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_wasi_vfs.sh
+    export XLDFLAGS="$(wlr_wasi_vfs_get_link_flags) ${XLDFLAGS}"
+    echo "Added wasi-vfs to XDFLAGS. XLDFLAGS='${XLDFLAGS}'"
+fi
+
+if [[ -z "${WLR_SKIP_CONFIGURE}" ]]; then
     logStatus "Downloading autotools data... "
-    ruby tool/downloader.rb -d tool -e gnu config.guess config.sub
+    ruby tool/downloader.rb -d tool -e gnu config.guess config.sub || exit 1
 
     logStatus "Generating configure script... "
-    ./autogen.sh
+   ./autogen.sh || exit 1
+
+    CFG_WITH_EXT=''
+    CFG_WITH_EXT+='bigdecimal,'
+    CFG_WITH_EXT+='cgi/escape,'
+    CFG_WITH_EXT+='continuation,'
+    CFG_WITH_EXT+='coverage,'
+    CFG_WITH_EXT+='date,'
+    CFG_WITH_EXT+='dbm,'
+    CFG_WITH_EXT+='digest/bubblebabble,'
+    CFG_WITH_EXT+='digest,'
+    CFG_WITH_EXT+='digest/md5,'
+    CFG_WITH_EXT+='digest/rmd160,'
+    CFG_WITH_EXT+='digest/sha1,'
+    CFG_WITH_EXT+='digest/sha2,'
+    CFG_WITH_EXT+='etc,'
+    CFG_WITH_EXT+='fcntl,'
+    CFG_WITH_EXT+='fiber,'
+    CFG_WITH_EXT+='gdbm,'
+    CFG_WITH_EXT+='json,'
+    CFG_WITH_EXT+='json/generator,'
+    CFG_WITH_EXT+='json/parser,'
+    CFG_WITH_EXT+='nkf,'
+    CFG_WITH_EXT+='objspace,'
+    CFG_WITH_EXT+='pathname,'
+    CFG_WITH_EXT+='racc/cparse,'
+    CFG_WITH_EXT+='rbconfig/sizeof,'
+    CFG_WITH_EXT+='ripper,'
+    CFG_WITH_EXT+='stringio,'
+    CFG_WITH_EXT+='strscan,'
+    CFG_WITH_EXT+='monitor'
+
+    CFG_LDFLAGS=" -Xlinker --stack-first"
+    CFG_LDFLAGS+=" -Xlinker -z"
+    CFG_LDFLAGS+=" -Xlinker stack-size=16777216"
 
     logStatus "Configuring ruby..."
     ./configure \
         --host wasm32-unknown-wasi \
-        --prefix=$PREFIX \
-        --with-ext=bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor \
+        --prefix=${PREFIX} \
+        --with-ext="${CFG_WITH_EXT}" \
         --with-static-linked-ext \
         --disable-install-doc \
-        LDFLAGS=" \
-      -Xlinker --stack-first \
-      -Xlinker -z -Xlinker stack-size=16777216 \
-    " \
+        LDFLAGS="${CFG_LDFLAGS}" \
         optflags="-O2" \
         debugflags="" \
-        wasmoptflags="-O2"
+        wasmoptflags="-O2" || exit 1
 else
     logStatus "Skipping configure..."
 fi
 
 logStatus "Building ruby..."
-make install
+make install || exit 1
 
 logStatus "Preparing artifacts... "
 mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
-mv $PREFIX/bin/ruby ruby
-rm -rf $PREFIX/bin
-wasi-vfs pack ruby --mapdir $PREFIX::$PREFIX -o ${WLR_OUTPUT}/bin/ruby.wasm || exit 1
+mv ${PREFIX}/bin/ruby ruby
+rm -rf ${PREFIX}/bin
+
+if [[ "${WLR_BUILD_FLAVOR}" != *"slim"* ]]; then
+    logStatus "Packing with wasi-vfs"
+    wlr_wasi_vfs_cli pack ruby --mapdir ${PREFIX}::${PREFIX} -o ${WLR_OUTPUT}/bin/ruby.wasm || exit 1
+fi
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

@@ -14,6 +14,10 @@ then
     exit 1
 fi
 
+function wlr_wasi_vfs_get_link_flags {
+    echo "-L${WASI_VFS_ROOT}/lib -lwasi_vfs"
+}
+
 function wlr_wasi_vfs_setup_dependencies {
     export LDFLAGS_DEPENDENCIES="${LDFLAGS_DEPENDENCIES} -L${WASI_VFS_ROOT}/lib -lwasi_vfs "
 }
