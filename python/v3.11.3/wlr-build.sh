@@ -126,7 +126,7 @@ EOF
 
     PC_INCLUDE_SUBDIR=python3.11 wlr_pkg_config_create_pc_file "libpython3.11" "${WLR_PACKAGE_VERSION}" "${DESCRIPTION}" "${EXTRA_LINK_FLAGS}" || exit 1
 
-    WLR_PACKAGE_LIB_EXTRA_DIRS=usr wlr_package_lib || exit 1
+    WLR_PACKAGE_EXTRA_DIRS=usr wlr_package_lib || exit 1
 fi
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

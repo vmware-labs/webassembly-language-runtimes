@@ -25,11 +25,11 @@ jobs:
       - name: Build Python
         run: make python/v${{ steps.determineVersion.outputs.value }}
       - name: Build Python Wasmedge
-        run: make python/wasmedge-v${{ steps.determineVersion.outputs.value }}
+        run: make python/v${{ steps.determineVersion.outputs.value }}-wasmedge
       - name: Build Python AIO
-        run: make python/aio-v${{ steps.determineVersion.outputs.value }}
+        run: make python/v${{ steps.determineVersion.outputs.value }}-aio
       - name: Build Python AIO Wasmedge
-        run: make python/aio-wasmedge-v${{ steps.determineVersion.outputs.value }}
+        run: make python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge
       - name: Rename release artifacts
         shell: bash
         run: |
