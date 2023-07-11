@@ -10,75 +10,33 @@ on:
     tags:
       - python/*
 jobs:
-  release-python:
-    strategy:
-      fail-fast: false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Determine version
-        id: determineVersion
-        run: |
-          VERSION=$(echo ${{ github.event.ref }} | sed 's,refs/tags/python/,,g' | cut -f 1 -d \+)
-          echo "value=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Build Python
-        run: make python/v${{ steps.determineVersion.outputs.value }}
-      - name: Build Python Wasmedge
-        run: make python/v${{ steps.determineVersion.outputs.value }}-wasmedge
-      - name: Build Python AIO
-        run: make python/v${{ steps.determineVersion.outputs.value }}-aio
-      - name: Build Python AIO Wasmedge
-        run: make python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge
-      - name: Rename release artifacts
-        shell: bash
-        run: |
-          sudo mv build-output/python/v${{ steps.determineVersion.outputs.value }}/bin/python{,-${{ steps.determineVersion.outputs.value }}}.wasm
-          sudo mv build-output/python/v${{ steps.determineVersion.outputs.value }}-wasmedge/bin/python{,-${{ steps.determineVersion.outputs.value }}-wasmedge}.wasm
-          sudo mv build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python{,-${{ steps.determineVersion.outputs.value }}}.wasm
-          sudo mv build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python{,-${{ steps.determineVersion.outputs.value }}-wasmedge}.wasm
-      - name: Bundle Python with standard libraries
-        run: |
-          tar -cvf python-${{ steps.determineVersion.outputs.value }}.tar \
-            -C build-output/python/v${{ steps.determineVersion.outputs.value }}/ \
-            bin/python-${{ steps.determineVersion.outputs.value }}.wasm \
-            usr
-          tar -rvf python-${{ steps.determineVersion.outputs.value }}.tar \
-            -C build-output/python/v${{ steps.determineVersion.outputs.value }}-wasmedge/ \
-            bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm
-          gzip python-${{ steps.determineVersion.outputs.value }}.tar
-      - name: Create release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create --generate-notes ${{ github.ref_name }} || true
-      - name: Append Python release assets
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload ${{ github.ref_name }} \
-            python-${{ steps.determineVersion.outputs.value }}.tar.gz \
-            build-output/libpython-${{ steps.determineVersion.outputs.value }}*.tar.gz \
-            build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python-${{ steps.determineVersion.outputs.value }}.wasm \
-            build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm
-      - name: Generate release assets digests
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          for asset in \
-              python-${{ steps.determineVersion.outputs.value }}.tar.gz \
-              build-output/libpython-${{ steps.determineVersion.outputs.value }}*.tar.gz \
-              build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python-${{ steps.determineVersion.outputs.value }}.wasm \
-              build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm; \
-          do
-            sha256sum "$asset" | sudo tee "$asset.sha256sum" > /dev/null
-          done
-      - name: Append release assets digests
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload ${{ github.ref_name }} \
-            python-${{ steps.determineVersion.outputs.value }}.tar.gz.sha256sum \
-            build-output/libpython-${{ steps.determineVersion.outputs.value }}*.tar.gz.sha256sum \
-            build-output/python/v${{ steps.determineVersion.outputs.value }}-aio/bin/python-${{ steps.determineVersion.outputs.value }}.wasm.sha256sum \
-            build-output/python/v${{ steps.determineVersion.outputs.value }}-aio-wasmedge/bin/python-${{ steps.determineVersion.outputs.value }}-wasmedge.wasm.sha256sum
+  build-default:
+    uses: ./.github/workflows/reusable-build-runtime-flavor.yaml
+    with:
+      target-name: "python"
+      trigger: ${{ github.event.ref }}
+      flavor: ""
+  build-wasmedge:
+    uses: ./.github/workflows/reusable-build-runtime-flavor.yaml
+    with:
+      target-name: "python"
+      trigger: ${{ github.event.ref }}
+      flavor: "-wasmedge"
+  build-aio:
+    uses: ./.github/workflows/reusable-build-runtime-flavor.yaml
+    with:
+      target-name: "python"
+      trigger: ${{ github.event.ref }}
+      flavor: "-aio"
+  build-aio-wasmedge:
+    uses: ./.github/workflows/reusable-build-runtime-flavor.yaml
+    with:
+      target-name: "python"
+      trigger: ${{ github.event.ref }}
+      flavor: "-aio-wasmedge"
+  publish:
+    uses: ./.github/workflows/reusable-publish-assets.yaml
+    needs: [build-default, build-wasmedge, build-aio, build-aio-wasmedge]
+    with:
+      target-name: "python"
+
