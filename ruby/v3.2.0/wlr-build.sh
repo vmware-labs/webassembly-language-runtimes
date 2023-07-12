@@ -89,4 +89,7 @@ fi
 
 rm -rf ${PREFIX}/bin
 
+PUBLISHED_RUBY_BINARY=ruby-${WLR_PACKAGE_VERSION}${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm
+cp -v ${WLR_OUTPUT}/bin/ruby.wasm ${WLR_OUTPUT_BASE}/${PUBLISHED_RUBY_BINARY}
+
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

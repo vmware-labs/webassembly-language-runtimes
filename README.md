@@ -61,7 +61,7 @@ All you need in order to run these builds is to have `docker` or `podman` availa
 - `python/v3.11.3`
     - Resulting binaries are placed in `build-output/python`.
 
-- `ruby/v3_2_0`
+- `ruby/v3.2.0`
     - Resulting binaries are placed in `build-output/ruby`.
 
 ### Build strategy

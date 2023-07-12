@@ -17,8 +17,8 @@ php/master:
 ruby/v*:
 	make -C ruby $(subst ruby/,,$@)
 
-$(eval $(call create_flavor_targets,ruby,v3_2_0,slim))
-$(eval $(call create_flavor_targets,ruby,v3_2_2,slim))
+$(eval $(call create_flavor_targets,ruby,v3.2.0,slim))
+$(eval $(call create_flavor_targets,ruby,v3.2.2,slim))
 
 .PHONY: python/v*
 python/v*:

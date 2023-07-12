@@ -13,27 +13,19 @@ jobs:
       fail-fast: false
       matrix:
         flavor: ["", "-slim"]
-        include:
-          - version: 3.2.0
-            target_version: 3_2_0
-          - version: 3.2.2
-            target_version: 3_2_2
-        exclude:
-          - flavor: "-slim"
-            version: 3.2.2
+        version: ["3.2.0", "3.2.2"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build Ruby
-        run: make ruby/v${{ matrix.target_version }}${{ matrix.flavor }}
-      - name: Rename artifacts
-        shell: bash
-        run: |
-          sudo mv build-output/ruby/v${{ matrix.target_version }}${{ matrix.flavor }}/bin/ruby{,-${{ matrix.version }}${{ matrix.flavor }}}.wasm
-      - name: Upload ruby-${{ matrix.version }}${{ matrix.flavor }}.wasm artifact
+        run: make ruby/v${{ matrix.version }}${{ matrix.flavor }}
+      - name: Upload ruby-${{ matrix.version }} assets
         uses: actions/upload-artifact@v3
         with:
-          name: ruby-${{ matrix.version }}${{ matrix.flavor }}.wasm
-          path: build-output/ruby/v${{ matrix.target_version }}${{ matrix.flavor }}/bin/ruby-${{ matrix.version }}${{ matrix.flavor }}.wasm
+          name: ruby-${{ matrix.version }}.zip
+          path: |
+            build-output/*.gz
+            build-output/*.wasm
+            build-output/*.txt
           if-no-files-found: error
