@@ -2,12 +2,12 @@
 
 include Makefile.helpers
 
-.PHONY: php/php-*
-php/php-*:
-	make -C php $(subst php/php-,php-,$@)
+.PHONY: php/v*
+php/v*:
+	make -C php $(subst php/,,$@)
 
-$(eval $(call create_flavor_targets,php,php-8.2.0,wasmedge))
-$(eval $(call create_flavor_targets,php,php-8.2.6,slim wasmedge))
+$(eval $(call create_flavor_targets,php,v8.2.0,slim wasmedge))
+$(eval $(call create_flavor_targets,php,v8.2.6,slim wasmedge))
 
 .PHONY: php/master
 php/master:

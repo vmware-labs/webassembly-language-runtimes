@@ -12,8 +12,8 @@ php-builder:
 update-php-builder: php-builder
 	@$(call push_container_image,$(PHP_BUILDER_NAME))
 
-.PHONY: php-*
-php-*:
+.PHONY: v*
+v*:
 	@$(call build_in_container,$(PHP_BUILDER_NAME),$(REPO_ROOT),php/$@)
 
 .PHONY: master

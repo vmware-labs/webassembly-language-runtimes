@@ -17,7 +17,7 @@ on:
         type: string
         default: ""
 jobs:
-  release-lib:
+  build-runtime:
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest

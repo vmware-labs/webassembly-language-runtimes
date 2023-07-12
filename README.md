@@ -54,8 +54,8 @@ The rest of this document will help you if you want to build some of the assets 
 
 All you need in order to run these builds is to have `docker` or `podman` available in your system. You can execute the following `Makefile` targets:
 
-- `php/php-7.3.33`, `php/php-7.4.32`, `php/wasmedge-php-7.4.32`,
-  `php/php-8.1.11`, `php/php-8.2.0`
+- `php/v7.3.33`, `php/v7.4.32`,
+  `php/v8.1.11`, `php/v8.2.0`, `php/v8.2.0-wasmedge`
     - Resulting binaries are placed in `build-output/php`.
 
 - `python/v3.11.3`
@@ -81,7 +81,7 @@ For language runtimes we have something like this.
 ```
 ${LANGUAGE_RUNTIME_NAME} (e.g. 'php')
 ├── README.md (generic notes about what was patched to build this language)
-├── ${VERSION_TAG_IN_REPO} (e.g. 'php-7.4.32' from the php repo)
+├── v${VERSION_FROM_TAG_IN_REPO} (e.g. 'v7.4.32' for the 'php-7.4.32 tag from the php repo)
 │   ├── README.md (generic notes about what was patched to build this version)
 │   ├── patches (consecutive patches on top of the tagged version, applied before building)
 │   │   ├── (e.g. '0001-Initial-port-of-7.3.33-patch-to-7.4.32.patch')
@@ -92,7 +92,7 @@ ${LANGUAGE_RUNTIME_NAME} (e.g. 'php')
 └── wlr-env-repo.sh (script that sets up the source code repository for given langauge and tag)
 ```
 
-For common shared libraries we have something limilar.
+For common shared libraries we have something similar.
 ```
 libs (common libraries, needed by different modules)
 └── ${LIBRARY_NAME} (e.g. 'sqlite')
@@ -122,44 +122,54 @@ libs (common libraries, needed by different modules)
 
 To add a build setup for a new version of something that is already configured:
 
-1. Add a subfolder with the respective tag, like this:
+1. Add a subfolder for the respective tag version, like this:
 
 ```
-mkdir php/php-7.3.33
+mkdir php/v8.1.11
 ```
 
 2. Create a `wlr-build.sh` script in the target folder, like this:
 
 ```console
-touch php/php-7.3.33/wlr-build.sh
+touch php/v8.1.11/wlr-build.sh
 ```
 
 3. Setup your build environment via `scripts/wlr-env.sh` with the target path then query the respective environment variables, like this:
 
 ```console
-source scripts/wlr-env.sh php/php-7.3.33
+source scripts/wlr-env.sh php/v8.1.11
 export | grep WLR_
 ```
 
-4. Create a local clone of the respective tag in build-staging, like this:
+4. Create a `wlr-env-repo.sh` script in the target folder and define repository, tag, version, etc., like this:
+
+```console
+export WLR_REPO=https://github.com/php/php-src.git
+export WLR_REPO_BRANCH=php-8.1.11
+export WLR_ENV_NAME=php/php-8.1.11
+export WLR_PACKAGE_VERSION=8.1.11
+export WLR_PACKAGE_NAME=php
+```
+
+5. Create a local clone of the respective tag in build-staging, like this:
 
 ```console
 scripts/wlr-setup-repo.sh
 ```
 
-5. Open your favorite IDE in the said clone to iterate building from the tag until it works, like this:
+6. Open your favorite IDE in the said clone to iterate building from the tag until it works, like this:
 
 ```console
-code build-staging/php/php-7.3.33/checkout
+code build-staging/php/v8.1.11/checkout
 ```
 
-6. Patch the checked out code where necessary. Add flags and build commands to the `wlr-build.sh` script in the target folder and each time rebuild like this:
+7. Patch the checked out code where necessary. Add flags and build commands to the `wlr-build.sh` script in the target folder and each time rebuild like this:
 
 ```console
 scripts/wlr-build.sh
 ```
 
-7. After you manage to get a working build, add proper lines at the end of your `wlr-build.sh` script to copy from the `build-staging` folder to the respective `build-output` location, like this:
+8. After you manage to get a working build, add proper lines at the end of your `wlr-build.sh` script to copy from the `build-staging` folder to the respective `build-output` location, like this:
 
 ```bash
 ...
@@ -172,7 +182,7 @@ logStatus "DONE. Artifacts in ${WLR_OUTPUT}"
 
 ```
 
-8. Commit the patch changes from 6. into the local shallow clone. If necessary, split them into commits. Then export them to the target folder (e.g. `php/php-7.3.33/patches`) like this:
+8. Commit the patch changes from 7. into the local shallow clone. If necessary, split them into commits. Then export them to the target folder (e.g. `php/v8.1.11/patches`) like this:
 
 ```console
 scripts/wlr-update-patches.sh
@@ -181,18 +191,18 @@ scripts/wlr-update-patches.sh
 9. Now add and commit the new target description folder containing the build script and respective patches to the current repository, like this:
 
 ```console
-git add php/php-7.3.33
-git commit -m "Add support to build php version 7.3.33"
+git add php/v8.1.11
+git commit -m "Add support to build php version 8.1.11"
 ```
 
 ### Releasing
 
 In order to release a new version, you first have to tag the project you want to release. You can create a tag by using the `scripts/wlr-tag.sh` script.
 
-This script accepts the path to be released, and will create a local tag of the form `<project>/<version>+YYYYMMDD-<short-sha>`. All parameters will be automatically filled by the script, so in order to create a valid tag for PHP 7.3.33, for example, you only have to execute:
+This script accepts the path to be released, and will create a local tag of the form `<project>/<version>+YYYYMMDD-<short-sha>`. All parameters will be automatically filled by the script, so in order to create a valid tag for PHP 8.1.11, for example, you only have to execute:
 
-- `scripts/wlr-tag.sh php/php-7.3.33`
+- `scripts/wlr-tag.sh php/v8.1.11`
 
-This will create a tag like the following in your local repository: `php/7.3.33+20221123-d3d8901`.
+This will create a tag like the following in your local repository: `php/8.1.11+20221123-d3d8901`.
 
 When you push the tag to the remote repository, a GitHub release will be created automatically, and relevant artifacts will be automatically published to the release.

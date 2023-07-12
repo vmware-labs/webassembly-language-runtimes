@@ -158,7 +158,7 @@ endef
 #
 # USAGE:
 #  - At Makefile root level (not as part of a target)
-#  - $(eval $(call create_flavor_target,php,php-1.2.3,slim))
+#  - $(eval $(call create_flavor_target,php,v1.2.3,slim))
 #
 define create_flavor_target
 # $1 - TARGET_NAME
@@ -177,7 +177,7 @@ endef
 #
 # USAGE:
 #  - At Makefile root level (not as part of a target)
-#  - $(call create_flavor_targets,php,php-1.2.3,slim wasmedge slim-wasmedge)
+#  - $(call create_flavor_targets,php,v1.2.3,slim wasmedge slim-wasmedge)
 #
 define create_flavor_targets
 # $1 - TARGET_NAME

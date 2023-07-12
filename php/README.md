@@ -4,11 +4,11 @@
 
 You can build PHP by running the following Makefile targets:
 
-- `make php-7.3.33`
-- `make php-7.4.32`
-- `make php-8.1.11`
-- `make php-8.2.0`
-- `make php-8.2.0-slim`
+- `make v8.1.11`
+- `make v8.2.0`
+- `make v8.2.0-slim`
+- `make v8.2.6`
+- `make v8.2.6-slim`
 
 ## Running a script with php-cgi
 

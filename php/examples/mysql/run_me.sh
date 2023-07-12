@@ -76,9 +76,9 @@ docker exec ${MYSQL_CONTAINER_NAME} mysql -h 127.0.0.1 -P 3306 -u${TEST_USER} -p
 
 demo_step Build PHP if not available
 # TODO - download from github after release
-if [ ! -f ../../../build-output/php/php-8.2.0-wasmedge/bin/php-wasmedge.wasm ];
+if [ ! -f ../../../build-output/php/v8.2.6-wasmedge/bin/php-wasmedge.wasm ];
 then
-  (cd ../../..; WLR_BUILD_FLAVOR=wasmedge ./wlr-make.sh php/php-8.2.0) || exit 1
+  (cd ../../..; WLR_BUILD_FLAVOR=wasmedge ./wlr-make.sh php/v8.2.6) || exit 1
 fi
 
 demo_step Test mySQL with PHP.
