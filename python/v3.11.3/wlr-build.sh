@@ -11,7 +11,7 @@ cd "${WLR_SOURCE_PATH}"
 if [[ "${WLR_BUILD_FLAVOR}" == *"aio"* ]]
 then
     source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_wasi_vfs.sh
-    wlr_wasi_vfs_setup_dependencies || exit 1
+    export LDFLAGS="$(wlr_wasi_vfs_get_link_flags) ${LDFLAGS}"
 fi
 
 source ${WLR_REPO_ROOT}/scripts/build-helpers/wlr_pkg_config.sh
@@ -80,16 +80,16 @@ then
 fi
 
 logStatus "Preparing artifacts... "
-TARGET_PYTHON_BINARY=${WLR_OUTPUT}/bin/python.wasm
+TARGET_PYTHON_BINARY=bin/python-${WLR_PACKAGE_VERSION}.wasm
 
 mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
 if [[ "${WLR_BUILD_FLAVOR}" == *"aio"* ]]
 then
-    cp -v python-optimized.wasm ${TARGET_PYTHON_BINARY} || exit 1
+    cp -v python-optimized.wasm ${WLR_OUTPUT}/${TARGET_PYTHON_BINARY} || exit 1
 else
     mkdir -p ${WLR_OUTPUT}/usr 2>/dev/null || exit 1
-    cp -v python-optimized.wasm ${TARGET_PYTHON_BINARY} || exit 1
+    cp -v python-optimized.wasm ${WLR_OUTPUT}/${TARGET_PYTHON_BINARY} || exit 1
     cp -TRv usr ${WLR_OUTPUT}/usr || exit 1
 fi
 
@@ -127,6 +127,16 @@ EOF
     PC_INCLUDE_SUBDIR=python3.11 wlr_pkg_config_create_pc_file "libpython3.11" "${WLR_PACKAGE_VERSION}" "${DESCRIPTION}" "${EXTRA_LINK_FLAGS}" || exit 1
 
     WLR_PACKAGE_EXTRA_DIRS=usr wlr_package_lib || exit 1
+    WLR_PACKAGE_LIST="${TARGET_PYTHON_BINARY} usr" wlr_package || exit 1
+
+elif [[ "${WLR_BUILD_FLAVOR}" == *"aio"* ]]; then
+    # skip 'aio' in the name
+    FLAVOR_SUFFIX=$(echo ${WLR_BUILD_FLAVOR} | sed 's/-\?aio//g')
+    PUBLISHED_PYTHON_BINARY=python-${WLR_PACKAGE_VERSION}${FLAVOR_SUFFIX}.wasm
+    cp -v ${WLR_OUTPUT}/${TARGET_PYTHON_BINARY} ${WLR_OUTPUT_BASE}/${PUBLISHED_PYTHON_BINARY} || exit 1
+
+else
+    WLR_PACKAGE_LIST="${TARGET_PYTHON_BINARY} usr" wlr_package || exit 1
 fi
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"
