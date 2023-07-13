@@ -1,3 +1,13 @@
+# Used to build a language runtime flavor
+# Example:
+# jobs:
+#   build-php-my-flavor:
+#     uses: ./.github/workflows/reusable-build-runtime-flavor.yaml
+#     with:
+#       target-name: "php"
+#       trigger: ${{ github.event.ref }}
+#       flavor: "-my-flavor"
+
 # Note: This workflow should be refactored into a custom GH action.
 # This will allow us to call it in job steps and have more flexibility.
 # Currently we can only call it as a separate job/ Thus we cannot populate

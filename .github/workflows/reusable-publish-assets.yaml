@@ -1,3 +1,19 @@
+# Used to publish release assets uploaded by a previous job (e.g.`reusable-build-runtime-flavor.yaml)`
+# Example
+# jobs:
+#   build-job:
+#     ...
+#     steps:
+#       - uses: actions/upload-artifact@v3
+#         with:
+#           name: php.zip
+#           ...
+#   publish:
+#     uses: ./.github/workflows/reusable-publish-assets.yaml
+#     needs: build-job
+#     with:
+#       target-name: "php"
+
 # Note: This workflow should be refactored into a custom GH action.
 # This will allow us to call it in job steps and have more flexibility.
 on:
