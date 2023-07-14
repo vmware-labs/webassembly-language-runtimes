@@ -21,7 +21,7 @@ if [[ "$1" == "--local" ]]; then
     check npm
     check node
 else
-    WASI_SDK_VERSION=19.0
+    WASI_SDK_VERSION=20.0
     WASI_CMD="docker run -t -v$(pwd):/workdir -w /workdir ghcr.io/vmware-labs/wasmlabs/wasi-builder:${WASI_SDK_VERSION}"
     NODE_CMD="docker run -t -v$(pwd):/workdir -w /workdir node:16.20"
 fi

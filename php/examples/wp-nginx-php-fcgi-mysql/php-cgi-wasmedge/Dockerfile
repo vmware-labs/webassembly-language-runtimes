@@ -13,16 +13,16 @@ RUN mkdir /opt/work
 WORKDIR /opt/work
 
 # Download php-cgi-wasmedge.wasm
-RUN curl -L -o php-cgi-8.2.0-wasmedge.wasm https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/php%2F8.2.0%2B20230418-d75a618/php-cgi-8.2.0-wasmedge.wasm
+RUN curl -L -o php-cgi-wasmedge.wasm https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/php%2F8.2.6%2B20230714-11be424/php-8.2.6-wasmedge.wasm
 
 # Install wasmedgec
 RUN curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash
 
 # Just doing AOT without optimizing as the binary is already optimized
-RUN /root/.wasmedge/bin/wasmedgec --optimize 0 /opt/work/php-cgi-8.2.0-wasmedge.wasm php-cgi-8.2.0-wasmedge-aot.wasm
+RUN /root/.wasmedge/bin/wasmedgec --optimize 0 /opt/work/php-cgi-wasmedge.wasm php-cgi-wasmedge-aot.wasm
 
 
 
 FROM scratch
-ENTRYPOINT [ "php-cgi-8.2.0-wasmedge.wasm", "-b", "0.0.0.0:9000", "-d", "ignore_user_abort=On"]
-COPY --link --from=builder /opt/work/php-cgi-8.2.0-wasmedge-aot.wasm /php-cgi-8.2.0-wasmedge.wasm
+ENTRYPOINT [ "php-cgi-wasmedge.wasm", "-b", "0.0.0.0:9000", "-d", "ignore_user_abort=On"]
+COPY --link --from=builder /opt/work/php-cgi-wasmedge-aot.wasm /php-cgi-wasmedge.wasm
