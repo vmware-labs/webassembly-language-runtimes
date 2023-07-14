@@ -51,6 +51,8 @@ logStatus "Preparing artifacts... "
 mkdir -p ${WLR_OUTPUT}/bin 2>/dev/null || exit 1
 
 logStatus "Running wasm-opt with the asyncify pass on php-cgi.."
-wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php-cgi.wasm sapi/cgi/php-cgi || exit 1
+wasm-opt -O2 --asyncify --pass-arg=asyncify-ignore-imports -o ${WLR_OUTPUT}/bin/php-cgi-${WLR_PACKAGE_VERSION}.wasm sapi/cgi/php-cgi || exit 1
+
+cp -v ${WLR_OUTPUT}/bin/php-* ${WLR_OUTPUT_BASE}
 
 logStatus "DONE. Artifacts in ${WLR_OUTPUT}"

@@ -4,7 +4,7 @@
 
 You can build Ruby by running the following Makefile targets:
 
-- `make v3_2_0`
+- `make v3.2.0`
 
 ## Running a script with ruby
 

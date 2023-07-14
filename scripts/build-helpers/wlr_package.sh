@@ -18,7 +18,7 @@ function wlr_package_lib {
         --exclude=*.la \
         --exclude=lib/wasm32-wasi/cmake \
         include \
-        lib ${WLR_PACKAGE_LIB_EXTRA_DIRS}
+        lib ${WLR_PACKAGE_EXTRA_DIRS}
     gzip -f ${_PACKAGE}
 }
 
@@ -28,5 +28,14 @@ function wlr_package_bin {
     tar -cvf ${_PACKAGE} \
         -C ${WLR_OUTPUT}/ \
         bin
+    gzip -f ${_PACKAGE}
+}
+
+function wlr_package {
+    local _PACKAGE=${WLR_OUTPUT_BASE}/${WLR_PACKAGE_NAME}-${WLR_PACKAGE_VERSION}${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}-${WASI_SDK_ASSET_NAME}.tar
+    logStatus "Packaging... ${_PACKAGE}"
+    tar -cvf ${_PACKAGE} \
+        -C ${WLR_OUTPUT}/ \
+        ${WLR_PACKAGE_LIST}
     gzip -f ${_PACKAGE}
 }

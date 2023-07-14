@@ -12,34 +12,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - prefix: ""
-            suffix: ""
-            version: "3.11.4"
-          - prefix: "wasmedge-"
-            suffix: "-wasmedge"
-            version: "3.11.4"
-          - prefix: "aio-"
-            suffix: "-aio"
-            version: "3.11.4"
-          - prefix: "aio-wasmedge-"
-            suffix: "-aio-wasmedge"
-            version: "3.11.4"
+        flavor: ["", "-wasmedge", "-aio", "-aio-wasmedge"]
+        version: ["3.11.3", "3.11.4"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build Python
-        run: make python/${{ matrix.prefix }}v${{ matrix.version }}
-      - name: Rename artifacts
-        shell: bash
-        run: |
-          sudo mv build-output/python/v${{ matrix.version }}${{ matrix.suffix }}/bin/python{,-${{ matrix.version }}${{ matrix.suffix }}}.wasm
-      - name: Upload python-${{ matrix.version }}.zip artifact
+        run: make python/v${{ matrix.version }}${{ matrix.flavor }}
+      - name: Upload python-${{ matrix.version }} assets
         uses: actions/upload-artifact@v3
         with:
           name: python-${{ matrix.version }}.zip
           path: |
-            build-output/python/v${{ matrix.version }}${{ matrix.suffix }}/bin/python-${{ matrix.version }}${{ matrix.suffix }}.wasm
-            build-output/python/v${{ matrix.version }}${{ matrix.suffix }}/usr
+            build-output/*.gz
+            build-output/*.wasm
+            build-output/*.txt
           if-no-files-found: error

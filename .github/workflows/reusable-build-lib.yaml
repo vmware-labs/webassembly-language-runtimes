@@ -1,4 +1,14 @@
-name: Build a library
+# Used to build an external library
+# Example:
+# jobs:
+#   build-libs-bzip2:
+#     strategy:
+#       fail-fast: false
+#     uses: ./.github/workflows/reusable-build-lib.yaml
+#     with:
+#       target: bzip2/v1.0.8
+
+name: Build an external library
 on:
   workflow_call:
     inputs:

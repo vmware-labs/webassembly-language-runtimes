@@ -2,19 +2,12 @@
 
 include Makefile.helpers
 
-.PHONY: php/php-*
-php/php-*:
-	make -C php $(subst php/php-,php-,$@)
+.PHONY: php/v*
+php/v*:
+	make -C php $(subst php/,,$@)
 
-.PHONY: php/wasmedge-php-8.2.0
-php/wasmedge-php-8.2.0:
-	WLR_BUILD_FLAVOR=wasmedge \
-	make -C php php-8.2.0
-
-.PHONY: php/wasmedge-php-8.2.6
-php/wasmedge-php-8.2.6:
-	WLR_BUILD_FLAVOR=wasmedge \
-	make -C php php-8.2.6
+$(eval $(call create_flavor_targets,php,v8.2.0,slim wasmedge))
+$(eval $(call create_flavor_targets,php,v8.2.6,slim wasmedge))
 
 .PHONY: php/master
 php/master:
@@ -24,24 +17,16 @@ php/master:
 ruby/v*:
 	make -C ruby $(subst ruby/,,$@)
 
+$(eval $(call create_flavor_targets,ruby,v3.2.0,slim))
+$(eval $(call create_flavor_targets,ruby,v3.2.2,slim))
+
 .PHONY: python/v*
 python/v*:
 	make -C python $(subst python/,,$@)
 
-.PHONY: python/wasmedge-v3.11.1
-python/wasmedge-v3.11.1:
-	WLR_BUILD_FLAVOR=wasmedge \
-	make -C python $(subst python/wasmedge-,,$@)
-
-.PHONY: python/aio-v3.11.1
-python/aio-v3.11.1:
-	WLR_BUILD_FLAVOR=aio \
-	make -C python $(subst python/aio-,,$@)
-
-.PHONY: python/aio-wasmedge-v3.11.1
-python/aio-wasmedge-v3.11.1:
-	WLR_BUILD_FLAVOR=aio-wasmedge \
-	make -C python $(subst python/aio-wasmedge-,,$@)
+$(eval $(call create_flavor_targets,python,v3.11.1,aio wasmedge aio-wasmedge))
+$(eval $(call create_flavor_targets,python,v3.11.3,aio wasmedge aio-wasmedge))
+$(eval $(call create_flavor_targets,python,v3.11.4,aio wasmedge aio-wasmedge))
 
 .PHONY: oci-python-3.11.1
 oci-python-3.11.1: python/v3.11.1
@@ -56,7 +41,7 @@ oci-python-3.11.1: python/v3.11.1
 		build-output
 
 .PHONY: oci-python-3.11.1-wasmedge
-oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
+oci-python-3.11.1-wasmedge: python/v3.11.1-wasmedge
 	docker build \
 	    --platform wasm32/wasi \
 		--build-arg NAME=python-wasm \
@@ -66,21 +51,6 @@ oci-python-3.11.1-wasmedge: python/wasmedge-v3.11.1
 		-t ghcr.io/vmware-labs/python-wasm:3.11.1-wasmedge \
 		-f images/python/Dockerfile \
 		build-output
-
-.PHONY: python/wasmedge-v3.11.4
-python/wasmedge-v3.11.4:
-	WLR_BUILD_FLAVOR=wasmedge \
-	make -C python $(subst python/wasmedge-,,$@)
-
-.PHONY: python/aio-v3.11.4
-python/aio-v3.11.4:
-	WLR_BUILD_FLAVOR=aio \
-	make -C python $(subst python/aio-,,$@)
-
-.PHONY: python/aio-wasmedge-v3.11.4
-python/aio-wasmedge-v3.11.4:
-	WLR_BUILD_FLAVOR=aio-wasmedge \
-	make -C python $(subst python/aio-wasmedge-,,$@)
 
 .PHONY: oci-python-3.11.4
 oci-python-3.11.4: python/v3.11.4
@@ -95,7 +65,7 @@ oci-python-3.11.4: python/v3.11.4
 		build-output
 
 .PHONY: oci-python-3.11.4-wasmedge
-oci-python-3.11.3-wasmedge: python/wasmedge-v3.11.4
+oci-python-3.11.4-wasmedge: python/v3.11.4-wasmedge
 	docker build \
 	    --platform wasi/wasm32 \
 		--build-arg NAME=python-wasm \

@@ -58,19 +58,26 @@ function wlr_dependencies_add {
     fi
 }
 
-function wlr_dependencies_import {
+function wlr_dependencies_load {
     local _DEPS_FILE=$1
+    if [[ ! -z "$2" ]]; then
+        local _BLD_FLAVOR=$2
+    fi
 
     if [ ! -f "${_DEPS_FILE}" ]; then
         echo "Missing dependencies file '${_DEPS_FILE}'"
         exit 1
     fi
 
-    for dependency in $(jq '.deps | keys | join(" ")' -r $_DEPS_FILE); do
+    if [[ -v _BLD_FLAVOR ]] && jq -e ".flavors | has(\"${_BLD_FLAVOR}\")" ${_DEPS_FILE}; then
+        local _JSON_ROOT_PATH=".flavors.\"${_BLD_FLAVOR}\""
+    fi
+
+    for dependency in $(jq "${_JSON_ROOT_PATH}.deps | keys | join(\" \")" -r ${_DEPS_FILE} 2>/dev/null); do
         local _NAME=$dependency
-        local _BUILD_TARGET=$(jq ".deps.${_NAME}.build_target" -r $_DEPS_FILE)
-        local _REQUIRED_FILE=$(jq ".deps.${_NAME}.required_file" -r $_DEPS_FILE)
-        local _URL=$(jq ".deps.${_NAME}.url" -r $_DEPS_FILE)
+        local _BUILD_TARGET=$(jq "${_JSON_ROOT_PATH}.deps.\"${_NAME}\".build_target" -r ${_DEPS_FILE})
+        local _REQUIRED_FILE=$(jq "${_JSON_ROOT_PATH}.deps.\"${_NAME}\".required_file" -r $_DEPS_FILE)
+        local _URL=$(jq "${_JSON_ROOT_PATH}.deps.\"${_NAME}\".url" -r ${_DEPS_FILE})
 
         if [ "${_URL}" = "null" ]; then
             unset _URL

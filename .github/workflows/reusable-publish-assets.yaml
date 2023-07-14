@@ -1,0 +1,66 @@
+# Used to publish release assets uploaded by a previous job (e.g.`reusable-build-runtime-flavor.yaml)`
+# Example
+# jobs:
+#   build-job:
+#     ...
+#     steps:
+#       - uses: actions/upload-artifact@v3
+#         with:
+#           name: php.zip
+#           ...
+#   publish:
+#     uses: ./.github/workflows/reusable-publish-assets.yaml
+#     needs: build-job
+#     with:
+#       target-name: "php"
+
+# Note: This workflow should be refactored into a custom GH action.
+# This will allow us to call it in job steps and have more flexibility.
+on:
+  workflow_call:
+    inputs:
+      target-name:
+        required: true
+        type: string
+jobs:
+  publish-release-assets:
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create --verify-tag ${{ github.ref_name }} || true
+      - name: Download ${{ inputs.target-name }} artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.target-name }}.zip
+          path: build-output
+      - name: List downloaded assets
+        run: |
+          ls -lrt -R build-output
+      - name: Append ${{ inputs.target-name }} release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          shopt -s nullglob
+          gh release upload ${{ github.ref_name }} build-output/*.{gz,wasm,txt}
+      - name: Generate release assets digests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          shopt -s nullglob
+          for asset in build-output/*.{gz,wasm}; do
+            sha256sum "${asset}" | sudo tee "${asset}.sha256sum" > /dev/null
+          done
+      - name: Append release assets digests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} build-output/*.sha256sum
+
+
