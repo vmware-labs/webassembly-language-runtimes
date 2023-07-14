@@ -28,9 +28,9 @@ fn main() {
 
 Here is a list of the pre-built `wasm32-wasi` static libraries:
 
- - [wasi-sysroot-19.0.tar.gz](https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-19/wasi-sysroot-19.0.tar.gz) provides some POSIX emulations
- - [libclang_rt.builtins-wasm32-wasi-19.0.tar.gz](https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-19/libclang_rt.builtins-wasm32-wasi-19.0.tar.gz) provides some built-ins which may be required by code built via clang (like the `libpython` that we publish)
- - [libpython-3.11.3-wasi-sdk-19.0.tar](https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.11.3%2B20230428-7d1b259/libpython-3.11.3-wasi-sdk-19.0.tar.gz) provides our pre-built version of `libpython`
+ - [wasi-sysroot-20.0.tar.gz](https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/wasi-sysroot-20.0.tar.gz) provides some POSIX emulations
+ - [libclang_rt.builtins-wasm32-wasi-20.0.tar.gz](https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/libclang_rt.builtins-wasm32-wasi-20.0.tar.gz) provides some built-ins which may be required by code built via clang (like the `libpython` that we publish)
+ - [libpython-3.11.4-wasi-sdk-20.0.tar](https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.11.4%2B20230714-11be424/libpython-3.11.4-wasi-sdk-20.0.tar.gz) provides our pre-built version of `libpython`
 
 ## py_main
 

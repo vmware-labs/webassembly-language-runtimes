@@ -14,7 +14,7 @@ mkdir -p ${TARGET_DIR}/deps 2>/dev/null
 if [ -f ${TARGET_DIR}/deps/include/python3.11/Python.h -a -f ${TARGET_DIR}/deps/lib/wasm32-wasi/libpython3.11.a ]; then
     echo "Dependencies already downloaded. Reusing..."
 else
-    curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.11.3%2B20230428-7d1b259/libpython-3.11.3-wasi-sdk-19.0.tar.gz | tar xzv -C ${TARGET_DIR}/deps
+    curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.11.4%2B20230714-11be424/libpython-3.11.4-wasi-sdk-20.0.tar.gz | tar xzv -C ${TARGET_DIR}/deps
 fi
 
 export FULL_TARGET_DIR=$(realpath ${TARGET_DIR})

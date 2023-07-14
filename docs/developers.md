@@ -133,9 +133,11 @@ This will create a tag like the following in your local repository: `php/8.1.11+
 
 When you push the tag to the remote repository, a GitHub release will be created automatically, and relevant artifacts will be automatically published to the release.
 
+Update the links to latest versions in [the main README.md](../README.md).
+
 **Note**: See [GH Actions](#gh-actions). In case of several release tags on the same commit, push them to github one by one. Otherwise the `release-*` GH actions will not be triggered!
 
-## Updating Wasi-Sdk version
+## Updating wasi-sdk version
 
  You will need ghcr.io credentials with rights to publish to `ghcr.io/vmware-labs/wasmlabs`!
 
