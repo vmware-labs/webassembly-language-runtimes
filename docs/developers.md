@@ -1,6 +1,4 @@
-This document is a work in progress.
-
-If it lacks some information that you needed, consider adding it via a PR.
+_Wasm Language Runtimes is evolving constantly so this is a live document. If you find any issue, typo or missing information, feel free to [open an issue](https://github.com/vmware-labs/webassembly-language-runtimes/issues/new/choose) or create a PR directly_
 
 # Terminology
 
