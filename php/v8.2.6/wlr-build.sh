@@ -115,7 +115,7 @@ WASM_OPT_ARGS=-O3
 # WASM_OPT_ARGS="${WASM_OPT_ARGS} --asyncify --pass-arg=asyncify-ignore-imports"
 
 PHP_CGI_TARGET="${WLR_OUTPUT}/bin/php-cgi-${WLR_PACKAGE_VERSION}${WLR_BUILD_FLAVOR:+-$WLR_BUILD_FLAVOR}.wasm"
-logStatus "Running wasm-opt with '${WASM_OPT_ARGS}' on php-cgi..."
+logStatus "Running wasm-opt with '${WASM_OPT_ARGS}' for ${PHP_CGI_TARGET}..."
 wasm-opt ${WASM_OPT_ARGS} -o "${PHP_CGI_TARGET}" sapi/cgi/php-cgi || exit 1
 
 if [[ "${WLR_BUILD_FLAVOR}" == *"wasmedge"* ]]
