@@ -4,7 +4,8 @@
 
 // #include <errno.h>
 
-// int accept_instrumented(int fd, struct sockaddr *restrict addr, socklen_t *restrict len) {
+// int accept_instrumented(int fd, struct sockaddr *restrict addr, socklen_t
+// *restrict len) {
 //   int new_sockfd;
 //   int res = __imported_wasmedge_wasi_snapshot_preview1_sock_accept(
 //       fd, (uint32_t *)&new_sockfd);
@@ -14,7 +15,6 @@
 //   }
 //   return new_sockfd;
 // }
-
 
 // // // ------------------
 // // #undef h_errno
