@@ -1,6 +1,8 @@
 #pragma once
 // Based on https://github.com/hangedfish/wasmedge_wasi_socket_c
 
+#include <netinet/in.h>
+
 struct addrinfo {
 	int ai_flags;
 	int ai_family;
@@ -51,6 +53,12 @@ struct addrinfo {
 #define NI_MAXHOST 255
 #define NI_MAXSERV 32
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct servent {
 	char *s_name;
 	char **s_aliases;
@@ -58,15 +66,20 @@ struct servent {
 	char *s_proto;
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct hostent {
+	char *h_name;
+	char **h_aliases;
+	int h_addrtype;
+	int h_length;
+	char **h_addr_list;
+};
+#define h_addr h_addr_list[0]
 
 struct servent *getservbyname (const char *, const char *);
 
 int getaddrinfo (const char *__restrict, const char *__restrict, const struct addrinfo *__restrict, struct addrinfo **__restrict);
 void freeaddrinfo (struct addrinfo *);
-// int getnameinfo (const struct sockaddr *__restrict, socklen_t, char *__restrict, socklen_t, char *__restrict, socklen_t, int);
+int getnameinfo (const struct sockaddr *__restrict addr, socklen_t addrlen, char *__restrict host, socklen_t hostlen, char *__restrict serv, socklen_t servlen, int flags);
 
 #ifdef __cplusplus
 }

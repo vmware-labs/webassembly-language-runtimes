@@ -180,10 +180,11 @@ int32_t __imported_wasmedge_wasi_snapshot_preview1_sock_setsockopt(
     uint32_t fd, int32_t level, int32_t name, int32_t *flag,
     uint32_t *flag_size)
     __attribute__((__import_module__("wasi_snapshot_preview1"),
-                   __import_name__("sock_getsockopt")));
+                   __import_name__("sock_setsockopt")));
 
 int socket(int domain, int type, int protocol)
 {
+  WSEDEBUG("WWSock| socket called: %d, %d, %d \n", domain, type, protocol);
   int fd;
   address_family_t af = (domain == AF_INET ? kInet4 : kInet6);
   socket_type_t st = (type == SOCK_STREAM ? kStream : kDatagram);
@@ -191,6 +192,7 @@ int socket(int domain, int type, int protocol)
   if (0 != res) {
     errno = res;
     printf("socket err: %s \n", strerror(errno));
+    WSEDEBUG("WWSock| socket failed with error: %s \n", strerror(errno));
     return -1;
   }
   WSEDEBUG("WWSock| socket returning: %d \n", fd);
@@ -206,7 +208,7 @@ int bind(int fd, const struct sockaddr *addr, socklen_t len)
 
   wasi_address_t wasi_addr;
   memset(&wasi_addr, 0, sizeof(wasi_address_t));
-  uint32_t port;
+  uint32_t port = 0;
   if (AF_INET == addr->sa_family) {
     struct sockaddr_in *sin = (struct sockaddr_in *)addr;
     wasi_addr.buf = (uint8_t *)&sin->sin_addr;
@@ -233,7 +235,7 @@ int bind(int fd, const struct sockaddr *addr, socklen_t len)
 
 int connect(int fd, const struct sockaddr *addr, socklen_t len) {
   WSEDEBUG("WWSock| connect[%d]: fd=%d, addr=%d, port=%d \n", __LINE__,
-          fd, ((struct sockaddr_in *)addr)->sin_addr.s_addr, ((struct sockaddr_in *)addr)->sin_port);
+           fd, ((struct sockaddr_in *)addr)->sin_addr.s_addr, ((struct sockaddr_in *)addr)->sin_port);
   wasi_address_t wasi_addr;
   memset(&wasi_addr, 0, sizeof(wasi_address_t));
   uint32_t port;
@@ -247,11 +249,15 @@ int connect(int fd, const struct sockaddr *addr, socklen_t len) {
     wasi_addr.buf = (uint8_t *)&sin->sin6_addr;
     wasi_addr.size = 16;
     port = ntohs(sin->sin6_port);
+  } else {
+    errno = EAFNOSUPPORT;
+    return -1;
   }
   int res = __imported_wasmedge_wasi_snapshot_preview1_sock_connect(
       fd, &wasi_addr, port);
   if (res != 0) {
     errno = res;
+    WSEDEBUG("WWSock| connect[%d]: fd=%d failed: wasi_error=%d, errno=%d \n", __LINE__, fd, res, errno);
     return -1;
   }
   return res;
@@ -271,8 +277,10 @@ int accept(int fd, struct sockaddr *restrict addr, socklen_t *restrict len) {
       fd, (uint32_t *)&new_sockfd);
   if (res != 0) {
     errno = res;
+    WSEDEBUG("WWSock| accept[%d]: failed=%d\n", __LINE__, errno);
     return -1;
   }
+  WSEDEBUG("WWSock| accept[%d]: client_fd=%d\n", __LINE__, new_sockfd);
   return new_sockfd;
 }
 
@@ -403,4 +411,11 @@ int getaddrinfo(const char *restrict host, const char *restrict serv,
 void freeaddrinfo(struct addrinfo *p) {
   WSEDEBUG("WWSock| freeaddrinfo[%d]: \n", __LINE__);
   free(p);
+}
+
+int getnameinfo(const struct sockaddr *__restrict addr, socklen_t addrlen, char *__restrict host, socklen_t hostlen, char *__restrict serv, socklen_t servlen, int flags)
+{
+  WSEDEBUG("WWSock| getnameinfo[%d]: \n", __LINE__);
+  // When lookup fails, software should use the IP address string as hostname
+  return EAI_FAIL;
 }
