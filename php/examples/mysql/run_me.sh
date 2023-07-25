@@ -19,6 +19,7 @@ export TEST_PASSWORD=test_password
 export MYSQL_CONTAINER_NAME=mysql-wlr-php-test
 export TEST_DB_PATH=$PWD/wlr-tmp/data
 export TEST_DB=test_db
+export PHP_VERSION=8.2.6
 
 demo_step Cleanup pre-existing data in "'${TEST_DB_PATH}'" and container "'${MYSQL_CONTAINER_NAME}'"
 docker stop ${MYSQL_CONTAINER_NAME}
@@ -76,11 +77,16 @@ docker exec ${MYSQL_CONTAINER_NAME} mysql -h 127.0.0.1 -P 3306 -u${TEST_USER} -p
 
 demo_step Build PHP if not available
 # TODO - download from github after release
-if [ ! -f ../../../build-output/php/v8.2.6-wasmedge/bin/php-wasmedge.wasm ];
+if [ ! -f ../../../build-output/php/php-${PHP_VERSION}-wasmedge/bin/php-${PHP_VERSION}-wasmedge.wasm ];
 then
-  (cd ../../..; WLR_BUILD_FLAVOR=wasmedge ./wlr-make.sh php/v8.2.6) || exit 1
+  (cd ../../..; WLR_BUILD_FLAVOR=wasmedge ./wlr-make.sh php/v${PHP_VERSION}) || exit 1
 fi
 
 demo_step Test mySQL with PHP.
 sleep 1
-wasmedge --dir /test:$(pwd) --env TEST_USER=${TEST_USER} --env TEST_PASSWORD=${TEST_PASSWORD} ../../../build-output/php/php-8.2.0-wasmedge/bin/php-wasmedge.wasm -f /test/test_mysql_pdo.php
+wasmedge \
+  --dir /test:$(pwd) \
+  --env TEST_USER=${TEST_USER} \
+  --env TEST_PASSWORD=${TEST_PASSWORD} \
+  ../../../build-output/php/php-${PHP_VERSION}-wasmedge/bin/php-${PHP_VERSION}-wasmedge.wasm \
+  -f /test/test_mysql_pdo.php
