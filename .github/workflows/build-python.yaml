@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         flavor: ["", "-wasmedge", "-aio", "-aio-wasmedge"]
-        version: ["3.11.3", "3.11.4"]
+        version: ["3.11.3", "3.11.4", "3.12.0"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
