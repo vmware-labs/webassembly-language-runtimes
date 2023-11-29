@@ -7,6 +7,7 @@ then
     unset WLR_ENV_NAME
     unset WLR_PACKAGE_VERSION
     unset WLR_PACKAGE_NAME
+    unset WLR_PY_BUILDER_VERSION
     return
 fi
 
@@ -15,3 +16,4 @@ export WLR_REPO_BRANCH=v3.11.3
 export WLR_ENV_NAME=python/v3.11.3
 export WLR_PACKAGE_VERSION=3.11.3
 export WLR_PACKAGE_NAME=python
+export WLR_PY_BUILDER_VERSION=3.11.4

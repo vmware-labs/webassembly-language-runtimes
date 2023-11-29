@@ -5,6 +5,7 @@ build-staging
 node_modules
 target
 .vscode/**
+.python-version
 *.log
 # Except this file
 !.gitignore

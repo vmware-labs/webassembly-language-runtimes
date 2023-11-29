@@ -6,6 +6,8 @@ then
     exit 1
 fi
 
+pyenv local ${WLR_PY_BUILDER_VERSION}
+
 cd "${WLR_SOURCE_PATH}"
 
 if [[ "${WLR_BUILD_FLAVOR}" == *"aio"* ]]
