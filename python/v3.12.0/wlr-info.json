@@ -1,0 +1,24 @@
+{
+    "deps": {
+        "libuuid": {
+            "build_target": "libs/libuuid/v1.0.3",
+            "required_file": "lib/wasm32-wasi/libuuid.a",
+            "url": "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Flibuuid%2F1.0.3%2B20230623-2993864/libuuid-1.0.3-wasi-sdk-20.0.tar.gz"
+        },
+        "zlib": {
+            "build_target": "libs/zlib/v1.2.13",
+            "required_file": "lib/wasm32-wasi/libz.a",
+            "url": "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fzlib%2F1.2.13%2B20230623-2993864/libz-1.2.13-wasi-sdk-20.0.tar.gz"
+        },
+        "SQLite": {
+            "build_target": "libs/sqlite/v3.42.0",
+            "required_file": "lib/wasm32-wasi/libsqlite3.a",
+            "url": "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fsqlite%2F3.42.0%2B20230623-2993864/libsqlite-3.42.0-wasi-sdk-20.0.tar.gz"
+        },
+        "bzip2": {
+            "build_target": "libs/bzip2/v1.0.8",
+            "required_file": "lib/wasm32-wasi/libbz2.a",
+            "url": "https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/libs%2Fbzip2%2F1.0.8%2B20230623-2993864/libbzip2-1.0.8-wasi-sdk-20.0.tar.gz"
+        }
+    }
+}

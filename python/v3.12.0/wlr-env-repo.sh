@@ -12,8 +12,8 @@ then
 fi
 
 export WLR_REPO=https://github.com/python/cpython
-export WLR_REPO_BRANCH=v3.11.1
-export WLR_ENV_NAME=python/v3.11.1
-export WLR_PACKAGE_VERSION=3.11.1
+export WLR_REPO_BRANCH=v3.12.0
+export WLR_ENV_NAME=python/v3.12.0
+export WLR_PACKAGE_VERSION=3.12.0
 export WLR_PACKAGE_NAME=python
-export WLR_PY_BUILDER_VERSION=3.11.4
+export WLR_PY_BUILDER_VERSION=3.12.0

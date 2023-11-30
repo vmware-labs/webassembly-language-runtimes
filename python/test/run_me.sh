@@ -10,7 +10,7 @@ TESTS=$(for t in */test.py; do echo $(dirname $t); done)
 
 status=0
 
-for test_dir in "$TESTS"; do
+for test_dir in ${TESTS}; do
     echo "Running test in '${test_dir}'..."
     if diff ${test_dir}/test.stdout <($WLR_TEST_RUNTIME \
             --mapdir /usr::${WLR_OUTPUT}/usr \
