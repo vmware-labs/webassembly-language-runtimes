@@ -1,12 +1,11 @@
 [package]
 name = "wlr-assets"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-flate2 = "1.0.26"
-openssl = "0.10.55"
-reqwest = { version = "0.11.18", features = ["blocking"] }
-tar = "0.4.38"
-bytes = "1.4.0"
-path-absolutize = "3.0.14"
+flate2 = "1.0.28"
+reqwest = { version = "0.11.22", default-features = false, features = ["blocking", "rustls-tls"] }
+tar = "0.4.40"
+bytes = "1.5.0"
+path-absolutize = "3.1.1"
