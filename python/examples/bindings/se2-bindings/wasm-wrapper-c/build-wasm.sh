@@ -11,10 +11,10 @@ if [[ "$1" == "--clean" ]]; then
 fi
 
 mkdir -p ${TARGET_DIR}/deps 2>/dev/null
-if [ -f ${TARGET_DIR}/deps/include/python3.11/Python.h -a -f ${TARGET_DIR}/deps/lib/wasm32-wasi/libpython3.11.a ]; then
+if [ -f ${TARGET_DIR}/deps/include/python3.12/Python.h -a -f ${TARGET_DIR}/deps/lib/wasm32-wasi/libpython3.12.a ]; then
     echo "Dependencies already downloaded. Reusing..."
 else
-    curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.11.4%2B20230714-11be424/libpython-3.11.4-wasi-sdk-20.0.tar.gz | tar xzv -C ${TARGET_DIR}/deps
+    curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.12.0%2B20231211-040d5a6/libpython-3.12.0-wasi-sdk-20.0.tar.gz | tar xzv -C ${TARGET_DIR}/deps
 fi
 
 export FULL_TARGET_DIR=$(realpath ${TARGET_DIR})
@@ -25,8 +25,8 @@ export PKG_CONFIG_PATH=""
 export PKG_CONFIG_SYSROOT_DIR=${FULL_TARGET_DIR}/deps
 export PKG_CONFIG_LIBDIR=${FULL_TARGET_DIR}/deps/lib/wasm32-wasi/pkgconfig
 
-# Note: The target/wasm32-wasi/deps/lib/wasm32-wasi/pkgconfig/libpython3.11.pc file
-# contains all additional link options for libpython3.11
+# Note: The target/wasm32-wasi/deps/lib/wasm32-wasi/pkgconfig/libpython3.12.pc file
+# contains all additional link options for libpython3.12
 #  "-Wl,-z,stack-size=524288 -Wl,--initial-memory=10485760 -Wl,--stack-first" for proper handling of stack overflows
 #  "-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks" for wasi-libc emulations
 

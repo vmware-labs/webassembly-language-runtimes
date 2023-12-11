@@ -17,7 +17,7 @@ add_executable(
 
 find_package(PkgConfig REQUIRED)
 
-pkg_search_module(LIBPYTHON REQUIRED IMPORTED_TARGET "libpython3.11>=3.11.0")
+pkg_search_module(LIBPYTHON REQUIRED IMPORTED_TARGET "libpython3.12>=3.12.0")
 
 include_directories(AFTER
     ${LIBPYTHON_INCLUDE_DIRS}
