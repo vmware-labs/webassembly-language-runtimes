@@ -77,6 +77,30 @@ oci-python-3.11.4-wasmedge: python/v3.11.4-wasmedge
 		-f images/python/Dockerfile \
 		build-output
 
+.PHONY: oci-python-3.12.0
+oci-python-3.12.0: python/v3.12.0
+	docker build \
+	    --platform wasi/wasm32 \
+		--build-arg NAME=python-wasm \
+		--build-arg SUMMARY="CPython built for WASI, by Wasm Labs" \
+		--build-arg ARTIFACTS_BASE_DIR=python/v3.12.0 \
+		--build-arg PYTHON_BINARY=python-3.12.0.wasm \
+		-t ghcr.io/vmware-labs/python-wasm:3.12.0 \
+		-f images/python/Dockerfile \
+		build-output
+
+.PHONY: oci-python-3.12.0-wasmedge
+oci-python-3.12.0-wasmedge: python/v3.12.0-wasmedge
+	docker build \
+	    --platform wasi/wasm32 \
+		--build-arg NAME=python-wasm \
+		--build-arg SUMMARY="CPython built for WASI+WasmEdge, by Wasm Labs" \
+		--build-arg ARTIFACTS_BASE_DIR=python/v3.12.0-wasmedge \
+		--build-arg PYTHON_BINARY=python-3.12.0.wasm \
+		-t ghcr.io/vmware-labs/python-wasm:3.12.0-wasmedge \
+		-f images/python/Dockerfile \
+		build-output
+
 LIBS := \
 	bzip2 \
 	icu \
