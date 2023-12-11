@@ -2,7 +2,7 @@
 
 Here you can find a list of basic things to try out with `python.wasm`.
 
-The latest release for version 3.11.1 is available at [python/3.11.1+20230217-15dfbed](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/python%2F3.11.1%2B20230217-15dfbed).
+The latest release for version 3.12.0 is available at [python/3.12.0+20231211-040d5a6](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/python%2F3.12.0%2B20231211-040d5a6).
 
 If you hate walls of text and just want to look at the sample commands, take a look at [run_all_snippets.sh](./run_all_snippets.sh). You could even run it (from this folder as PWD) to try and reproduce most of the examples below.
 
@@ -18,7 +18,7 @@ Naturally, you'll need some basic tools to handle the artifacts - curl, wget, ta
 
 Implementing pip for `python.wasm` is not universally possible, because WASI still does not offer full socket support. Downloading a package from the internet may not even work on some runtimes.
 
-But that is OK for most scenarios we are interested in, as `python.wasm` is likely to be used as a runtime in Cloud or Edge environments rather than a generic development platform. We will start by using a native python3.11 installation to setup a sample application. And then we will show how you can run it on `python.wasm`.
+But that is OK for most scenarios we are interested in, as `python.wasm` is likely to be used as a runtime in Cloud or Edge environments rather than a generic development platform. We will start by using a native python3.12 installation to setup a sample application. And then we will show how you can run it on `python.wasm`.
 
 ### A WASI-compatible runtime
 
@@ -32,9 +32,9 @@ To try the examples with Docker you will need "Docker Desktop" + Wasm [version 4
 
 If you take a look at the release assets, you will find a few flavors:
 
- - `python-3.11.1.wasm` - WASI compliant interpreter and standard libs wrapped within a single Wasm binary
- - `python-3.11.1-wasmedge.wasm` - WASI+WasmEdge compliant interpreter and standard libs wrapped within a single Wasm binary.
- - `python-3.11.1.tar.gz` - Both the WASI and WASI+WasmEdge interpreters as separate Wasm binaries. The standard libs are also available separately. All of these are within the same archive.
+ - `python-3.12.0.wasm` - WASI compliant interpreter and standard libs wrapped within a single Wasm binary
+ - `python-3.12.0-wasmedge.wasm` - WASI+WasmEdge compliant interpreter and standard libs wrapped within a single Wasm binary.
+ - `python-3.12.0.tar.gz` - Both the WASI and WASI+WasmEdge interpreters as separate Wasm binaries. The standard libs are also available separately. All of these are within the same archive.
 
  You would want to use the first two versions when convenience is the most important factor. You get a single binary and you don't have to manage how it uses the Python standard library. It all just works.
 
@@ -42,8 +42,8 @@ If you take a look at the release assets, you will find a few flavors:
 
  Additionally, you can use two flavors of a Docker image:
 
- - `ghcr.io/vmware-labs/python-wasm:3.11.3`, which can run on any WASI-compliant containerd runtime
- - `ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge`, which can run on the WasmEdge containerd runtime
+ - `ghcr.io/vmware-labs/python-wasm:3.12.0`, which can run on any WASI-compliant containerd runtime
+ - `ghcr.io/vmware-labs/python-wasm:3.12.0-wasmedge`, which can run on the WasmEdge containerd runtime
 
 # Setup
 
@@ -53,32 +53,35 @@ First, prepare a temporary folder and download the different flavors of `python.
 
 ```shell-session
 mkdir tmp
-wget https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.11.1%2B20230217-15dfbed/python-3.11.1.wasm -O tmp/python-3.11.1.wasm
-wget https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.11.1%2B20230217-15dfbed/python-3.11.1-wasmedge.wasm -O tmp/python-3.11.1-wasmedge.wasm
+wget https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.12.0%2B20231211-040d5a6/python-3.12.0.wasm -O tmp/python-3.12.0.wasm
+wget https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.12.0%2B20231211-040d5a6/python-3.12.0-wasmedge.wasm -O tmp/python-3.12.0-wasmedge.wasm
 
 mkdir tmp/unpacked
-curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.11.1%2B20230217-15dfbed/python-3.11.1.tar.gz | tar xzv -C tmp/unpacked
+curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.12.0%2B20231211-040d5a6/libpython-3.12.0-wasi-sdk-20.0.tar.gz | tar xzv -C tmp/unpacked
+mkdir tmp/unpacked-wasmedge
+curl -sL https://github.com/vmware-labs/webassembly-language-runtimes/releases/download/python%2F3.12.0%2B20231211-040d5a6/python-3.12.0-wasmedge-wasi-sdk-20.0.tar.gz | tar xzv -C tmp/unpacked-wasmedge
+
 ```
 
-Now, let's look into what we downloaded. The `python-3.11.1-wasmedge.wasm` and `python-3.11.1.wasm` binaries inside `tmp` can be used as standalone interpreters, as they embed the Python standard libraries.
+Now, let's look into what we downloaded. The `python-3.12.0-wasmedge.wasm` and `python-3.12.0.wasm` binaries inside `tmp` can be used as standalone interpreters, as they embed the Python standard libraries.
 
-The ones in `tmp/unpacked/bin`, however, will need the files from `tmp/unpacked/usr/local/lib` to work. These files include a `python311.zip` archive of the standard libraries, a placeholder `python3.11/lib-dynload` and a `python3.11/os.py`. The last two are not strictly necessary but if omitted will cause dependency warnings whenever Python runs.
+The ones in `tmp/unpacked/bin`, however, will need the files from `tmp/unpacked/usr/local/lib` to work. These files include a `python312.zip` archive of the standard libraries, a placeholder `python3.12/lib-dynload` and a `python3.12/os.py`. The last two are not strictly necessary but if omitted will cause dependency warnings whenever Python runs.
 
 ```shell-session
 tmp
-├── [ 12M]  python-3.11.1-wasmedge.wasm
-├── [ 19M]  python-3.11.1.wasm
+├── [ 12M]  python-3.12.0-wasmedge.wasm
+├── [ 19M]  python-3.12.0.wasm
 └── [4.0K]  unpacked
     ├── [4.0K]  bin
-    │   ├── [7.6M]  python-3.11.1-wasmedge.wasm
-    │   └── [ 14M]  python-3.11.1.wasm
+    │   ├── [7.6M]  python-3.12.0-wasmedge.wasm
+    │   └── [ 14M]  python-3.12.0.wasm
     └── [4.0K]  usr
         └── [4.0K]  local
             └── [4.0K]  lib
-                ├── [4.0K]  python3.11
+                ├── [4.0K]  python3.12
                 │   ├── [4.0K]  lib-dynload
                 │   └── [ 39K]  os.py
-                └── [3.9M]  python311.zip
+                └── [3.9M]  python312.zip
 ```
 
 # First time running python.wasm
@@ -87,13 +90,14 @@ Running the packed binaries is as easy as
 
 ```shell-session
 wasmtime run \
-  tmp/python-3.11.1.wasm \
+  tmp/python-3.12.0.wasm \
   -- -c "import sys; from pprint import pprint as pp; \
          pp(sys.path); pp(sys.platform)"
+
 ['',
- '/usr/local/lib/python311.zip',
- '/usr/local/lib/python3.11',
- '/usr/local/lib/python3.11/lib-dynload']
+ '/usr/local/lib/python312.zip',
+ '/usr/local/lib/python3.12',
+ '/usr/local/lib/python3.12/lib-dynload']
 'wasi'
 ```
 
@@ -102,14 +106,14 @@ To use the unpacked version we will need to pre-open the `usr/local/lib` folder 
 ```shell-session
 wasmtime run \
   --mapdir /::$PWD/tmp/unpacked/ \
-  tmp/unpacked/bin/python-3.11.1.wasm \
+  tmp/unpacked/bin/python-3.12.0.wasm \
   -- -c "import sys; from pprint import pprint as pp; \
          pp(sys.path); pp(sys.platform)"
 
 ['',
- '/usr/local/lib/python311.zip',
- '/usr/local/lib/python3.11',
- '/usr/local/lib/python3.11/lib-dynload']
+ '/usr/local/lib/python312.zip',
+ '/usr/local/lib/python3.12',
+ '/usr/local/lib/python3.12/lib-dynload']
 'wasi'
 ```
 
@@ -118,14 +122,14 @@ We could do the same with the WasmEdge-compliant binary (note the slight differe
 ```shell-session
 wasmedge \
   --dir /:$PWD/tmp/unpacked/ \
-  tmp/unpacked/bin/python-3.11.1-wasmedge.wasm \
+  tmp/unpacked-wasmedge/bin/python-3.12.0.wasm \
   -c "import sys; from pprint import pprint as pp; \
       pp(sys.path); pp(sys.platform)"
 
 ['',
- '/usr/local/lib/python311.zip',
- '/usr/local/lib/python3.11',
- '/usr/local/lib/python3.11/lib-dynload']
+ '/usr/local/lib/python312.zip',
+ '/usr/local/lib/python3.12',
+ '/usr/local/lib/python3.12/lib-dynload']
 'wasi'
 ```
 
@@ -134,9 +138,9 @@ wasmedge \
 If you want, you can play with the Python repl.
 
 ```shell-session
-wasmtime run tmp/unpacked/bin/python-3.11.1.wasm
+wasmtime run tmp/python-3.12.0.wasm
 
-Python 3.11.1 (tags/v3.11.1:a7a450f, Feb 17 2023, 12:59:00) ... on wasi
+Python 3.12.0 (tags/v3.12.0:0fb18b0, Dec 11 2023, 11:45:20) ... on wasi
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import sys
 >>>
@@ -144,7 +148,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 'wasi'
 >>>
 >>> sys.version_info
-sys.version_info(major=3, minor=11, micro=1, releaselevel='final', serial=0)
+sys.version_info(major=3, minor=12, micro=0, releaselevel='final', serial=0)
 ```
 
 ## Running an app with dependencies
@@ -153,12 +157,12 @@ Next, let's assume we have a Python app that has additional dependencies. For ex
 
 ### Installing dependencies to the pre-compiled PYTHONPATH
 
-To set up the dependencies we will need `pip3` (or `python3 -m pip`) on the development machine, to download and install the necessary dependencies. The most straightforward way of doing this is by running pip with `--target` pointing to the path that is already pre-compiled into the `python.wasm` binary. Namely, `usr/local/lib/python3.11/`
+To set up the dependencies we will need `pip3` (or `python3 -m pip`) on the development machine, to download and install the necessary dependencies. The most straightforward way of doing this is by running pip with `--target` pointing to the path that is already pre-compiled into the `python.wasm` binary. Namely, `usr/local/lib/python3.12/`
 
 However, we could use this approach only with the version where the Python interpreter is not packed with the standard libraries. In this case the host folder with the standard libraries (along with the extra dependencies that we installed) will be pre-opened to the proper location within the Wasm application at runtime.
 
 ```shell-session
-pip3 install emoji -t tmp/unpacked/usr/local/lib/python3.11/
+pip3 install emoji -t tmp/unpacked/usr/local/lib/python3.12/
 ```
 
 Now we can run our text _emojizer_. Taking a look at the sample source text.
@@ -177,7 +181,7 @@ We get this result from `emojize_text.py`
 wasmtime run \
   --mapdir /workdir::$PWD/workdir \
   --mapdir /::$PWD/tmp/unpacked  \
-  tmp/unpacked/bin/python-3.11.1.wasm  \
+  tmp/unpacked/bin/python-3.12.0.wasm  \
   -- \
   workdir/emojize_text.py workdir/source_text.txt
 
@@ -205,14 +209,14 @@ pip3 install emoji
 deactivate
 ```
 
-We will need to pre-open the folder with the venv modules (`tmp/venv-emoji/lib/python3.11/site-packages`) and add it to `PYTHONPATH` accordingly.
+We will need to pre-open the folder with the venv modules (`tmp/venv-emoji/lib/python3.12/site-packages`) and add it to `PYTHONPATH` accordingly.
 
 ```shell-session
 wasmtime \
   --env PYTHONPATH=/external-packages \
-  --mapdir /external-packages::$PWD/tmp/venv-emoji/lib/python3.11/site-packages \
+  --mapdir /external-packages::$PWD/tmp/venv-emoji/lib/python3.12/site-packages \
   --mapdir workdir::$PWD/workdir \
-  tmp/python-3.11.1.wasm \
+  tmp/python-3.12.0.wasm \
   -- \
   workdir/emojize_text.py workdir/source_text.txt
 
@@ -227,18 +231,18 @@ Passing an environment variable with WasmEdge is similar
 ```shell-session
 wasmedge \
   --env PYTHONPATH=/external-packages \
-  --dir /external-packages:$PWD/tmp/venv-emoji/lib/python3.11/site-packages \
+  --dir /external-packages:$PWD/tmp/venv-emoji/lib/python3.12/site-packages \
   --dir workdir:$PWD/workdir \
-  tmp/python-3.11.1-wasmedge.wasm \
+  tmp/python-3.12.0-wasmedge.wasm \
   workdir/emojize_text.py workdir/source_text.txt
 ...
 ```
 
 ## Running the Docker container
 
-Docker+WASM first came with the WasmEdge runtime. To leverage it we have packaged the `python-3.11.3-wasmedge.wasm` binary in a container image available as `ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge`.
+Docker+WASM first came with the WasmEdge runtime. To leverage it we have packaged the `python-3.12.0-wasmedge.wasm` binary in a container image available as `ghcr.io/vmware-labs/python-wasm:3.12.0-wasmedge`.
 
-In case you need a WASI-compliant container that can run on other containerd runtimes, just use the `ghcr.io/vmware-labs/python-wasm:3.11.3` image.
+In case you need a WASI-compliant container that can run on other containerd runtimes, just use the `ghcr.io/vmware-labs/python-wasm:3.12.0` image.
 
 Here is an example of running the Python repl from this container image. As you can see from the output of the interactive session, the container includes only `python.wasm` and the standard libraries from `usr`. No base OS images, no extra environment variables, or any other clutter.
 
@@ -247,10 +251,10 @@ docker run --rm \
   -i \
   --runtime=io.containerd.wasmedge.v1 \
   --platform=wasi/wasm32 \
-  ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
+  ghcr.io/vmware-labs/python-wasm:3.12.0-wasmedge \
   -i
 
-Python 3.11.1 (tags/v3.11.1:a7a450f, Feb 17 2023, 11:01:02) ...  on wasi
+Python 3.12.0 (tags/v3.12.0:0fb18b0, Dec 11 2023, 14:09:17) ...  on wasi
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import sys
 >>>
@@ -271,7 +275,7 @@ You can also run the Docker container to execute a one-liner like this.
 docker run --rm \
   --runtime=io.containerd.wasmedge.v1 \
   --platform=wasi/wasm32 \
-  ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
+  ghcr.io/vmware-labs/python-wasm:3.12.0-wasmedge \
   -c "import os; print([k for k in os.environ.keys()])"
 
 ['PATH', 'HOSTNAME']
@@ -293,11 +297,11 @@ One way of doing what we want is to just mount `site-packages` from `venv-emoji`
 
 ```shell-session
 docker run --rm \
-  -v $PWD/tmp/venv-emoji/lib/python3.11/site-packages:/usr/local/lib/python3.11/site-packages \
+  -v $PWD/tmp/venv-emoji/lib/python3.12/site-packages:/usr/local/lib/python3.12/site-packages \
   -v $PWD/workdir/:/workdir/ \
   --runtime=io.containerd.wasmedge.v1 \
   --platform=wasi/wasm32 \
-  ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge \
+  ghcr.io/vmware-labs/python-wasm:3.12.0-wasmedge \
   -- \
   workdir/emojize_text.py workdir/source_text.txt
 
@@ -315,12 +319,12 @@ Let's first create a Dockerfile that steps on `python-wasm` to package our emoji
 
 ```shell-session
 cat > tmp/Dockerfile.emojize <<EOF
-FROM ghcr.io/vmware-labs/python-wasm:3.11.3-wasmedge
+FROM ghcr.io/vmware-labs/python-wasm:3.12.0-wasmedge
 
 COPY tmp/venv-emoji/ /opt/venv-emoji/
 COPY workdir/emojize_text.py /opt
 
-ENV PYTHONPATH /opt/venv-emoji/lib/python3.11/site-packages
+ENV PYTHONPATH /opt/venv-emoji/lib/python3.12/site-packages
 
 ENTRYPOINT [ "python.wasm", "/opt/emojize_text.py" ]
 EOF

@@ -29,7 +29,7 @@ Here is a reference to the latest releases of all built projects.
 | Language runtime          | Latest release            |
 |---                        |---                        |
 | [php](./php/)             | [8.2.6](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/php%2F8.2.6%2B20230714-11be424)             |
-| [python](./python/)       | [3.11.4](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/python%2F3.11.4%2B20230714-11be424)        |
+| [python](./python/)       | [3.12.0](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/python%2F3.12.0%2B20231211-040d5a6)        |
 | [ruby](./ruby/)           | [3.2.2](https://github.com/vmware-labs/webassembly-language-runtimes/releases/tag/ruby%2F3.2.2%2B20230714-11be424)            |
 
 
