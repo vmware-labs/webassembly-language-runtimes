@@ -114,6 +114,7 @@ addlib ${WLR_DEPS_ROOT}/build-output/lib/wasm32-wasi/libsqlite3.a
 addlib ${WLR_DEPS_ROOT}/build-output/lib/wasm32-wasi/libuuid.a
 addlib Modules/expat/libexpat.a
 addlib Modules/_decimal/libmpdec/libmpdec.a
+addlib Modules/_hacl/libHacl_Hash_SHA2.a
 save
 end
 EOF
