@@ -1,6 +1,6 @@
 [package]
 name = "wlr-libpy"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
@@ -8,7 +8,10 @@ wlr-assets = { path = "../../../tools/wlr-assets", optional = true }
 
 [features]
 
-default = []
+py311 = []
+py312 = []
+
+default = ["py311"]
 
 build = ["dep:wlr-assets"]
 py_main = []
