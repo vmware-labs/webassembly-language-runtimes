@@ -4,6 +4,7 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
+fslock = "0.2.1"
 wlr-assets = { path = "../../../tools/wlr-assets", optional = true }
 
 [features]

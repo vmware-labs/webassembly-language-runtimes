@@ -48,6 +48,9 @@ pub fn configure_static_libs() -> Result<LibsConfig, BoxedError> {
     let mut libs_config = LibsConfig::new();
 
     let wasi_deps_path = find_deps_path();
+    std::fs::create_dir_all(&wasi_deps_path)?;
+    let mut lock = fslock::LockFile::open(&wasi_deps_path.join(".lock"))?;
+    lock.lock()?;
 
     download_asset(
         LIBPYTHON_CONF.wasi_sdk_sysroot_url,
