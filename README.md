@@ -1,3 +1,9 @@
+<br/>
+
+## ⚠️ This project will be archived soon. The development will continue as an independent community fork on: https://github.com/webassemblylabs/webassembly-language-runtimes
+
+<br/>
+
 # webassembly-language-runtimes
 
 WebAssembly Language Runtimes (or WLR for short) offers pre-built wasm32-wasi binaries for language runtimes and static builds of common open source libraries.
